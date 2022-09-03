@@ -353,9 +353,9 @@ if (!\function_exists('preloader')) {
     \setup_ffi_loader('ze', $php);
   }
 
-  function win_ffi_loader(): void
+  function win_ffi_loader(string $winFile = '.\\headers\\msvcrt.h'): void
   {
-    \setup_ffi_loader('win', '.\\headers\\msvcrt.h');
+    \setup_ffi_loader('win', $winFile);
   }
 
   function preloader(): void
