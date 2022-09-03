@@ -1,0 +1,51 @@
+{
+    "name": "symplely/zend-ffi",
+    "description": "Provides the base API for creating extensions, or modifying Zend/PHP internal core with FFI.",
+    "keywords": [
+        "ffi",
+        "c-type",
+        "cdata",
+        "api",
+        "zend-api",
+        "ext",
+        "extensions",
+        "zend-extension",
+        "php-extension",
+        "core"
+    ],
+    "homepage": "https://github.com/symplely/zend-ffi",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lawrence Stubbs",
+            "email": "lstubbs@techno.express"
+        }
+    ],
+    "require": {
+        "php": ">7.4",
+        "ext-ffi": "*"
+    },
+    "autoload": {
+        "files": [
+            "preload.php",
+            "zend/Functions.php"
+        ],
+        "psr-4": {
+            "ZE\\": "zend/Types/",
+            "": "zend/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --bootstrap vendor/autoload.php tests",
+        "post-create-project-cmd": [
+            "php .ignore_autoload.php",
+            "composer update -d .."
+        ]
+    }
+}

@@ -1,0 +1,6 @@
+ignore:
+  - "tests/."
+  - "vendor/."
+  - "examples/."
+  - ".cdef/."
+  - "headers/."

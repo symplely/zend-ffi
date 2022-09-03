@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php" backupGlobals="false" backupStaticAttributes="false" colors="true" convertErrorsToExceptions="true" convertNoticesToExceptions="true" convertWarningsToExceptions="true" stopOnFailure="false">
+
+    <testsuites>
+        <testsuite name="zend-ffi Test Suite">
+            <directory suffix=".phpt">tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">zend/</directory>
+            <exclude>
+                <directory suffix=".php">examples/</directory>
+                <directory suffix=".h">headers/</directory>
+                <file>headers/stubs/ze_ffi_stub.php</file>
+                <file>headers/stubs/win_ffi_stub.php</file>
+                <file>.ignore_autoload.php</file>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>
