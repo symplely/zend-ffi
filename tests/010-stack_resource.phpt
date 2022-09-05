@@ -3,7 +3,8 @@ Check for Stack Resource
 --SKIPIF--
 <?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
-require 'vendor/autoload.php';
+<?php
+require '../vendor/autoload.php';
 
 $file = fopen(__FILE__, 'r');
 
@@ -39,13 +40,13 @@ function get_stack_resource($file, $extra = null): void
 
     preg_match('/resource\(\d+\) of type \(([^)]+)\)/', $value, $matches);
     var_dump('persistent stream' === $matches[1]);
-    var_dump(is_typeof(ffi_object($zval),'struct _zval_struct'));
+    var_dump(is_typeof(ffi_object($zval), 'struct _zval_struct*'));
 }
 
 get_stack_resource($file, 'test');
 
 fclose($file);
---EXPECT--
+--EXPECTF--
 object(ZE\Zval)#%d (2) {
   ["type"]=>
   string(%d) "IS_RESOURCE"

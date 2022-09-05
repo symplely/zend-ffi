@@ -3,6 +3,7 @@ Check for Stack Closure
 --SKIPIF--
 <?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
+<?php
 require 'vendor/autoload.php';
 
 class Entry

@@ -3,6 +3,7 @@ Check for Stack Object
 --SKIPIF--
 <?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
+<?php
 require 'vendor/autoload.php';
 
 $instance = new \RuntimeException('Test');

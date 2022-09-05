@@ -3,6 +3,7 @@ Check for Stack Reference
 --SKIPIF--
 <?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
+<?php
 require 'vendor/autoload.php';
 
 $value     = 'some';
