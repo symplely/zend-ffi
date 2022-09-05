@@ -4,7 +4,9 @@ Provides the base **API** for creating _extensions_, or modifying `Zend/PHP` int
 
 It allows loading of shared libraries (`.dll` or `.so`), calling of **C functions** and accessing of **C type** data structures in pure `PHP`.
 
-This package breaks down the `Zend extension API` into _PHP classes_ getting direct access to all PHP internal actions. You can actually change PHP default behaviors. You will be able to get the behavior of [componere](http://docs.php.net/manual/en/intro.componere.php) extension with needing it.
+This package breaks down the `Zend extension API` into _PHP classes_ getting direct access to all PHP internal actions. You can actually change PHP default behaviors. You will be able to get the behavior of [componere](http://docs.php.net/manual/en/intro.componere.php) extension without needing it.
+
+Many routines here is a rewrite of [Z-Engine library](https://github.com/lisachenko/z-engine) package that use different terminology and setup structure. This package follow/keep PHP `C` source code style with a skeleton FFi installation process.
 
 There are many extensions on [Pecl](https://pecl.php.net/package-stats.php) that hasn't been updated.
 
