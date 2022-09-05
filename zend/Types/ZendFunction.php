@@ -7,7 +7,6 @@ namespace ZE;
 use FFI\CData;
 use ZE\Zval;
 use ZE\ZendOp;
-use ZE\ZendExecutor;
 use ZE\ZendClosure;
 
 if (!\class_exists('ZendFunction')) {

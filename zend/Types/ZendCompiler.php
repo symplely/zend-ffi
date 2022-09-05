@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace ZE;
 
-use ZE\Zval;
-use ZE\ZendExecutor;
-
 if (!\class_exists('ZendCompiler')) {
     final class ZendCompiler extends \ZE
     {

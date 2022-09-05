@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use FFI\CData;
 use FFI\CType;
-use ZE\ZendString;
+use ZE\PhpStream;
 
 if (!\defined('None'))
   \define('None', null);
@@ -64,7 +64,7 @@ if (!\defined('IS_PHP8'))
 if (!\defined('IS_PHP74'))
   \define('IS_PHP74', ((float) \phpversion() >= 7.4) && !\IS_PHP8);
 
-if (!\function_exists('preloader')) {
+if (!\function_exists('setup_ffi_loader')) {
   function ffi_cdef(string $code, string $lib = null): \FFI
   {
     if (!empty($lib)) {
@@ -75,27 +75,27 @@ if (!\function_exists('preloader')) {
   }
 
   /**
-   * @return php_stream|null
+   * @return php_stream
    */
-  function stream_stdout(): ?CData
+  function stream_stdout(): CData
   {
-    return Core::get_stdio(1)();
+    return \ffi_object(Core::get_stdio(1));
   }
 
   /**
-   * @return php_stream|null
+   * @return php_stream
    */
-  function stream_stdin(): ?CData
+  function stream_stdin(): CData
   {
-    return Core::get_stdio(0)();
+    return \ffi_object(Core::get_stdio(0));
   }
 
   /**
-   * @return php_stream|null
+   * @return php_stream
    */
-  function stream_stderr(): ?CData
+  function stream_stderr(): CData
   {
-    return Core::get_stdio(2)();
+    return \ffi_object(Core::get_stdio(2));
   }
 
   function zend_init(): void
@@ -178,7 +178,7 @@ if (!\function_exists('preloader')) {
   }
 
   /**
-   * Checks `instance` and returns the `CData` object within.
+   * Checks `instance` and returns the `CData` object within by _invoking_.
    *
    * @param object $handle
    * @return CData
@@ -186,10 +186,11 @@ if (!\function_exists('preloader')) {
   function ffi_object(object $handle): CData
   {
     $handler = $handle;
-    try {
-      if ($handle instanceof ZE || !\is_cdata($handle))
+    if ($handle instanceof ZE || !\is_cdata($handle)) {
+      try {
         $handler = $handle();
-    } catch (\Throwable $e) {
+      } catch (\Throwable $e) {
+      }
     }
 
     return $handler;
@@ -334,8 +335,6 @@ if (!\function_exists('preloader')) {
   }
 
   /**
-   * Undocumented function
-   *
    * @param string $tag name for a **FFI** `instance`
    * @param string $cdef_file C header file for `\FFI::load`
    * @return void
@@ -345,24 +344,14 @@ if (!\function_exists('preloader')) {
     Core::set($tag, \FFI::load($cdef_file));
   }
 
-  function ze_ffi_loader(): void
+  function zend_preloader(): void
   {
     $minor = \IS_PHP81 ? '1' : '';
     $os = \PHP_OS_FAMILY === 'Windows' ? '.\headers\zeWin' : './headers/ze';
     $php = $os . \PHP_MAJOR_VERSION . $minor . (\PHP_ZTS ? 'ts' : '') . '.h';
     \setup_ffi_loader('ze', $php);
-  }
-
-  function win_ffi_loader(string $winFile = '.\\headers\\msvcrt.h'): void
-  {
-    \setup_ffi_loader('win', $winFile);
-  }
-
-  function preloader(): void
-  {
-    Core::init_zend();
-    if (\file_exists('.' . \DS . 'zend.json')) {
-      $ext_list = \json_decode(\file_get_contents('.' . \DS . 'zend.json'), true);
+    if (\file_exists('.' . \DS . 'ffi_extension.json')) {
+      $ext_list = \json_decode(\file_get_contents('.' . \DS . 'ffi_extension.json'), true);
       $isDir = false;
       $iterator = [];
       $is_opcache_cli = \ini_get('opcache.enable_cli') === '1';
@@ -391,5 +380,10 @@ if (!\function_exists('preloader')) {
     }
   }
 
-  \preloader();
+  function win_ffi_loader(string $winFile = '.\\headers\\msvcrt.h'): void
+  {
+    \setup_ffi_loader('win', $winFile);
+  }
+
+  \zend_preloader();
 }

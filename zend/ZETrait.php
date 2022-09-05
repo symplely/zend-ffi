@@ -3,12 +3,7 @@
 declare(strict_types=1);
 
 use FFI\CData;
-use ZE\Zval;
-use ZE\Resource;
-use ZE\PhpStream;
-use ZE\ZendResource;
 use ZE\ZendExecutor;
-use ZE\ZendReference;
 
 if (!\trait_exists('ZETrait')) {
     trait ZETrait

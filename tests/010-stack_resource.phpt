@@ -39,6 +39,7 @@ function get_stack_resource($file, $extra = null): void
 
     preg_match('/resource\(\d+\) of type \(([^)]+)\)/', $value, $matches);
     var_dump('persistent stream' === $matches[1]);
+    var_dump(is_typeof(ffi_object($zval),'struct _zval_struct'));
 }
 
 get_stack_resource($file, 'test');
@@ -57,6 +58,7 @@ object(ZE\Zval)#%d (2) {
   ["value"]=>
   string(%d) "test"
 }
+bool(true)
 bool(true)
 bool(true)
 bool(true)

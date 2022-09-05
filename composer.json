@@ -45,7 +45,7 @@
         "test": "vendor/bin/phpunit --bootstrap vendor/autoload.php tests",
         "post-create-project-cmd": [
             "php .ignore_autoload.php",
-            "composer update -d .."
+            "composer update -d ."
         ]
     }
 }

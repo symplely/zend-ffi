@@ -10,12 +10,20 @@ There are many extensions on [Pecl](https://pecl.php.net/package-stats.php) that
 
 ## Installation
 
+_For normal standalone usage._
+
 ```shell
     composer require symplely/zend-ffi
 ```
 
+_To setup a skeleton for FFI integration._
+
+```shell
+    composer create-project symplely/zend-ffi .
+```
+
 `FFI` is enabled by default in `php.ini` since `PHP 7.4`, as to `OpCache`, they should not be changed unless already manually disabled.
-Only the `preload` section might need setting up.
+Only the `preload` section might need setting up if better performance is desired.
 
 ```ini
 [ffi]
@@ -26,23 +34,31 @@ Only the `preload` section might need setting up.
 ffi.enable="preload"
 
 ; List of headers files to preload, wildcard patterns allowed.
-ffi.preload=path/to/.cdef/preload.php
+ffi.preload=path/to/.cdef/ffi_preloader.php ; For simple integration with other FFI extensions
 ; Or
-ffi.preload=path/to/vendor/symplely/zend-ffi/preload.php
+ffi.preload=path/to/vendor/symplely/zend-ffi/preload.php ; For standalone usage
 
 zend_extension=opcache
 ```
 
+For a simple FFI integration process **create/edit**:
+
+- `ffi_extension.json`  each _package/library_ should list the files to preload, will be process by `ffi_preloader.php` script.
+- `.ignore_autoload.php` will be called/executed by `composer create-project package .cdef/foldername` event.
+- `.preload.php` for general common FFI functions to be used, change the `tag_changeMe` skeleton name.
+
 ```json
-{
-    "name": "",
-// Either
+// Skeleton for `ffi_extension.json` file
+{   // The same name to be used in `composer create-project package .cdef/foldername`
+    "name": "foldername",
+    // Either
     "preload": {
         "files": [
             "path/to/file.php",
+            "...",
             "..."
         ],
-// Or
+    // Or
         "directory": [
             "path/to/directory"
         ]

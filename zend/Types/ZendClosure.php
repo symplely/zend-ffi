@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ZE;
 
 use FFI\CData;
-use ZE\Zval;
 use ZE\ZendObject;
 use ZE\ZendString;
 use ZE\ZendExecutor;

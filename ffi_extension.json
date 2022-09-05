@@ -3,7 +3,6 @@
     "preload": {
         "files": [
             "zend/Core.php",
-            "preload.php",
             "zend/Functions.php",
             "zend/ZE.php",
             "zend/ZETrait.php",
@@ -26,7 +25,8 @@
             "zend/Types/ZendReference.php",
             "zend/Types/ZendResource.php",
             "zend/Types/ZendString.php",
-            "zend/Types/Zval.php"
+            "zend/Types/Zval.php",
+            "preload.php"
         ]
     }
 }

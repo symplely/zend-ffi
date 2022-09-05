@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace ZE;
 
 use FFI\CData;
-use ZE\Zval;
-use ZE\ZendExecutor;
+use ZE\ZendObject;
 
 if (!\class_exists('ZendObjectsStore')) {
     /**

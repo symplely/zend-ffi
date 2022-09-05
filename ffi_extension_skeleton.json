@@ -1,0 +1,8 @@
+{
+    "name": "changeMe",
+    "preload": {
+        "files": [
+            "preload.php"
+        ]
+    }
+}

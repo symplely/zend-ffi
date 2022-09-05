@@ -6,7 +6,6 @@ namespace ZE;
 
 use FFI\CData;
 use ZE\Zval;
-use ZE\ZendExecutor;
 
 if (!\class_exists('ZendResource')) {
     /**

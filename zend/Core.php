@@ -4,12 +4,7 @@ declare(strict_types=1);
 
 use FFI\CData;
 use FFI\CType;
-use ZE\Zval;
-use ZE\Resource;
 use ZE\PhpStream;
-use ZE\ZendResource;
-use ZE\ZendExecutor;
-use ZE\ZendReference;
 
 if (!\class_exists('Core')) {
 	final class Core
@@ -65,7 +60,7 @@ if (!\class_exists('Core')) {
 
 		public static function get(string $tag): ?\FFI
 		{
-			return self::$ffi[$tag];
+			return self::$ffi[$tag] ?? null;
 		}
 
 		public static function set(string $tag, ?\FFI $ffi): void
@@ -90,7 +85,7 @@ if (!\class_exists('Core')) {
 				try {
 					self::set('ze', \FFI::scope("__zend__"));
 				} catch (\Throwable $e) {
-					\ze_ffi_loader();
+					\zend_preloader();
 				}
 
 				if (!self::is_ze_ffi()) {
