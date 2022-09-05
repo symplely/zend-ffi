@@ -114,7 +114,7 @@ class Entry
         $rawObject = $thisValue->obj();
         var_dump(\is_cdata($rawObject) === true);
 
-        $object = zend_object($rawObject);
+        $object = zend_object_ex($rawObject);
         // Check that we have the same object by checking handle
         var_dump(spl_object_id($this) === $object->handle());
     }
@@ -148,7 +148,7 @@ class Entry
 
 $test = new Entry();
 $test->run();
---EXPECT--
+--EXPECTF--
 bool(true)
 bool(true)
 bool(true)

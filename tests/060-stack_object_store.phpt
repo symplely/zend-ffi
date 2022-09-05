@@ -27,7 +27,7 @@ class Entry
     public function getOffsetSet(): void
     {
         $id = spl_object_id($this);
-        $this->objectStore[$id] = zend_object($this);
+        $this->objectStore[$id] = $this;
     }
 
     public function getOffsetGet(): void
@@ -83,9 +83,10 @@ class Entry
 
 $test = new Entry();
 $test->run();
---EXPECT--
-PHP Warning:  Object store is read-only structure in %s
-PHP Warning:  Object store is read-only structure in %s
+--EXPECTF--
+Warning: Object store is read-only structure in %s
+
+Warning: Object store is read-only structure in %s
 bool(true)
 bool(true)
 bool(true)

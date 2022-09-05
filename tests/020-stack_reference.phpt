@@ -16,7 +16,7 @@ var_dump($refValue instanceof \ZE\Zval);
 
 $refValue->native_value($originalValue);
 var_dump($value === $originalValue);
---EXPECT--
+--EXPECTF--
 object(ZE\ZendReference)#%d (2) {
   ["refcount"]=>
   int(1)
@@ -25,7 +25,7 @@ object(ZE\ZendReference)#%d (2) {
     ["type"]=>
     string(%d) "IS_INTERNED_STRING_EX"
     ["value"]=>
-    string(%) "some"
+    string(%d) "some"
   }
 }
 bool(true)

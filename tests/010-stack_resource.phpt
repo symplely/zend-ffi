@@ -4,7 +4,7 @@ Check for Stack Resource
 <?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
 <?php
-require '../vendor/autoload.php';
+require 'vendor/autoload.php';
 
 $file = fopen(__FILE__, 'r');
 

@@ -224,7 +224,7 @@ class Entry
 
 $test = new Entry();
 $test->run();
---EXPECT--
+--EXPECTF--
 bool(true)
 bool(true)
 bool(true)
@@ -247,6 +247,8 @@ bool(true)
 bool(true)
 bool(true)
 bool(true)
+
+Deprecated: Function Tests\Dummy::method() is deprecated in %S
 bool(true)
 Given function signature: "function ()" should be compatible with original "function (): ?string"
 bool(true)

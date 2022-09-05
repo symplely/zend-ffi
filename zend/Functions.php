@@ -348,7 +348,12 @@ if (!\function_exists('zval_stack')) {
         return ZendReference::init($argument);
     }
 
-    function zend_object(CData $argument): ZendObject
+    function zend_object(object $argument): ZendObject
+    {
+        return ZendObject::init($argument);
+    }
+
+    function zend_object_ex(CData $argument): ZendObject
     {
         return ZendObject::init_value($argument);
     }
