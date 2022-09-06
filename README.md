@@ -46,9 +46,12 @@ zend_extension=opcache
 For a simple FFI integration process **create/edit**:
 
 - `ffi_extension.json`  each _package/library_ should list the files to preload, will be process by `ffi_preloader.php` script.
-- `.ignore_autoload.php` will be called/executed by `composer create-project package .cdef/foldername` event.
+- `.ignore_autoload.php` will be called/executed by `composer create-project your_package .cdef/foldername` event.
+  - This event is only called when your _package_ is installed by `composer create-project` command.
 - `.preload.php` for general common FFI functions to be used, change the `tag_changeMe` skeleton name.
-- `.github\workflows\*.yml` these GitHub Actions is designed for cross-compiling and committing the `binary` back to Repo, change `some_lib` and `some_repo` skeleton names.
+- `.github\workflows\*.yml` these GitHub Actions is designed for cross-compiling and committing the `binary` back to your **repo**, change `some_lib` and `some_repo` skeleton names.
+  - The idea of this is to make installation totally self-contained, the necessary third party library binary is bundled in.
+  - The CI build Actions is setup for manually runs only.
 
 ```json
 // Skeleton for `ffi_extension.json` file
