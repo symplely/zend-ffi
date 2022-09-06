@@ -1,0 +1,56 @@
+name: Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'What version to compile and commit to repo?'
+        required: true
+        default: 0.0.0
+        type: number
+
+jobs:
+  windows:
+    runs-on: windows-${{ matrix.config.server }}
+    continue-on-error: true
+    name: windows-${{ matrix.config.toolchain}}-${{ matrix.config.arch}}
+    env:
+      VERSION: ${{ github.event.inputs.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {toolchain: Visual Studio 16 2019, arch: x64, server: 2019}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Envinfo
+        run: npx envinfo
+      - name: Build
+        shell: cmd
+        run: |
+          curl -L https://github.com/some_repo/some_repo/archive/refs/tags/v${{ env.VERSION }}.zip --output some_repo.zip
+          unzip -xoq some_repo.zip
+          cd some_repo-${{ env.VERSION }}
+          mkdir -p build
+          cd build
+          cmake .. -DBUILD_TESTING=ON -G "${{ matrix.config.toolchain }}" -A ${{ matrix.config.arch }}
+          cmake --build .
+          dir Debug
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+      - name: Upload/Commit to Repo
+        shell: cmd
+        run: |
+          git pull
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          mkdir lib\Windows\
+          copy /Y some_repo-${{ env.VERSION }}\build\Debug\some_lib.dll lib\Windows\
+          git add lib
+          git commit -m "created some_lib.dll - for Windows x64"
+          git push -q
+          copy /Y some_repo-${{ env.VERSION }}\include\*.* headers\original
+          copy /Y some_repo-${{ env.VERSION }}\include\some_lib\*.* headers\original\some_lib\
+          git add headers
+          git commit -m "some_repo *.h headers"
+          git push -q

@@ -5,31 +5,28 @@ declare(strict_types=1);
 if (!\defined('DS'))
   \define('DS', \DIRECTORY_SEPARATOR);
 
+function recursiveDelete($directory, $options = [])
+{
+  if (!isset($options['traverseSymlinks']))
+    $options['traverseSymlinks'] = false;
+  $files = \array_diff(\scandir($directory), ['.', '..']);
+  foreach ($files as $file) {
+    $dirFile = $directory . \DS . $file;
+    if (\is_dir($dirFile)) {
+      if (!$options['traverseSymlinks'] && \is_link(\rtrim($file, \DS))) {
+        \unlink($dirFile);
+      } else {
+        \recursiveDelete($dirFile, $options);
+      }
+    } else {
+      \unlink($dirFile);
+    }
+  }
+
+  return \rmdir($directory);
+}
+
 $directory = '.' . \DS;
-if (\file_exists($directory . '.gitignore')) {
-  $ignore = \file_get_contents($directory . '.gitignore');
-  if (\strpos($ignore, '.cdef/') === false) {
-    $ignore .= '.cdef/' . \PHP_EOL;
-    \file_put_contents($directory . '.gitignore', $ignore);
-  }
-} else {
-  \file_put_contents($directory . '.gitignore', '.cdef' . \DS . \PHP_EOL);
-}
-
-print "- Initialized .gitignore" . \PHP_EOL;
-
-if (\file_exists($directory . '.gitattributes')) {
-  $export = \file_get_contents($directory . '.gitattributes');
-  if (\strpos($export, '/.cdef') === false) {
-    $export .= '/.cdef       export-ignore' . \PHP_EOL;
-    \file_put_contents($directory . '.gitattributes', $export);
-  }
-} else {
-  \file_put_contents($directory . '.gitattributes', '/.cdef       export-ignore' . \PHP_EOL);
-}
-
-print "- Initialized .gitattributes" . \PHP_EOL;
-
 $composerJson = [
   "name" => "/",
   "description" => "Some library as a FFI extension.",
@@ -86,6 +83,16 @@ print "- Initialized `autoload` & `require` composer.json" . \PHP_EOL;
 \unlink('ffi_extension.php');
 \rename('ffi_extension_skeleton.php', 'ffi_extension.php');
 
+\rename('.gitattributes.skeleton', '.gitattributes');
+\rename('.gitignore.skeleton', '.gitignore');
+\rename('.ci', '.github');
+
 \unlink('LICENSE');
-\unlink('README.md');
-\unlink('phpunit.xml.dist');
+
+\recursiveDelete('headers');
+\recursiveDelete('zend');
+
+\mkdir('headers');
+\mkdir('lib');
+\mkdir('src');
+\mkdir('tests');
