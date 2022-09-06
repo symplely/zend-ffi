@@ -8,6 +8,9 @@ if (!\function_exists('ffi_preloader')) {
 
   function ffi_preloader(): void
   {
+    if (!\function_exists('zend_preloader') || !\class_exists('Core'))
+      include_once '..' . \DS . 'vendor' . \DS . 'symplely' . \DS . 'zend-ffi' . \DS . 'preload.php';
+
     if (!\file_exists('.' . \DS . 'ffi_generated.json')) {
       $directories = \glob('*', \GLOB_ONLYDIR);
       $directory = $files = [];
@@ -64,9 +67,6 @@ if (!\function_exists('ffi_preloader')) {
         }
       }
     }
-
-    if (!\function_exists('zend_preloader') || !\class_exists('Core'))
-      include_once '..' . \DS . 'vendor' . \DS . 'symplely' . \DS . 'zend-ffi' . \DS . 'preload.php';
   }
 
   \ffi_preloader();

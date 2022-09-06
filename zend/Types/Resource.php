@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ZE;
 
+use FFI\CData;
 use ZE\Zval;
 
 if (!\class_exists('Resource')) {
@@ -120,6 +121,12 @@ if (!\class_exists('Resource')) {
             }
 
             $this->free();
+        }
+
+        /** @return int|CData */
+        public function __invoke($isZval = true)
+        {
+            return $this->ze_other_ptr;
         }
 
         public function add(Zval $zval, int $fd): self

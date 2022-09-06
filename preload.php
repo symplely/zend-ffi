@@ -347,7 +347,7 @@ if (!\function_exists('setup_ffi_loader')) {
   function zend_preloader(): void
   {
     $minor = \IS_PHP81 ? '1' : '';
-    $os = \PHP_OS_FAMILY === 'Windows' ? '.\headers\zeWin' : './headers/ze';
+    $os = __DIR__ . \DS . (\PHP_OS_FAMILY === 'Windows' ? 'headers\zeWin' : 'headers/ze');
     $php = $os . \PHP_MAJOR_VERSION . $minor . (\PHP_ZTS ? 'ts' : '') . '.h';
     \setup_ffi_loader('ze', $php);
     if (\file_exists('.' . \DS . 'ffi_extension.json')) {
@@ -382,6 +382,27 @@ if (!\function_exists('setup_ffi_loader')) {
 
   function win_ffi_loader(string $winFile = '.\\headers\\msvcrt.h'): void
   {
+    if (!(defined('STD_INPUT_HANDLE'))) {
+      /**
+       * The standard input device. Initially, this is the console input buffer.
+       */
+      \define('STD_INPUT_HANDLE', -10);
+    }
+
+    if (!(defined('STD_OUTPUT_HANDLE'))) {
+      /**
+       * The standard output device. Initially, this is the active console screen buffer.
+       */
+      \define('STD_OUTPUT_HANDLE', -11);
+    }
+
+    if (!(defined('STD_ERROR_HANDLE'))) {
+      /**
+       * The standard error device. Initially, this is the active console screen buffer.
+       */
+      \define('STD_ERROR_HANDLE', -12);
+    }
+
     \setup_ffi_loader('win', $winFile);
   }
 
