@@ -264,8 +264,7 @@ if (!\class_exists('PhpStream')) {
                         if (\is_cdata($stream->wrapper) && !\strcmp($stream->wrapper->wops->label, "plainfile")) {
                             $isFIFO = false;
                             if (!\IS_WINDOWS) {
-                                $stat = \fstat(\zval_native($ptr));
-                                $isFIFO = isset($stat['mode']) && (($stat['mode'] & \S_IFMT) == \S_IFIFO);
+                                $isFIFO = \S_ISFIFO(@\fstat(\zval_native($ptr)));
                             }
 
                             if (!$isFIFO) {
