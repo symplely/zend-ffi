@@ -29,6 +29,7 @@
     "autoload": {
         "files": [
             "preload.php",
+            "zend/Constants.php",
             "zend/Functions.php"
         ],
         "psr-4": {
