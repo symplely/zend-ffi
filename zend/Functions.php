@@ -402,8 +402,22 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
-     * Represents `ext-uv` _function_ `php_uv_zval_to_fd()`.
-     *
+     * @param resource $stream
+     * @return array<Zval|uv_file|int>
+     */
+    function zval_to_fd_pair($stream): array
+    {
+        $zval = Resource::get_fd((int)$stream, true);
+        $fd = $zval instanceof Zval ? Resource::get_fd((int)$stream, false, false, true) : null;
+        if (!\is_integer($fd)) {
+            $zval = Zval::constructor($stream);
+            $fd = PhpStream::zval_to_fd($zval, true);
+        }
+
+        return [$zval, $fd];
+    }
+
+    /**
      * @param resource $fd
      * @return int|uv_file `fd`
      */
@@ -432,13 +446,11 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
-     * Represents `ext-uv` _function_ `php_uv_zval_to_valid_poll_fd()`.
-     *
      * @param Zval $handle
-     * @return php_socket_t
+     * @return php_socket_t|int
      */
-    function socket_from(Zval $handle)
+    function get_socket_fd(Zval $handle, string $fd_type = 'php_socket_t')
     {
-        return PhpStream::zval_to_poll_fd($handle);
+        return PhpStream::zval_to_fd_select($handle, $fd_type);
     }
 }

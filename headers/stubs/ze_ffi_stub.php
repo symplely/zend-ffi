@@ -8,6 +8,12 @@ interface user_opcode_handler_t extends closure
 {
 }
 
+abstract class SOCKET extends int
+{
+}
+abstract class php_socket_t extends SOCKET
+{
+}
 abstract class uint64_t extends int
 {
 }

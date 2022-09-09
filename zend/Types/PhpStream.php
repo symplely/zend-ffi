@@ -145,8 +145,6 @@ if (!\class_exists('PhpStream')) {
         }
 
         /**
-         * Represents `ext-uv` _function_ `php_uv_zval_to_fd()`.
-         *
          * @param Zval $ptr
          * @return int|uv_file `fd`
          */
@@ -202,8 +200,6 @@ if (!\class_exists('PhpStream')) {
         }
 
         /**
-         * Represents `ext-uv` _macro_ `PHP_UV_CHECK_VALID_FD()`.
-         *
          * @param Zval $fd
          * @param Zval $stream
          * @return mixed
@@ -226,64 +222,74 @@ if (!\class_exists('PhpStream')) {
         }
 
         /**
-         * Represents `ext-uv` _function_ `php_uv_zval_to_valid_poll_fd()`.
-         *
          * @param Zval $ptr
-         * @return php_socket_t
+         * @return php_socket_t|int
          */
-        public static function zval_to_poll_fd(Zval $ptr)
+        public static function zval_to_fd_select(Zval $ptr, string $fd_type = 'php_socket_t')
         {
-            /*
-	php_socket_t fd = -1;
-	php_stream *stream;
+            $fd = -1;
+            // Validate Checks
+            if ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_RESOURCE) {
+                $handle = $ptr()->value->res->handle;
+                $zval_fd = Resource::get_fd($handle, true);
+                if ($zval_fd instanceof Zval) {
+                    $fd = Resource::get_fd($handle);
+                    return $fd[0];
+                }
 
-	/* Validate Checks
+                $zval_fd = \fd_type($fd_type);
+                $fd = $zval_fd();
+                $stream = \ze_ffi()->cast(
+                    'php_stream*',
+                    \ze_ffi()->zend_fetch_resource_ex($ptr(), null, \ze_ffi()->php_file_le_stream())
+                );
 
-#if !defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)) || PHP_VERSION_ID >= 80000
-	php_socket *socket;
-#endif
-	/* TODO: is this correct on windows platform?
-	if (Z_TYPE_P(ptr) == IS_RESOURCE) {
-		if ((stream = (php_stream *) zend_fetch_resource_ex(ptr, NULL, php_file_le_stream()))) {
-			/* make sure only valid resource streams are passed - plainfiles and most php streams are invalid
-			if (stream->wrapper && !strcmp((char *)stream->wrapper->wops->label, "PHP") && (!stream->orig_path || (strncmp(stream->orig_path, "php://std", sizeof("php://std") - 1) && strncmp(stream->orig_path, "php://fd", sizeof("php://fd") - 1)))) {
-				php_error_docref(NULL, E_WARNING, "invalid resource passed, this resource is not supported");
-				return -1;
-			}
+                if (\is_cdata($stream)) {
+                    /* make sure only valid resource streams are passed - plainfiles and most php streams are invalid */
+                    if (
+                        \is_cdata($stream->wrapper)
+                        && !\strcmp($stream->wrapper->wops->label, "PHP")
+                        && (!$stream->orig_path || (\strncmp($stream->orig_path, "php://std", \strlen("php://std"))
+                            && \strncmp($stream->orig_path, "php://fd", \strlen("php://fd"))))
+                    ) {
+                        \ze_ffi()->zend_error(\E_WARNING, "invalid resource passed, this resource is not supported");
+                        return -1;
+                    } elseif (\ze_ffi()->_php_stream_cast(
+                        $stream,
+                        /* Some streams (specifically STDIO and encrypted streams) can be cast to FDs */
+                        Resource::PHP_STREAM_AS_FD_FOR_SELECT | Resource::PHP_STREAM_CAST_INTERNAL,
+                        \ffi_void($fd),
+                        1
+                    ) == \ZE::SUCCESS && $fd >= 0) {
+                        if (\is_cdata($stream->wrapper) && !\strcmp($stream->wrapper->wops->label, "plainfile")) {
+                            $isFIFO = false;
+                            if (!\IS_WINDOWS) {
+                                $stat = \fstat(\zval_native($ptr));
+                                $isFIFO = isset($stat['mode']) && (($stat['mode'] & \S_IFMT) == \S_IFIFO);
+                            }
 
-			/* Some streams (specifically STDIO and encrypted streams) can be cast to FDs
-			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) == SUCCESS && fd >= 0) {
-				if (stream->wrapper && !strcmp((char *)stream->wrapper->wops->label, "plainfile")) {
-#ifndef PHP_WIN32
-					struct stat stat;
-					fstat(fd, &stat);
-					if (!S_ISFIFO(stat.st_mode))
-#endif
-					{
-						php_error_docref(NULL, E_WARNING, "invalid resource passed, this plain files are not supported");
-						return -1;
-					}
-				}
-				return fd;
-			}
+                            if (!$isFIFO) {
+                                \ze_ffi()->zend_error(\E_WARNING, "invalid resource passed, this plain files are not supported");
+                                $fd = -1;
+                            }
+                        }
+                    } else {
+                        $fd = -1;
+                    }
+                } else {
+                    \ze_ffi()->zend_error(\E_WARNING, "unhandled resource type detected.");
+                    $fd = -1;
+                }
+            }
 
-			fd = -1;
-#if PHP_VERSION_ID < 80000 && (!defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
-		} else if (php_sockets_le_socket_ptr && (socket = (php_socket *) zend_fetch_resource_ex(ptr, NULL, php_sockets_le_socket_ptr()))) {
-			fd = socket->bsd_socket;
-#endif
-		} else {
-			php_error_docref(NULL, E_WARNING, "unhandled resource type detected.");
-			fd = -1;
-		}
-#if PHP_VERSION_ID >= 80000 && (!defined(PHP_WIN32) || (defined(HAVE_SOCKETS) && !defined(COMPILE_DL_SOCKETS)))
-	} else if (socket_ce && Z_TYPE_P(ptr) == IS_OBJECT && Z_OBJCE_P(ptr) == socket_ce && (socket = (php_socket *) ((char *)(Z_OBJ_P(ptr)) - XtOffsetOf(php_socket, std)))) {
-		fd = socket->bsd_socket;
-#endif
-	}
+            if (\is_cdata($fd)) {
+                $zval_fd->add_pair($ptr, $fd[0], $handle);
+                return $fd[0];
+            } elseif ($fd === -1) {
+                unset($zval_fd);
+            }
 
-	return fd;
-*/
+            return $fd;
         }
     }
 }
