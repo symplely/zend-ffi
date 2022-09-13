@@ -99,6 +99,17 @@ if (!\function_exists('setup_ffi_loader')) {
     return \ffi_object(Core::get_stdio(2));
   }
 
+  /**
+   * Gets class name
+   *
+   * @param object $handle
+   * @return string
+   */
+  function reflect_object_name(object $handle): string
+  {
+    return (new \ReflectionObject($handle))->getName();
+  }
+
   function zend_init(): void
   {
     Core::init_zend();
