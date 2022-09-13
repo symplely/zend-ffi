@@ -7,6 +7,12 @@ use FFI\CData;
 if (!\defined('None'))
     \define('None', null);
 
+if (!\defined('INET_ADDRSTRLEN'))
+    \define('INET_ADDRSTRLEN', 22);
+
+if (!\defined('INET6_ADDRSTRLEN'))
+    \define('INET6_ADDRSTRLEN', 65);
+
 if (!\defined('DS'))
     \define('DS', \DIRECTORY_SEPARATOR);
 
