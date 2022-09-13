@@ -99,17 +99,6 @@ if (!\function_exists('setup_ffi_loader')) {
     return \ffi_object(Core::get_stdio(2));
   }
 
-  /**
-   * Gets class name
-   *
-   * @param object $handle
-   * @return string
-   */
-  function reflect_object_name(object $handle): string
-  {
-    return (new \ReflectionObject($handle))->getName();
-  }
-
   function zend_init(): void
   {
     Core::init_zend();
@@ -344,6 +333,50 @@ if (!\function_exists('setup_ffi_loader')) {
   function reflect_object_name(object $handle): string
   {
     return (new \ReflectionObject($handle))->getName();
+  }
+
+  /**
+   * converts the unsigned integer netlong from network byte order to host byte order.
+   *
+   * @param [type] $str
+   * @return int
+   */
+  function ntohl($str)
+  {
+    return \unpack('I', \pack('N', $str))[1];
+  }
+
+  /**
+   * converts the unsigned integer hostlong from host byte order to network byte order.
+   *
+   * @param [type] $str
+   * @return int
+   */
+  function htonl($str)
+  {
+    return \unpack('N', \pack('I', $str))[1];
+  }
+
+  /**
+   * converts the unsigned short integer netshort from network byte order to host byte order.
+   *
+   * @param [type] $str
+   * @return int
+   */
+  function ntohs($str)
+  {
+    return \unpack('S', \pack('n', $str))[1];
+  }
+
+  /**
+   * converts the unsigned short integer hostshort from host byte order to network byte order.
+   *
+   * @param [type] $str
+   * @return int
+   */
+  function htons($str)
+  {
+    return \unpack('n', \pack('S', $str))[1];
   }
 
   /**
