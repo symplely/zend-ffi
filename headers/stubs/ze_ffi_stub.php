@@ -17,6 +17,12 @@ abstract class php_socket_t extends SOCKET
 abstract class uint64_t extends int
 {
 }
+abstract class int32_t extends int
+{
+}
+abstract class int32_ptr extends FFI\CData
+{
+}
 abstract class int64_t extends int
 {
 }
