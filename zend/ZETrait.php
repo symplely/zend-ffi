@@ -184,14 +184,6 @@ if (!\trait_exists('ZETrait')) {
         public function is_variable(int $constant): bool
         {
             return (bool) ($this->gc()->gc->u->type_info & $constant);
-            /*switch ($constant) {
-  case ZE::IMMUTABLE:
-    return (bool) ($this->gc()->u->type_info & ZE::GC_IMMUTABLE);
-  case ZE::PERSISTENT:
-    return (bool) ($this->gc()->u->type_info & ZE::GC_PERSISTENT);
-  case ZE::PERSISTENT_LOCAL:
-    return (bool) ($this->gc()->u->type_info & ZE::GC_PERSISTENT_LOCAL);
-}*/
         }
     }
 }

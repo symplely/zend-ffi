@@ -1335,7 +1335,7 @@ typedef php_socket_t uv_file;
 typedef void	*PVOID;
 typedef PVOID	HANDLE;
 typedef HANDLE uv_os_fd_t;
-typedef struct {
+typedef struct _php_socket {
 	php_socket_t	bsd_socket;
 	int			type;
 	int			error;
@@ -1343,6 +1343,9 @@ typedef struct {
 	zval		zstream;
 	zend_object std;
 } php_socket;
+
+typedef signed int __int32_t;
+typedef __int32_t int32_t;
 
 typedef struct fd_set {
         u_int   fd_count;               /* how many are SET? */

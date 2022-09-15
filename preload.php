@@ -179,7 +179,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * Checks `instance` and returns the `CData` object within by _invoking_.
+   * Checks `handle` and returns the `CData` object _pointer_ within by _invoking_.
    *
    * @param object $handle
    * @return CData
@@ -187,12 +187,8 @@ if (!\function_exists('setup_ffi_loader')) {
   function ffi_object(object $handle): CData
   {
     $handler = $handle;
-    if ($handle instanceof ZE || !\is_cdata($handle)) {
-      try {
-        $handler = $handle();
-      } catch (\Throwable $e) {
-      }
-    }
+    if ($handle instanceof \ZE || $handle instanceof \CInteger || $handle instanceof \CStruct || !\is_cdata($handle))
+      $handler = $handle();
 
     return $handler;
   }
@@ -338,45 +334,55 @@ if (!\function_exists('setup_ffi_loader')) {
   /**
    * converts the unsigned integer netlong from network byte order to host byte order.
    *
-   * @param [type] $str
+   * @param mixed $str
    * @return int
    */
-  function ntohl($str)
+  function ntohl(...$str)
   {
-    return \unpack('I', \pack('N', $str))[1];
+    return \unpack('I', \pack('N', ...$str))[1];
   }
 
   /**
    * converts the unsigned integer hostlong from host byte order to network byte order.
    *
-   * @param [type] $str
+   * @param mixed $str
    * @return int
    */
-  function htonl($str)
+  function htonl(...$str)
   {
-    return \unpack('N', \pack('I', $str))[1];
+    return \unpack('N', \pack('I', ...$str))[1];
   }
 
   /**
    * converts the unsigned short integer netshort from network byte order to host byte order.
    *
-   * @param [type] $str
+   * @param mixed $str
    * @return int
    */
-  function ntohs($str)
+  function ntohs(...$str)
   {
-    return \unpack('S', \pack('n', $str))[1];
+    return \unpack('S', \pack('n', ...$str))[1];
   }
 
   /**
    * converts the unsigned short integer hostshort from host byte order to network byte order.
    *
-   * @param [type] $str
+   * @param mixed $str
    * @return int
    */
-  function htons($str)
+  function htons(...$str)
   {
-    return \unpack('n', \pack('S', $str))[1];
+    return \unpack('n', \pack('S', ...$str))[1];
+  }
+
+  function c_int_type(string $typedef, $value = null, string $ffi_instanceTag = 'ze'): \CInteger
+  {
+    return \CInteger::init($typedef, $value, $ffi_instanceTag);
+  }
+
+  function c_struct_type(string $typedef, array $values = null, string $ffi_instanceTag = 'ze'): \CStruct
+  {
+    return \CStruct::init($typedef, $values, $ffi_instanceTag);
   }
 
   /**
@@ -391,7 +397,7 @@ if (!\function_exists('setup_ffi_loader')) {
 
   function zend_preloader(): void
   {
-    $minor =  ((float) \phpversion() >= 8.1) ? '1' : '';
+    $minor = \IS_PHP81 ? '1' : '';
     $os = __DIR__ . \DS . (\PHP_OS_FAMILY === 'Windows' ? 'headers\zeWin' : 'headers/ze');
     $php = $os . \PHP_MAJOR_VERSION . $minor . (\PHP_ZTS ? 'ts' : '') . '.h';
     \setup_ffi_loader('ze', $php);

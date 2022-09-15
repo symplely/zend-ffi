@@ -2,8 +2,10 @@
     "name": "zend-ffi",
     "preload": {
         "files": [
+            "zend/CInteger.php",
             "zend/Constants.php",
             "zend/Core.php",
+            "zend/CStruct.php",
             "zend/Functions.php",
             "zend/ZE.php",
             "zend/ZETrait.php",

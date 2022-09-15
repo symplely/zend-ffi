@@ -191,18 +191,18 @@ class Entry
         $this->getClassConstantsExtendedClass();
         $this->getAddTraits();
         $this->getRemoveTraits();
-        $this->getAddInterfaces();
-        $this->getRemoveInterfaces();
-        $this->getAddRemoveInterfacesInternal();
         $this->getStartLine();
         $this->setEndLine();
         $this->getSetFileName();
+        $this->getAddInterfaces();
+        $this->getRemoveInterfaces();
+        $this->getAddRemoveInterfacesInternal();
     }
 }
 
 $test = new Entry();
 $test->run();
---EXPECT--
+--EXPECTF--
 bool(true)
 bool(true)
 bool(true)

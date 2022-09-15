@@ -1336,6 +1336,9 @@ typedef struct {
 	zend_object std;
 } php_socket;
 
+typedef signed int __int32_t;
+typedef __int32_t int32_t;
+
 int _php_stream_free(php_stream *stream, int close_options);
 php_stream *_php_stream_fopen_tmpfile(int dummy);
 php_stream *_php_stream_fopen_from_pipe(FILE *file, const char *mode, ...);
