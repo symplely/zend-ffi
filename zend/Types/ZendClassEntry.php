@@ -467,7 +467,7 @@ if (!\class_exists('ZendClassEntry')) {
             $isPersistent = $this->isInternal() || \PHP_SAPI !== 'cli';
             $memory = \ze_ffi()->new("zend_class_entry *[$numResultInterfaces]", false, $isPersistent);
 
-            $itemsSize = \FFI::sizeof($memory);
+            $itemsSize = \FFI::sizeof($memory[0]);
             if ($totalInterfaces > 0) {
                 \FFI::memcpy($memory, $this->ze_other_ptr->interfaces, $itemsSize * $totalInterfaces);
             }

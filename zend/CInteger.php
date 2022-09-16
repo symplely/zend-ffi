@@ -21,7 +21,7 @@ if (!\class_exists('CInteger')) {
             $this->tag = $tag;
             $this->cInt = \Core::get($tag)->new($numberType);
             $this->cInt_ptr = \ffi_ptr($this->cInt);
-            $this->cInt_ptr[0] = $initializer;
+            $this->cInt_ptr[0]->cdata = $initializer;
         }
 
         public function __invoke(): CData

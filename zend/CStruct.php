@@ -56,7 +56,7 @@ if (!\class_exists('CStruct')) {
 
         public function sizeof(): int
         {
-            return \FFI::sizeof($this->struct_ptr);
+            return \FFI::sizeof($this->struct_ptr[0]);
         }
 
         public function free(): void
