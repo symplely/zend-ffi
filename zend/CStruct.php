@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use FFI\CData;
+use FFI\CType;
 
 if (!\class_exists('CStruct')) {
     class CStruct
@@ -16,7 +17,7 @@ if (!\class_exists('CStruct')) {
             $this->free();
         }
 
-        protected function __construct(string $typedef, array $initializer = null, string $tag = 'ze')
+        protected function __construct(string $typedef, string $tag = 'ze', array $initializer = null)
         {
             $this->tag = $tag;
             $this->struct = \Core::get($tag)->new('struct ' . $typedef);
@@ -35,8 +36,18 @@ if (!\class_exists('CStruct')) {
         public function __debugInfo(): array
         {
             return [
-                'type' => \ffi_str_typeof($this->struct_ptr)
+                'type' => $this->__toString()
             ];
+        }
+
+        public function __toString(): string
+        {
+            return \ffi_str_typeof($this->struct_ptr);
+        }
+
+        public function alignof(): int
+        {
+            return \FFI::alignof($this->struct_ptr);
         }
 
         public function char(): CData
@@ -44,14 +55,23 @@ if (!\class_exists('CStruct')) {
             return \FFI::cast('char *', $this->struct_ptr);
         }
 
+        public function cast(string $typedef): CData
+        {
+            return \Core::get($this->tag)->cast($typedef, $this->struct_ptr);
+        }
+
         public function void(): CData
         {
             return \FFI::cast('void *', $this->struct_ptr);
         }
 
-        public function cast(string $typedef): CData
+        public function isNull(): bool
         {
-            return \Core::get($this->tag)->cast($typedef, $this->struct_ptr);
+            try {
+                return \FFI::isNull($this->struct_ptr);
+            } catch (\Throwable $e) {
+                return true;
+            }
         }
 
         public function sizeof(): int
@@ -59,9 +79,34 @@ if (!\class_exists('CStruct')) {
             return \FFI::sizeof($this->struct_ptr[0]);
         }
 
+        public function string(?int $size = null): string
+        {
+            return \FFI::string($this->struct_ptr, $size);
+        }
+
+        public function typeof(): CType
+        {
+            return \FFI::typeof($this->struct_ptr);
+        }
+
+        public function memcmp(CData $from_ptr, int $size): int
+        {
+            return \FFI::memcmp($this->struct_ptr, $from_ptr, $size);
+        }
+
+        public function memcpy(CData $from_ptr, int $size): void
+        {
+            \FFI::memcpy($this->struct_ptr, $from_ptr, $size);
+        }
+
+        public function memset(int $value, int $size): void
+        {
+            \FFI::memset($this->struct_ptr, $value, $size);
+        }
+
         public function free(): void
         {
-            if (\is_cdata($this->struct_ptr) && !\is_null_ptr($this->struct_ptr))
+            if (\is_cdata($this->struct_ptr) && !$this->isNull())
                 \FFI::free($this->struct_ptr);
 
             $this->struct_ptr = null;
@@ -69,9 +114,9 @@ if (!\class_exists('CStruct')) {
             $this->tag = '';
         }
 
-        public static function init(string $typedef, $initializer = null, $tag = 'ze')
+        public static function init(string $typedef, $tag = 'ze', $initializer = null)
         {
-            return new static(\str_replace('struct ', '', $typedef), $initializer, $tag);
+            return new static(\str_replace('struct ', '', $typedef), $tag, $initializer);
         }
     }
 }

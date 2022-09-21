@@ -64,6 +64,12 @@ if (!\class_exists('Zval')) {
      */
     final class Zval extends \ZE
     {
+        public function __destruct()
+        {
+            $this->ze_ptr = null;
+            //$this->ze = null;
+        }
+
         /**
          * Zval `value` constructor for a copy.
          *

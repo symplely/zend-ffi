@@ -101,7 +101,7 @@ if (!\function_exists('setup_ffi_loader')) {
 
   function zend_init(): void
   {
-    Core::init_zend();
+    \Core::init_zend();
   }
 
   /**
@@ -113,7 +113,7 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function zend_cast(string $typedef, $ptr): CData
   {
-    return Core::cast('ze', $typedef, \ffi_object($ptr));
+    return \Core::cast('ze', $typedef, \ffi_object($ptr));
   }
 
   /**
@@ -205,8 +205,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * This function returns the **string** of the `FFI\CType object`,
-   * representing the type of the given `FFI\CData object`.
+   * Returns the _CType_ **string** representing the `FFI\CData` object.
    *
    * @param CData $ptr
    * @return string
@@ -234,12 +233,12 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function ze_ffi(): \FFI
   {
-    return Core::get('ze');
+    return \Core::get('ze');
   }
 
   function win_ffi(): \FFI
   {
-    return Core::get('win');
+    return \Core::get('win');
   }
 
   /**
@@ -273,7 +272,7 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function is_null_ptr(object $ptr): bool
   {
-    return Core::is_null($ptr);
+    return \Core::is_null($ptr);
   }
 
   /**
@@ -283,7 +282,7 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function is_ze_ffi(): bool
   {
-    return Core::is_ze_ffi();
+    return \Core::is_ze_ffi();
   }
 
   /**
@@ -293,7 +292,7 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function is_win_ffi(): bool
   {
-    return Core::is_win_ffi();
+    return \Core::is_win_ffi();
   }
 
   /**
@@ -375,14 +374,14 @@ if (!\function_exists('setup_ffi_loader')) {
     return \unpack('n', \pack('S', ...$str))[1];
   }
 
-  function c_int_type(string $typedef, $value = null, string $ffi_instanceTag = 'ze'): \CInteger
+  function c_int_type(string $typedef, string $ffi_instanceTag = 'ze', $value = null): \CInteger
   {
-    return \CInteger::init($typedef, $value, $ffi_instanceTag);
+    return \CInteger::init($typedef, $ffi_instanceTag, $value);
   }
 
-  function c_struct_type(string $typedef, array $values = null, string $ffi_instanceTag = 'ze'): \CStruct
+  function c_struct_type(string $typedef, string $ffi_instanceTag = 'ze', array $values = null): \CStruct
   {
-    return \CStruct::init($typedef, $values, $ffi_instanceTag);
+    return \CStruct::init($typedef, $ffi_instanceTag, $values);
   }
 
   /**
@@ -392,7 +391,7 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function setup_ffi_loader(string $tag, string $cdef_file): void
   {
-    Core::set($tag, \FFI::load($cdef_file));
+    \Core::set($tag, \FFI::load($cdef_file));
   }
 
   function zend_preloader(): void

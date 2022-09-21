@@ -16,7 +16,7 @@ if (!\class_exists('CInteger')) {
             $this->free();
         }
 
-        protected function __construct(string $numberType, $initializer = null, string $tag = 'ze')
+        protected function __construct(string $numberType, string $tag = 'ze', $initializer = null)
         {
             $this->tag = $tag;
             $this->cInt = \Core::get($tag)->new($numberType);
@@ -57,9 +57,9 @@ if (!\class_exists('CInteger')) {
             $this->tag = '';
         }
 
-        public static function init(string $numberType, $initializer = null, $tag = 'ze')
+        public static function init(string $numberType, string $tag = 'ze', $initializer = null)
         {
-            return new static($numberType, $initializer, $tag);
+            return new static($numberType, $tag, $initializer);
         }
     }
 }
