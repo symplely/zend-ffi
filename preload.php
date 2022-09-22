@@ -374,14 +374,14 @@ if (!\function_exists('setup_ffi_loader')) {
     return \unpack('n', \pack('S', ...$str))[1];
   }
 
-  function c_int_type(string $typedef, string $ffi_instanceTag = 'ze', $value = null): \CInteger
+  function c_int_type(string $typedef, string $ffi_tag = 'ze', $value = null): \CInteger
   {
-    return \CInteger::init($typedef, $ffi_instanceTag, $value);
+    return \CInteger::init($typedef, $ffi_tag, $value);
   }
 
-  function c_struct_type(string $typedef, string $ffi_instanceTag = 'ze', array $values = null): \CStruct
+  function c_struct_type(string $typedef, string $ffi_tag = 'ze', array $values = null): \CStruct
   {
-    return \CStruct::init($typedef, $ffi_instanceTag, $values);
+    return \CStruct::init($typedef, $ffi_tag, $values);
   }
 
   /**

@@ -31,6 +31,11 @@ var_dump($cs->void());
 var_dump($cs->cast('zend_resource*'));
 var_dump((string)$cs);
 var_dump($cs);
+var_dump($cs->string());
+var_dump($cs->addr('bsd_socket'));
+var_dump($cs->type('zstream'));
+var_dump($cs->new());
+var_dump($cs->typeof());
 var_dump($cs->isNull());
 var_dump($cs->free());
 var_dump($cs->isNull());
@@ -83,6 +88,19 @@ string(19) "struct _php_socket*"
 object(CStruct)#%d (1) {
   ["type"]=>
   string(19) "struct _php_socket*"
+}
+string(0) ""
+object(FFI\CData:int32_t*)#%d (1) {
+  [0]=>
+  int(1)
+}
+object(FFI\CType:struct _zval_struct)#%d (0) {
+}
+object(CStruct)#%d (1) {
+  ["type"]=>
+  string(20) "struct _php_socket**"
+}
+object(FFI\CType:struct _php_socket*)#%d (0) {
 }
 bool(false)
 NULL
