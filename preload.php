@@ -187,7 +187,7 @@ if (!\function_exists('setup_ffi_loader')) {
   function ffi_object(object $handle): CData
   {
     $handler = $handle;
-    if ($handle instanceof \ZE || $handle instanceof \CInteger || $handle instanceof \CStruct || !\is_cdata($handle))
+    if ($handle instanceof \ZE || $handle instanceof \CStruct || !\is_cdata($handle))
       $handler = $handle();
 
     return $handler;
@@ -374,14 +374,19 @@ if (!\function_exists('setup_ffi_loader')) {
     return \unpack('n', \pack('S', ...$str))[1];
   }
 
-  function c_int_type(string $typedef, string $ffi_tag = 'ze', $value = null): \CInteger
+  function c_int_type(string $typedef, string $ffi_tag = 'ze', $value = null): \CStruct
   {
-    return \CInteger::init($typedef, $ffi_tag, $value);
+    return \CStruct::integer_init($typedef, $ffi_tag, $value);
   }
 
   function c_struct_type(string $typedef, string $ffi_tag = 'ze', array $values = null): \CStruct
   {
     return \CStruct::init($typedef, $ffi_tag, $values);
+  }
+
+  function c_array_type(string $typedef, string $ffi_tag = 'ze', int $size = 1): \CStruct
+  {
+    return \CStruct::array_init($typedef, $ffi_tag, $size);
   }
 
   /**

@@ -14,6 +14,8 @@ if (!\class_exists('CStruct')) {
     class CStruct
     {
         protected string $tag;
+        protected bool $isArray = false;
+        protected bool $isInteger = false;
         protected ?CData $struct = null;
         protected ?CData $struct_ptr = null;
 
@@ -26,15 +28,32 @@ if (!\class_exists('CStruct')) {
             $typedef,
             string $tag = 'ze',
             array $initializer = null,
-            bool $isSelf = false
+            bool $isSelf = false,
+            int $size = null,
+            bool $isInteger = false,
+            int $integer = null
         ) {
+
             $this->tag = $tag;
+            $this->isInteger = $isInteger;
             if (!$isSelf || \is_string($typedef)) {
-                $this->struct = \Core::get($tag)->new('struct ' . $typedef);
-                $this->struct_ptr = \FFI::addr($this->struct);
-                if (\is_array($initializer)) {
+                if (!\is_null($size))
+                    $this->struct = \Core::get($tag)->new($typedef . '[' . $size . ']');
+                elseif ($isInteger)
+                    $this->struct = \Core::get($tag)->new($typedef);
+                else
+                    $this->struct = \Core::get($tag)->new('struct ' . $typedef);
+
+                if (\is_null($size))
+                    $this->struct_ptr = \FFI::addr($this->struct);
+                else
+                    $this->isArray = true;
+
+                if (\is_array($initializer) && \is_null($size)) {
                     foreach ($initializer as $key => $value)
                         $this->struct_ptr->{$key} = $value;
+                } elseif (!\is_null($integer)) {
+                    $this->struct_ptr[0]->cdata = $integer;
                 }
             } else {
                 $this->struct = \Core::get($tag)->new($typedef);
@@ -43,6 +62,9 @@ if (!\class_exists('CStruct')) {
 
         public function __invoke(): CData
         {
+            if ($this->isArray)
+                return $this->struct;
+
             if (\is_null($this->struct_ptr))
                 $this->struct_ptr = \FFI::addr($this->struct);
 
@@ -51,9 +73,13 @@ if (!\class_exists('CStruct')) {
 
         public function __debugInfo(): array
         {
-            return [
-                'type' => $this->__toString()
-            ];
+            if ($this->isInteger)
+                return [
+                    'type' => $this->__toString(),
+                    'value' => $this->struct_ptr[0]
+                ];
+
+            return ['type' => $this->__toString()];
         }
 
         public function __toString(): string
@@ -216,7 +242,7 @@ if (!\class_exists('CStruct')) {
         }
 
         /**
-         * Fills the `$size` bytes of the memory area with the constant byte `$byte`.
+         * Fills the `$size` bytes of the memory area with the constant byte `$value`.
          *
          * @param integer $value
          * @param integer $size
@@ -238,6 +264,7 @@ if (!\class_exists('CStruct')) {
                 \FFI::free($this->struct_ptr);
 
             $this->struct_ptr = null;
+            $this->isArray = false;
             $this->struct = null;
             $this->tag = '';
         }
@@ -245,6 +272,16 @@ if (!\class_exists('CStruct')) {
         public static function init(string $typedef, string $ffi_tag = 'ze', array $initializer = null)
         {
             return new static(\str_replace('struct ', '', $typedef), $ffi_tag, $initializer);
+        }
+
+        public static function array_init(string $typedef, string $ffi_tag = 'ze', int $size = 1)
+        {
+            return new static($typedef, $ffi_tag, null, false, $size);
+        }
+
+        public static function integer_init(string $numberType, string $tag = 'ze', $value = null)
+        {
+            return new static($numberType, $tag, null, false, null, true, $value);
         }
     }
 }
