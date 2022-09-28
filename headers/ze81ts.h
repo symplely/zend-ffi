@@ -1627,3 +1627,9 @@ int php_request_startup(void);
 int php_execute_script(zend_file_handle *primary_file);
 void php_request_shutdown(void *dummy);
 */
+int ap_php_slprintf(char *buf, size_t len, const char *format, ...);
+int ap_php_vslprintf(char *buf, size_t len, const char *format, va_list ap);
+int ap_php_snprintf(char *, size_t, const char *, ...);
+int ap_php_vsnprintf(char *, size_t, const char *, va_list ap);
+int ap_php_vasprintf(char **buf, const char *format, va_list ap);
+int ap_php_asprintf(char **buf, const char *format, ...);

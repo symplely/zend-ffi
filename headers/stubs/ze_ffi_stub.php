@@ -35,6 +35,27 @@ abstract class HANDLE extends void_ptr
 abstract class char extends FFI\CData
 {
 }
+abstract class sockaddr_storage extends FFI\CData
+{
+}
+abstract class sockaddr_in extends sockaddr
+{
+}
+abstract class sockaddr_in6 extends sockaddr
+{
+}
+abstract class addrinfo extends FFI\CData
+{
+}
+abstract class int_ptr extends FFI\CData
+{
+}
+abstract class sockaddr extends FFI\CData
+{
+}
+abstract class va_list extends char
+{
+}
 abstract class const_char extends string
 {
 }
@@ -363,4 +384,22 @@ interface FFI
 
     /** @return void */
     public function zend_do_inheritance_ex(zend_class_entry &$ce, zend_class_entry &$parent_ce, zend_bool $checked);
+
+    /** @return int */
+    public function ap_php_slprintf(char &$buf, size_t $len, const_char &$format, ...$args);
+
+    /** @return int */
+    public function ap_php_vslprintf(char &$buf, size_t $len, const_char &$format, va_list $ap);
+
+    /** @return int */
+    public function ap_php_snprintf(char &$buf, size_t $len, const_char &$format, ...$args);
+
+    /** @return int */
+    public function ap_php_vsnprintf(char &$buf, size_t $len, const_char &$format, va_list $ap);
+
+    /** @return int */
+    public function ap_php_vasprintf(char &$buf, const_char &$format, va_list $ap);
+
+    /** @return int */
+    public function ap_php_asprintf(char &$buf, const_char &$format, ...$args);
 }
