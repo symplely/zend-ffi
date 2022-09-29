@@ -374,19 +374,19 @@ if (!\function_exists('setup_ffi_loader')) {
     return \unpack('n', \pack('S', ...$str))[1];
   }
 
-  function c_int_type(string $typedef, string $ffi_tag = 'ze', $value = null): \CStruct
+  function c_int_type(string $typedef, string $ffi_tag = 'ze', $value = null, bool $owned = true): \CStruct
   {
-    return \CStruct::integer_init($typedef, $ffi_tag, $value);
+    return \CStruct::integer_init($typedef, $ffi_tag, $value, $owned);
   }
 
-  function c_struct_type(string $typedef, string $ffi_tag = 'ze', array $values = null): \CStruct
+  function c_struct_type(string $typedef, string $ffi_tag = 'ze', array $values = null, bool $owned = true): \CStruct
   {
-    return \CStruct::init($typedef, $ffi_tag, $values);
+    return \CStruct::init($typedef, $ffi_tag, $values, $owned);
   }
 
-  function c_array_type(string $typedef, string $ffi_tag = 'ze', int $size = 1): \CStruct
+  function c_array_type(string $typedef, string $ffi_tag = 'ze', int $size = 1, bool $owned = true): \CStruct
   {
-    return \CStruct::array_init($typedef, $ffi_tag, $size);
+    return \CStruct::array_init($typedef, $ffi_tag, $size, $owned);
   }
 
   /**

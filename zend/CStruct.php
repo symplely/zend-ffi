@@ -31,18 +31,19 @@ if (!\class_exists('CStruct')) {
             bool $isSelf = false,
             int $size = null,
             bool $isInteger = false,
-            int $integer = null
+            int $integer = null,
+            bool $owned = true
         ) {
 
             $this->tag = $tag;
             $this->isInteger = $isInteger;
             if (!$isSelf || \is_string($typedef)) {
                 if (!\is_null($size))
-                    $this->struct = \Core::get($tag)->new($typedef . '[' . $size . ']');
+                    $this->struct = \Core::get($tag)->new($typedef . '[' . $size . ']', $owned);
                 elseif ($isInteger)
-                    $this->struct = \Core::get($tag)->new($typedef);
+                    $this->struct = \Core::get($tag)->new($typedef, $owned);
                 else
-                    $this->struct = \Core::get($tag)->new('struct ' . $typedef);
+                    $this->struct = \Core::get($tag)->new('struct ' . $typedef, $owned);
 
                 if (\is_null($size))
                     $this->struct_ptr = \FFI::addr($this->struct);
@@ -108,11 +109,12 @@ if (!\class_exists('CStruct')) {
          * Creates an `CStruct` from current _C data_ `field`.
          *
          * @param string|null $field
+         * @param bool $owned
          * @return static
          */
-        public function new(string $field = null): self
+        public function new(string $field = null, bool $owned = true): self
         {
-            return new static($this->type($field), $this->tag, null, true);
+            return new static($this->type($field), $this->tag, null, true, null, false, null, $owned);
         }
 
         /**
@@ -269,19 +271,19 @@ if (!\class_exists('CStruct')) {
             $this->tag = '';
         }
 
-        public static function init(string $typedef, string $ffi_tag = 'ze', array $initializer = null)
+        public static function init(string $typedef, string $ffi_tag = 'ze', array $initializer = null, bool $owned = true)
         {
-            return new static(\str_replace('struct ', '', $typedef), $ffi_tag, $initializer);
+            return new static(\str_replace('struct ', '', $typedef), $ffi_tag, $initializer, false, null, false, null, $owned);
         }
 
-        public static function array_init(string $typedef, string $ffi_tag = 'ze', int $size = 1)
+        public static function array_init(string $typedef, string $ffi_tag = 'ze', int $size = 1, bool $owned = true)
         {
-            return new static($typedef, $ffi_tag, null, false, $size);
+            return new static($typedef, $ffi_tag, null, false, $size, false, null, $owned);
         }
 
-        public static function integer_init(string $numberType, string $tag = 'ze', $value = null)
+        public static function integer_init(string $numberType, string $tag = 'ze', $value = null, bool $owned = true)
         {
-            return new static($numberType, $tag, null, false, null, true, $value);
+            return new static($numberType, $tag, null, false, null, true, $value, $owned);
         }
     }
 }
