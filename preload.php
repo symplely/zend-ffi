@@ -331,7 +331,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * converts the unsigned integer netlong from network byte order to host byte order.
+   * Converts the unsigned integer netlong from network byte order to host byte order.
    *
    * @param mixed $str
    * @return int
@@ -342,7 +342,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * converts the unsigned integer hostlong from host byte order to network byte order.
+   * Converts the unsigned integer hostlong from host byte order to network byte order.
    *
    * @param mixed $str
    * @return int
@@ -353,7 +353,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * converts the unsigned short integer netshort from network byte order to host byte order.
+   * Converts the unsigned short integer netshort from network byte order to host byte order.
    *
    * @param mixed $str
    * @return int
@@ -364,7 +364,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * converts the unsigned short integer hostshort from host byte order to network byte order.
+   * Converts the unsigned short integer hostshort from host byte order to network byte order.
    *
    * @param mixed $str
    * @return int
@@ -374,19 +374,64 @@ if (!\function_exists('setup_ffi_loader')) {
     return \unpack('n', \pack('S', ...$str))[1];
   }
 
-  function c_int_type(string $typedef, string $ffi_tag = 'ze', $value = null, bool $owned = true): \CStruct
-  {
-    return \CStruct::integer_init($typedef, $ffi_tag, $value, $owned);
+  /**
+   * Creates/return `C data` **int** base _typedef_, a generic `FFI` _CStruct_ class _instance_.
+   *
+   * @param string $typedef
+   * @param string $ffi_tag
+   * @param int $value
+   * @param boolean $owned
+   * @param boolean $persistent
+   * @return \CStruct
+   */
+  function c_int_type(
+    string $typedef,
+    string $ffi_tag = 'ze',
+    $value = null,
+    bool $owned = true,
+    bool $persistent = false
+  ): \CStruct {
+    return \CStruct::integer_init($typedef, $ffi_tag, $value, $owned, $persistent);
   }
 
-  function c_struct_type(string $typedef, string $ffi_tag = 'ze', array $values = null, bool $owned = true): \CStruct
-  {
-    return \CStruct::init($typedef, $ffi_tag, $values, $owned);
+  /**
+   * Creates/Return `C data` **struct** base _typedef_, a generic `FFI` _CStruct_ class _instance_.
+   *
+   * @param string $typedef
+   * @param string $ffi_tag
+   * @param array|null $values
+   * @param boolean $owned
+   * @param boolean $persistent
+   * @return \CStruct
+   */
+  function c_struct_type(
+    string $typedef,
+    string $ffi_tag = 'ze',
+    array $values = null,
+    bool $owned = true,
+    bool $persistent = false
+  ): \CStruct {
+    return \CStruct::init($typedef, $ffi_tag, $values, $owned, $persistent);
   }
 
-  function c_array_type(string $typedef, string $ffi_tag = 'ze', int $size = 1, bool $owned = true): \CStruct
-  {
-    return \CStruct::array_init($typedef, $ffi_tag, $size, $owned);
+  /**
+   * Creates/return `C data` **array** base _typedef_, a generic `FFI` _CStruct_ class _instance_.
+   *
+   * @param string $typedef
+   * @param string $ffi_tag
+   * @param integer $size
+   * @param boolean $owned
+   * @param boolean $persistent
+   * @return \CStruct
+   */
+  function c_array_type(
+    string $typedef,
+    string $ffi_tag = 'ze',
+    int $size = 1,
+    bool $owned = true,
+    bool $persistent = false
+  ): \CStruct {
+    return \CStruct::array_init($typedef, $ffi_tag, $size, $owned, $persistent);
   }
 
   /**

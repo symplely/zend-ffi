@@ -216,6 +216,9 @@ abstract class intptr_t extends long
 abstract class size_t extends uint32_t
 {
 }
+abstract class size_ptr extends \FFI\CData
+{
+}
 abstract class errno_t extends uint32_t
 {
 }

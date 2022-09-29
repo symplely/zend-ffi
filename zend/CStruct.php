@@ -32,18 +32,19 @@ if (!\class_exists('CStruct')) {
             int $size = null,
             bool $isInteger = false,
             int $integer = null,
-            bool $owned = true
+            bool $owned = true,
+            bool $persistent = false
         ) {
 
             $this->tag = $tag;
             $this->isInteger = $isInteger;
             if (!$isSelf || \is_string($typedef)) {
                 if (!\is_null($size))
-                    $this->struct = \Core::get($tag)->new($typedef . '[' . $size . ']', $owned);
+                    $this->struct = \Core::get($tag)->new($typedef . '[' . $size . ']', $owned, $persistent);
                 elseif ($isInteger)
-                    $this->struct = \Core::get($tag)->new($typedef, $owned);
+                    $this->struct = \Core::get($tag)->new($typedef, $owned, $persistent);
                 else
-                    $this->struct = \Core::get($tag)->new('struct ' . $typedef, $owned);
+                    $this->struct = \Core::get($tag)->new('struct ' . $typedef, $owned, $persistent);
 
                 if (\is_null($size))
                     $this->struct_ptr = \FFI::addr($this->struct);
@@ -85,8 +86,7 @@ if (!\class_exists('CStruct')) {
 
         public function __toString(): string
         {
-            $struct = $this->__invoke();
-            return \ffi_str_typeof($struct);
+            return \ffi_str_typeof($this->__invoke());
         }
 
         /**
@@ -112,9 +112,9 @@ if (!\class_exists('CStruct')) {
          * @param bool $owned
          * @return static
          */
-        public function new(string $field = null, bool $owned = true): self
+        public function new(string $field = null, bool $owned = true, bool $persistent = false): self
         {
-            return new static($this->type($field), $this->tag, null, true, null, false, null, $owned);
+            return new static($this->type($field), $this->tag, null, true, null, false, null, $owned, $persistent);
         }
 
         /**
@@ -124,7 +124,7 @@ if (!\class_exists('CStruct')) {
          */
         public function alignof(): int
         {
-            return \FFI::alignof($this->struct_ptr);
+            return \FFI::alignof($this->__invoke());
         }
 
         /**
@@ -134,7 +134,7 @@ if (!\class_exists('CStruct')) {
          */
         public function char(): CData
         {
-            return \FFI::cast('char *', $this->struct_ptr);
+            return \FFI::cast('char *', $this->__invoke());
         }
 
         /**
@@ -145,7 +145,7 @@ if (!\class_exists('CStruct')) {
          */
         public function cast(string $declaration): CData
         {
-            return \Core::get($this->tag)->cast($declaration, $this->struct_ptr);
+            return \Core::get($this->tag)->cast($declaration, $this->__invoke());
         }
 
         /**
@@ -155,7 +155,7 @@ if (!\class_exists('CStruct')) {
          */
         public function void(): CData
         {
-            return \FFI::cast('void *', $this->struct_ptr);
+            return \FFI::cast('void *', $this->__invoke());
         }
 
         /**
@@ -166,7 +166,7 @@ if (!\class_exists('CStruct')) {
         public function isNull(): bool
         {
             try {
-                return \FFI::isNull($this->struct_ptr);
+                return \FFI::isNull($this->__invoke());
             } catch (\Throwable $e) {
                 return true;
             }
@@ -179,7 +179,7 @@ if (!\class_exists('CStruct')) {
          */
         public function sizeof(): int
         {
-            return \FFI::sizeof($this->struct_ptr[0]);
+            return \FFI::sizeof($this->__invoke()[0]);
         }
 
         /**
@@ -191,7 +191,7 @@ if (!\class_exists('CStruct')) {
         public function string(?int $size = null): string
         {
             if ($this->__toString() === 'char*')
-                return \FFI::string($this->struct_ptr, $size);
+                return \FFI::string($this->__invoke(), $size);
 
             return '';
         }
@@ -203,7 +203,7 @@ if (!\class_exists('CStruct')) {
          */
         public function typeof(): CType
         {
-            return \FFI::typeof($this->struct_ptr);
+            return \FFI::typeof($this->__invoke());
         }
 
         /**
@@ -213,7 +213,7 @@ if (!\class_exists('CStruct')) {
          */
         public function type(string $field = null): CType
         {
-            $struct = \is_null($field) ? $this->struct_ptr : $this->struct_ptr->{$field};
+            $struct = \is_null($field) ? $this->__invoke() : $this->__invoke()->{$field};
             $type = \ffi_str_typeof($struct);
 
             return \Core::get($this->tag)->type($type);
@@ -228,7 +228,7 @@ if (!\class_exists('CStruct')) {
          */
         public function memcmp(CData $from_ptr, int $size): int
         {
-            return \FFI::memcmp($this->struct_ptr, $from_ptr, $size);
+            return \FFI::memcmp($this->__invoke(), $from_ptr, $size);
         }
 
         /**
@@ -240,7 +240,7 @@ if (!\class_exists('CStruct')) {
          */
         public function memcpy(CData $from_ptr, int $size): void
         {
-            \FFI::memcpy($this->struct_ptr, $from_ptr, $size);
+            \FFI::memcpy($this->__invoke(), $from_ptr, $size);
         }
 
         /**
@@ -252,7 +252,7 @@ if (!\class_exists('CStruct')) {
          */
         public function memset(int $value, int $size): void
         {
-            \FFI::memset($this->struct_ptr, $value, $size);
+            \FFI::memset($this->__invoke(), $value, $size);
         }
 
         /**
@@ -267,23 +267,24 @@ if (!\class_exists('CStruct')) {
 
             $this->struct_ptr = null;
             $this->isArray = false;
+            $this->isInteger = false;
             $this->struct = null;
             $this->tag = '';
         }
 
-        public static function init(string $typedef, string $ffi_tag = 'ze', array $initializer = null, bool $owned = true)
+        public static function init(string $typedef, string $ffi_tag = 'ze', array $initializer = null, bool $owned = true, bool $persistent = false)
         {
-            return new static(\str_replace('struct ', '', $typedef), $ffi_tag, $initializer, false, null, false, null, $owned);
+            return new static(\str_replace('struct ', '', $typedef), $ffi_tag, $initializer, false, null, false, null, $owned, $persistent);
         }
 
-        public static function array_init(string $typedef, string $ffi_tag = 'ze', int $size = 1, bool $owned = true)
+        public static function array_init(string $typedef, string $ffi_tag = 'ze', int $size = 1, bool $owned = true, bool $persistent = false)
         {
-            return new static($typedef, $ffi_tag, null, false, $size, false, null, $owned);
+            return new static(\str_replace(['[', ']'], '', $typedef), $ffi_tag, null, false, $size, false, null, $owned, $persistent);
         }
 
-        public static function integer_init(string $numberType, string $tag = 'ze', $value = null, bool $owned = true)
+        public static function integer_init(string $numberType, string $tag = 'ze', $value = null, bool $owned = true, bool $persistent = false)
         {
-            return new static($numberType, $tag, null, false, null, true, $value, $owned);
+            return new static($numberType, $tag, null, false, null, true, $value, $owned, $persistent);
         }
     }
 }
