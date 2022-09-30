@@ -77,6 +77,9 @@ abstract class zend_string extends FFI\CData
 abstract class Resource extends FFI\CData
 {
 }
+abstract class CStruct extends FFI\CData
+{
+}
 
 abstract class ZendString extends zend_string
 {
