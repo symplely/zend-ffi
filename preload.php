@@ -375,7 +375,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * Creates/return `C data` **int** base _typedef_, a generic `FFI` _CStruct_ class _instance_.
+   * Creates/returns `C data` **int** base _typedef_, a generic `FFI` _CStruct_ class _instance_.
    *
    * @param string $typedef
    * @param string $ffi_tag
@@ -395,7 +395,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * Creates/Return `C data` **struct** base _typedef_, a generic `FFI` _CStruct_ class _instance_.
+   * Creates/returns `C data` **struct** base _typedef_, a generic `FFI` _CStruct_ class _instance_.
    *
    * @param string $typedef
    * @param string $ffi_tag
@@ -411,7 +411,25 @@ if (!\function_exists('setup_ffi_loader')) {
     bool $owned = true,
     bool $persistent = false
   ): \CStruct {
-    return \CStruct::init($typedef, $ffi_tag, $values, $owned, $persistent);
+    return \CStruct::struct_init($typedef, $ffi_tag, $values, $owned, $persistent);
+  }
+
+  /**
+   * Creates/returns `C data` **type** _typedef_, a generic `FFI` _CStruct_ class _instance_.
+   *
+   * @param string $type
+   * @param string $ffi_tag
+   * @param boolean $owned
+   * @param boolean $persistent
+   * @return \CStruct
+   */
+  function c_typedef(
+    string $type,
+    string $ffi_tag = 'ze',
+    bool $owned = true,
+    bool $persistent = false
+  ): \CStruct {
+    return \CStruct::type_init($type, $ffi_tag, $owned, $persistent);
   }
 
   /**

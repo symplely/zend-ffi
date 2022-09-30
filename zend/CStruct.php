@@ -43,6 +43,8 @@ if (!\class_exists('CStruct')) {
                     $this->struct = \Core::get($tag)->new($typedef . '[' . $size . ']', $owned, $persistent);
                 elseif ($isInteger)
                     $this->struct = \Core::get($tag)->new($typedef, $owned, $persistent);
+                elseif (\is_null($size) && (\is_array($initializer) && \count($initializer) === 0) && $integer === 0)
+                    $this->struct = \Core::get($tag)->new($typedef, $owned, $persistent);
                 else
                     $this->struct = \Core::get($tag)->new('struct ' . $typedef, $owned, $persistent);
 
@@ -51,10 +53,10 @@ if (!\class_exists('CStruct')) {
                 else
                     $this->isArray = true;
 
-                if (\is_array($initializer) && \is_null($size)) {
+                if (\is_array($initializer) && \is_null($size) && \count($initializer) > 0) {
                     foreach ($initializer as $key => $value)
                         $this->struct_ptr->{$key} = $value;
-                } elseif (!\is_null($integer)) {
+                } elseif (!\is_null($integer) && $isInteger) {
                     $this->struct_ptr[0]->cdata = $integer;
                 }
             } else {
@@ -272,7 +274,7 @@ if (!\class_exists('CStruct')) {
             $this->tag = '';
         }
 
-        public static function init(string $typedef, string $ffi_tag = 'ze', array $initializer = null, bool $owned = true, bool $persistent = false)
+        public static function struct_init(string $typedef, string $ffi_tag = 'ze', array $initializer = null, bool $owned = true, bool $persistent = false)
         {
             return new static(\str_replace('struct ', '', $typedef), $ffi_tag, $initializer, false, null, false, null, $owned, $persistent);
         }
@@ -285,6 +287,11 @@ if (!\class_exists('CStruct')) {
         public static function integer_init(string $numberType, string $tag = 'ze', $value = null, bool $owned = true, bool $persistent = false)
         {
             return new static($numberType, $tag, null, false, null, true, $value, $owned, $persistent);
+        }
+
+        public static function type_init(string $type, string $tag = 'ze', bool $owned = true, bool $persistent = false)
+        {
+            return new static($type, $tag, [], false, null, false, 0, $owned, $persistent);
         }
     }
 }
