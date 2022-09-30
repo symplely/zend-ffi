@@ -1127,6 +1127,7 @@ void zend_ts_hash_destroy(TsHashTable *ht);
 void zend_ts_hash_clean(TsHashTable *ht);
 zval *zend_ts_hash_update(TsHashTable *ht, zend_string *key, zval *pData);
 zval *zend_ts_hash_add(TsHashTable *ht, zend_string *key, zval *pData);
+zval *zend_ts_hash_next_index_insert(TsHashTable *ht, zval *pData);
 
 int zend_set_user_opcode_handler(zend_uchar opcode, user_opcode_handler_t handler);
 user_opcode_handler_t zend_get_user_opcode_handler(zend_uchar opcode);

@@ -1377,6 +1377,7 @@ int zend_hash_del(HashTable *ht, zend_string *key);
 zval *zend_hash_find(const HashTable *ht, zend_string *key);
 zval *zend_hash_str_find(const HashTable *ht, const char *key, size_t len);
 zval *zend_hash_add_or_update(HashTable *ht, zend_string *key, zval *pData, uint32_t flag);
+zval *zend_hash_next_index_insert(HashTable *ht, zval *pData);
 
 void zend_object_std_init(zend_object *object, zend_class_entry *ce);
 zend_object *zend_objects_new(zend_class_entry *ce);

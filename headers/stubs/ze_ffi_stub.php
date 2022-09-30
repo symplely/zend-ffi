@@ -263,10 +263,16 @@ interface FFI
     public function zend_hash_add_or_update(HashTable &$ht, zend_string &$key, zval &$pData, uint32_t $flag);
 
     /** @return zval */
+    public function zend_hash_next_index_insert(HashTable &$ht, zval &$pData);
+
+    /** @return zval */
     public function zend_ts_hash_str_find(TsHashTable &$ht, const_char &$key, size_t $len);
 
     /** @return zval */
     public function zend_ts_hash_str_update(TsHashTable &$ht, const_char &$key, size_t $len, zval &$pData);
+
+    /** @return zval */
+    public function zend_ts_hash_next_index_insert(TsHashTable &$ht, zval &$pData);
 
     /** @return zval */
     public function zend_ts_hash_str_add(TsHashTable &$ht, const_char &$key, size_t $len, zval &$pData);
