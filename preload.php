@@ -99,7 +99,7 @@ if (!\function_exists('setup_ffi_loader')) {
     return \ffi_object(Core::get_stdio(2));
   }
 
-  function zend_init(): void
+  function ze_init(): void
   {
     \Core::init_zend();
   }
@@ -111,7 +111,7 @@ if (!\function_exists('setup_ffi_loader')) {
    * @param object $ptr
    * @return CData
    */
-  function zend_cast(string $typedef, $ptr): CData
+  function ze_cast(string $typedef, $ptr): CData
   {
     return \Core::cast('ze', $typedef, \ffi_object($ptr));
   }

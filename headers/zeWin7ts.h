@@ -951,13 +951,6 @@ typedef union
 } pthread_mutex_t;
 
 typedef pthread_mutex_t mutex_t;
-typedef struct _zend_ts_hashtable
-{
-	HashTable hash;
-	uint32_t reader;
-	pthread_mutex_t *mx_reader;
-	pthread_mutex_t *mx_writer;
-} TsHashTable;
 
 typedef struct _zend_executor_globals zend_executor_globals;
 
@@ -1115,7 +1108,206 @@ extern int executor_globals_id;
 extern size_t compiler_globals_offset;
 extern size_t executor_globals_offset;
 
+typedef unsigned long DWORD;
+typedef unsigned long int ULONG_PTR;
+typedef void *PVOID;
+typedef PVOID HANDLE;
+typedef long LONG;
+typedef unsigned short WORD;
+typedef int key_t;
+typedef PVOID PSID;
+
+typedef unsigned int __uid_t;
+typedef unsigned int __gid_t;
+typedef __uid_t uid_t;
+typedef __gid_t gid_t;
+typedef unsigned char u_char;
+typedef unsigned short u_short;
+typedef unsigned int u_int;
+typedef unsigned long u_long;
+typedef signed long int __int64;
+typedef __int64 UINT_PTR;
+typedef __int64 __time64_t;
+typedef __time64_t time_t;
+typedef UINT_PTR SOCKET;
+typedef SOCKET php_socket_t;
+typedef php_socket_t uv_file;
+typedef HANDLE uv_os_fd_t;
+
+typedef struct _LIST_ENTRY
+{
+	struct _LIST_ENTRY *Flink;
+	struct _LIST_ENTRY *Blink;
+} LIST_ENTRY, *PLIST_ENTRY;
+
+typedef struct _RTL_CRITICAL_SECTION_DEBUG
+{
+	WORD Type;
+	WORD CreatorBackTraceIndex;
+	struct _RTL_CRITICAL_SECTION *CriticalSection;
+	LIST_ENTRY ProcessLocksList;
+	DWORD EntryCount;
+	DWORD ContentionCount;
+	DWORD Flags;
+	WORD CreatorBackTraceIndexHigh;
+	WORD SpareWORD;
+} RTL_CRITICAL_SECTION_DEBUG, *PRTL_CRITICAL_SECTION_DEBUG;
+
+typedef struct _RTL_CRITICAL_SECTION
+{
+	PRTL_CRITICAL_SECTION_DEBUG DebugInfo;
+
+	//
+	//  The following three fields control entering and exiting the critical
+	//  section for the resource
+	//
+
+	LONG LockCount;
+	LONG RecursionCount;
+	HANDLE OwningThread; // from the thread's ClientId->UniqueThread
+	HANDLE LockSemaphore;
+	ULONG_PTR SpinCount; // force size on 64-bit systems when packed
+} RTL_CRITICAL_SECTION, *PRTL_CRITICAL_SECTION;
+
+typedef RTL_CRITICAL_SECTION CRITICAL_SECTION;
+
+typedef DWORD THREAD_T;
+typedef CRITICAL_SECTION *MUTEX_T;
+
+typedef void (*ts_allocate_ctor)(void *);
+typedef void (*ts_allocate_dtor)(void *);
+
+typedef intptr_t tsrm_intptr_t;
+typedef uintptr_t tsrm_uintptr_t;
+
+struct ipc_perm
+{
+	key_t key;
+	unsigned short uid;
+	unsigned short gid;
+	unsigned short cuid;
+	unsigned short cgid;
+	unsigned short mode;
+	unsigned short seq;
+};
+
+struct shmid_ds
+{
+	struct ipc_perm shm_perm;
+	size_t shm_segsz;
+	time_t shm_atime;
+	time_t shm_dtime;
+	time_t shm_ctime;
+	unsigned short shm_cpid;
+	unsigned short shm_lpid;
+	short shm_nattch;
+};
+
+typedef struct
+{
+	FILE *stream;
+	HANDLE prochnd;
+} process_pair;
+
+typedef struct
+{
+	void *addr;
+	HANDLE info;
+	HANDLE segment;
+	struct shmid_ds *descriptor;
+} shm_pair;
+
+typedef struct
+{
+	process_pair *process;
+	shm_pair *shm;
+	int process_size;
+	int shm_size;
+	char *comspec;
+	HANDLE impersonation_token;
+	PSID impersonation_token_sid;
+} tsrm_win32_globals;
+
+/* startup/shutdown */
+int tsrm_startup(int expected_threads, int expected_resources, int debug_level, char *debug_filename);
+void tsrm_shutdown(void);
+
+void tsrm_win32_startup(void);
+void tsrm_win32_shutdown(void);
+
+/* environ lock API */
+void tsrm_env_lock(void);
+void tsrm_env_unlock(void);
+
+/* allocates a new thread-safe-resource id */
+ts_rsrc_id ts_allocate_id(ts_rsrc_id *rsrc_id, size_t size, ts_allocate_ctor ctor, ts_allocate_dtor dtor);
+
+/* Fast resource in reserved (pre-allocated) space */
+void tsrm_reserve(size_t size);
+ts_rsrc_id ts_allocate_fast_id(ts_rsrc_id *rsrc_id, size_t *offset, size_t size, ts_allocate_ctor ctor, ts_allocate_dtor dtor);
+
+/* fetches the requested resource for the current thread */
+void *ts_resource_ex(ts_rsrc_id id, THREAD_T *th_id);
+// #define ts_resource(id) ts_resource_ex(id, NULL)
+
+/* frees all resources allocated for the current thread */
+void ts_free_thread(void);
+
+/* deallocates all occurrences of a given id */
+void ts_free_id(ts_rsrc_id id);
+
+/* Debug support */
+//#define TSRM_ERROR_LEVEL_ERROR 1
+//#define TSRM_ERROR_LEVEL_CORE 2
+//#define TSRM_ERROR_LEVEL_INFO 3
+
+typedef void (*tsrm_thread_begin_func_t)(THREAD_T thread_id);
+typedef void (*tsrm_thread_end_func_t)(THREAD_T thread_id);
+typedef void (*tsrm_shutdown_func_t)(void);
+
+/* Debug support */
+void tsrm_error_set(int level, char *debug_filename);
+
+/* utility functions */
+THREAD_T tsrm_thread_id(void);
+MUTEX_T tsrm_mutex_alloc(void);
+void tsrm_mutex_free(MUTEX_T mutexp);
+int tsrm_mutex_lock(MUTEX_T mutexp);
+int tsrm_mutex_unlock(MUTEX_T mutexp);
+
+void *tsrm_set_new_thread_begin_handler(tsrm_thread_begin_func_t new_thread_begin_handler);
+void *tsrm_set_new_thread_end_handler(tsrm_thread_end_func_t new_thread_end_handler);
+void *tsrm_set_shutdown_handler(tsrm_shutdown_func_t shutdown_handler);
+
+/* these 3 APIs should only be used by people that fully understand the threading model
+ * used by PHP/Zend and the selected SAPI. */
+void *tsrm_new_interpreter_context(void);
+void *tsrm_set_interpreter_context(void *new_ctx);
+void tsrm_free_interpreter_context(void *context);
+
 void *tsrm_get_ls_cache(void);
+uint8_t tsrm_is_main_thread(void);
+uint8_t tsrm_is_shutdown(void);
+const char *tsrm_api_name(void);
+
+typedef struct _tsrm_tls_entry tsrm_tls_entry;
+
+struct _tsrm_tls_entry
+{
+	void **storage;
+	int count;
+	THREAD_T thread_id;
+	tsrm_tls_entry *next;
+};
+
+typedef struct
+{
+	size_t size;
+	ts_allocate_ctor ctor;
+	ts_allocate_dtor dtor;
+	size_t fast_offset;
+	int done;
+} tsrm_resource_type;
 
 typedef int (*user_opcode_handler_t)(zend_execute_data *execute_data);
 typedef void (*opcode_handler_t)(void);
@@ -1133,17 +1325,25 @@ void *zend_fetch_resource2(zend_resource *res, const char *resource_type_name, i
 void *zend_fetch_resource_ex(zval *res, const char *resource_type_name, int resource_type);
 void *zend_fetch_resource2_ex(zval *res, const char *resource_type_name, int resource_type, int resource_type2);
 
-zval *zend_ts_hash_str_find(TsHashTable *ht, const char *key, size_t len);
-zval *zend_ts_hash_str_update(TsHashTable *ht, const char *key, size_t len, zval *pData);
-zval *zend_ts_hash_str_add(TsHashTable *ht, const char *key, size_t len, zval *pData);
-zval *zend_ts_hash_find(TsHashTable *ht, zend_string *key);
-zend_result zend_ts_hash_del(TsHashTable *ht, zend_string *key);
-zval *zend_ts_hash_index_find(TsHashTable *ht, zend_ulong);
-void zend_ts_hash_destroy(TsHashTable *ht);
-void zend_ts_hash_clean(TsHashTable *ht);
-zval *zend_ts_hash_update(TsHashTable *ht, zend_string *key, zval *pData);
-zval *zend_ts_hash_add(TsHashTable *ht, zend_string *key, zval *pData);
-zval *zend_ts_hash_next_index_insert(TsHashTable *ht, zval *pData);
+__declspec(dllimport) HashTable *__vectorcall _zend_new_array(uint32_t size);
+__declspec(dllimport) uint32_t zend_array_count(HashTable *ht);
+__declspec(dllimport) HashTable *__vectorcall zend_new_pair(zval *val1, zval *val2);
+void add_assoc_long_ex(zval *arg, const char *key, size_t key_len, zend_long n);
+void add_assoc_null_ex(zval *arg, const char *key, size_t key_len);
+void add_assoc_bool_ex(zval *arg, const char *key, size_t key_len, bool b);
+void add_assoc_resource_ex(zval *arg, const char *key, size_t key_len, zend_resource *r);
+void add_assoc_double_ex(zval *arg, const char *key, size_t key_len, double d);
+void add_assoc_str_ex(zval *arg, const char *key, size_t key_len, zend_string *str);
+void add_assoc_string_ex(zval *arg, const char *key, size_t key_len, const char *str);
+void add_assoc_stringl_ex(zval *arg, const char *key, size_t key_len, const char *str, size_t length);
+void add_assoc_zval_ex(zval *arg, const char *key, size_t key_len, zval *value);
+zend_result add_next_index_string(zval *arg, const char *str);
+
+__declspec(dllimport) int __vectorcall zend_hash_del(HashTable *ht, zend_string *key);
+__declspec(dllimport) zval __vectorcall *zend_hash_find(const HashTable *ht, zend_string *key);
+__declspec(dllimport) zval *__vectorcall zend_hash_str_find(const HashTable *ht, const char *key, size_t len);
+__declspec(dllimport) zval __vectorcall *zend_hash_add_or_update(HashTable *ht, zend_string *key, zval *pData, uint32_t flag);
+__declspec(dllimport) zval *__vectorcall zend_hash_next_index_insert(HashTable *ht, zval *pData);
 
 int zend_set_user_opcode_handler(zend_uchar opcode, user_opcode_handler_t handler);
 user_opcode_handler_t zend_get_user_opcode_handler(zend_uchar opcode);
@@ -1435,22 +1635,6 @@ void zend_do_inheritance_ex(zend_class_entry *ce, zend_class_entry *parent_ce, z
 void php_error_docref(const char *docref, int type, const char *format, ...);
 __declspec(dllimport) void zend_error(int type, const char *format, ...);
 
-typedef unsigned int __uid_t;
-typedef unsigned int __gid_t;
-typedef __uid_t uid_t;
-typedef __gid_t gid_t;
-typedef unsigned char u_char;
-typedef unsigned short u_short;
-typedef unsigned int u_int;
-typedef unsigned long u_long;
-typedef signed long int __int64;
-typedef __int64 UINT_PTR;
-typedef UINT_PTR SOCKET;
-typedef SOCKET php_socket_t;
-typedef php_socket_t uv_file;
-typedef void *PVOID;
-typedef PVOID HANDLE;
-typedef HANDLE uv_os_fd_t;
 typedef struct _php_socket
 {
 	php_socket_t bsd_socket;

@@ -85,6 +85,7 @@ The functions in [preload.php](https://github.com/symplely/zend-ffi/blob/main/pr
 - [PHP Internals Book](https://www.phpinternalsbook.com/index.html)
 - [Upgrading PHP extensions from PHP5 to NG](https://wiki.php.net/phpng-upgrading)
 - [Extending and Embedding PHP](https://flylib.com/books/en/2.565.1/)
+- [Whitepaper: Writing PHP Extensions - Zend](https://www.zend.com/sites/zend/files/pdfs/whitepaper-zend-php-extensions.pdf) **PDF**
 - [Getting Started with PHP-FFI](https://www.youtube.com/watch?v=7pfjvRupoqg) **Youtube**
 - [Awesome PHP FFI](https://github.com/gabrielrcouto/awesome-php-ffi)
 - [Z-Engine library](https://github.com/lisachenko/z-engine)

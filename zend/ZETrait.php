@@ -55,6 +55,58 @@ if (!\trait_exists('ZETrait')) {
             return $value;
         }
 
+        public static function tsrmls_set_ctx(&$ctx): CData
+        {
+            if (\PHP_ZTS) {
+                $ctx = \ze_ffi()->cast('void ***', \ze_ffi()->tsrm_get_ls_cache());
+            }
+
+            return $ctx;
+        }
+
+        public static function tsrmls_fetch_from_ctx(&$ctx): CData
+        {
+            if (\PHP_ZTS) {
+                $ctx = \ze_ffi()->cast('void ***', $ctx);
+            }
+
+            return $ctx;
+        }
+
+        public static function tsrmg($rsrc_id, string $type): ?CData
+        {
+            if (\PHP_ZTS) {
+                return \ze_ffi()->cast(
+                    $type,
+                    \ffi_ptr(\ze_ffi()->cast(
+                        'void ***',
+                        \ze_ffi()->tsrm_get_ls_cache()
+                    )[($rsrc_id - 1)])
+                );
+            }
+
+            return null;
+        }
+
+        #define TSRM_SHUFFLE_RSRC_ID(rsrc_id)		((rsrc_id)+1)
+        #define TSRM_UNSHUFFLE_RSRC_ID(rsrc_id)		((rsrc_id)-1)
+
+        #define TSRMLS_FETCH_FROM_CTX(ctx)	void ***tsrm_ls = (void ***) ctx
+        #define TSRMLS_SET_CTX(ctx)		ctx = (void ***) tsrm_get_ls_cache()
+        #define TSRMG(id, type, element)	(TSRMG_BULK(id, type)->element)
+        #define TSRMG_BULK(id, type)	((type) (*((void ***) tsrm_get_ls_cache()))[TSRM_UNSHUFFLE_RSRC_ID(id)])
+        #define TSRMG_FAST(offset, type, element)	(TSRMG_FAST_BULK(offset, type)->element)
+        #define TSRMG_FAST_BULK(offset, type)	((type) (((char*) tsrm_get_ls_cache())+(offset)))
+
+        #define TSRMG_STATIC(id, type, element)	(TSRMG_BULK_STATIC(id, type)->element)
+        #define TSRMG_BULK_STATIC(id, type)	((type) (*((void ***) TSRMLS_CACHE))[TSRM_UNSHUFFLE_RSRC_ID(id)])
+        #define TSRMG_FAST_STATIC(offset, type, element)	(TSRMG_FAST_BULK_STATIC(offset, type)->element)
+        #define TSRMG_FAST_BULK_STATIC(offset, type)	((type) (((char*) TSRMLS_CACHE)+(offset)))
+        #define TSRMLS_CACHE_EXTERN() extern TSRM_TLS void *TSRMLS_CACHE;
+        #define TSRMLS_CACHE_DEFINE() TSRM_TLS void *TSRMLS_CACHE = NULL;
+        #define TSRMLS_CACHE_UPDATE() TSRMLS_CACHE = tsrm_get_ls_cache()
+        #define TSRMLS_CACHE _tsrm_ls_cache
+
         public static function module_registry()
         {
             return \ffi_ptr(\ze_ffi()->module_registry);

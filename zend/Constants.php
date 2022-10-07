@@ -47,16 +47,23 @@ if (!\defined('IS_CLI')) {
 
 if (!\defined('SYS_CONSOLE')) {
     /**
-     * The OS physical _input/output_ console `DEVICE`.
+     * O.S. physical __input/output__ console `DEVICE`.
      */
     \define('SYS_CONSOLE', \IS_WINDOWS ? '\\\\?\\CON' : '/dev/tty');
 }
 
 if (!\defined('SYS_NULL')) {
     /**
-     * The OS physical _null_ `DEVICE`.
+     * O.S. physical __null__ `DEVICE`.
      */
     \define('SYS_NULL', \IS_WINDOWS ? '\\\\?\\NUL' : '/dev/null');
+}
+
+if (!\defined('SYS_PIPE')) {
+    /**
+     * O.S. physical __pipe__ prefix `string name` including trailing slash.
+     */
+    \define('SYS_PIPE', \IS_WINDOWS ? '\\\\.\\pipe\\' : \getcwd() . '/');
 }
 
 if (!\defined('IS_PHP81'))

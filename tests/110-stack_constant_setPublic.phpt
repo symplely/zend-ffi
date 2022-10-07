@@ -1,5 +1,5 @@
 --TEST--
-Check for Stack Constant
+Check for Stack Constant setPublic
 --SKIPIF--
 <?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
@@ -91,29 +91,13 @@ class Entry
 
     public function run()
     {
-        $this->setPrivate();
-        $this->setProtected();
         $this->setPublic();
-        $this->getDeclaringClassInstance();
-        $this->setDeclaringClass();
     }
 }
 
 $test = new Entry();
 $test->run();
---EXPECT--
-bool(true)
-bool(true)
-bool(true)
-Cannot access private const Tests\Dummy::SOME_CONST
-bool(true)
-bool(true)
-bool(true)
-bool(true)
-Cannot access protected const Tests\Dummy::SOME_CONST
-bool(true)
-bool(true)
-bool(true)
+--EXPECTF--
 bool(true)
 bool(true)
 bool(true)

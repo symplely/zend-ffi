@@ -251,6 +251,7 @@ if (!\class_exists('ZE')) {
         /** Pointer a reference count, tracks how many places a structure is used */
         const COUNTED_P             = 'counted';
         const TYPE_INFO_REFCOUNTED  = 'refcounted';
+        const REFCOUNTED            = 'z_refcounted';
 
         const IS_TYPE_REFCOUNTED      = (1 << 0);
         const IS_TYPE_COLLECTABLE     = (1 << 1);

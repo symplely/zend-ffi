@@ -39,8 +39,12 @@ var_dump($cs->typeof());
 var_dump($cs->isNull());
 var_dump($cs->free());
 var_dump($cs->isNull());
-$ct = c_array_type('zend_property_info_list', 'ze', 3);
+$cc = c_int_type('int', 'ze', 100);
+var_dump($cc->value());
+$cc->free();
+$ct = c_array_type('zend_property_info_list', 'ze', 3, false);
 var_dump($ct);
+$ct->free();
 --EXPECTF--
 Original - 5208
 int(22548)
@@ -107,6 +111,7 @@ object(FFI\CType:struct _php_socket*)#%d (0) {
 bool(false)
 NULL
 bool(true)
+int(100)
 object(CStruct)#%d (1) {
   ["type"]=>
   string(21) "struct <anonymous>[3]"

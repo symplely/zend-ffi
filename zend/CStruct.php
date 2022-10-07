@@ -16,8 +16,10 @@ if (!\class_exists('CStruct')) {
         protected string $tag;
         protected bool $isArray = false;
         protected bool $isInteger = false;
+        protected bool $isOwned = true;
         protected ?CData $struct = null;
         protected ?CData $struct_ptr = null;
+        protected ?CData $struct_casted = null;
 
         public function __destruct()
         {
@@ -38,6 +40,7 @@ if (!\class_exists('CStruct')) {
 
             $this->tag = $tag;
             $this->isInteger = $isInteger;
+            $this->isOwned = $owned;
             if (!$isSelf || \is_string($typedef)) {
                 if (!\is_null($size))
                     $this->struct = \Core::get($tag)->new($typedef . '[' . $size . ']', $owned, $persistent);
@@ -57,7 +60,7 @@ if (!\class_exists('CStruct')) {
                     foreach ($initializer as $key => $value)
                         $this->struct_ptr->{$key} = $value;
                 } elseif (!\is_null($integer) && $isInteger) {
-                    $this->struct_ptr[0]->cdata = $integer;
+                    $this->struct_ptr[0] = $integer;
                 }
             } else {
                 $this->struct = \Core::get($tag)->new($typedef);
@@ -140,14 +143,69 @@ if (!\class_exists('CStruct')) {
         }
 
         /**
-         * Returns a cast of the current *C data* to another C _pointer_ type, specified by C declaration.
+         * Set/shift the stored **C data** _cast(`  **`)_ pointer to its first element/address,
+         * as if _cast(`  *`)_.
+         *
+         * @return void
+         */
+        public function reset(): void
+        {
+            if (\is_cdata($this->struct_casted)) {
+                $struct = $this->struct_casted[0];
+                $this->struct_casted = $struct;
+            }
+        }
+
+        /**
+         * Store and returns a cast of the current *C data* to another C _pointer_ type,
+         * specified by C declaration.
          *
          * @param string $declaration
          * @return CData
          */
         public function cast(string $declaration): CData
         {
-            return \Core::get($this->tag)->cast($declaration, $this->__invoke());
+            $this->struct_casted = \Core::get($this->tag)->cast($declaration, $this->__invoke());
+            return $this->struct_casted;
+        }
+
+        /**
+         * Returns the previous stored `CStruct::cast()` _pointer_.
+         *
+         * @return CData
+         */
+        public function cast_ptr(): CData
+        {
+            return $this->struct_casted;
+        }
+
+        /**
+         * Returns stored `CStruct::cast()` or current *C data* __value__, within specified `index`,
+         * or `union->field`.
+         *
+         * @param integer $index
+         * @param string|null $union_field
+         * @return mixed|null
+         */
+        public function value(int $index = 0, string $union_field = null)
+        {
+            $struct = null;
+            try {
+                $struct = \is_cdata($this->struct_casted) ? $this->struct_casted : $this->__invoke();
+                $struct = $struct[$index];
+                if (\strpos($union_field, '->') !== false) {
+                    $fields = \explode('->', $union_field);
+                    if (\count($fields) == 3)
+                        $struct = $struct->{$fields[0]}->{$fields[1]}->{$fields[2]};
+                    elseif (\count($fields) == 2)
+                        $struct = $struct->{$fields[0]}->{$fields[1]};
+                } elseif (!\is_null($union_field)) {
+                    $struct = $struct->{$union_field};
+                }
+            } catch (\Throwable $e) {
+            }
+
+            return $struct;
         }
 
         /**
@@ -211,14 +269,17 @@ if (!\class_exists('CStruct')) {
         /**
          * Creates and returns a FFI\CType object of current *C data* `$field`.
          *
-         * @return CType
+         * @return CType|null
          */
-        public function type(string $field = null): CType
+        public function type(string $field = null): ?CType
         {
             $struct = \is_null($field) ? $this->__invoke() : $this->__invoke()->{$field};
             $type = \ffi_str_typeof($struct);
-
-            return \Core::get($this->tag)->type($type);
+            try {
+                return \Core::get($this->tag)->type($type);
+            } catch (\Throwable $th) {
+                return null;
+            }
         }
 
         /**
@@ -267,10 +328,15 @@ if (!\class_exists('CStruct')) {
             if (\is_cdata($this->struct_ptr) && !$this->isNull())
                 \FFI::free($this->struct_ptr);
 
+            if (\is_cdata($this->struct) && !$this->isOwned)
+                \FFI::free($this->struct);
+
             $this->struct_ptr = null;
+            $this->struct = null;
+            $this->struct_casted = null;
+            $this->isOwned = true;
             $this->isArray = false;
             $this->isInteger = false;
-            $this->struct = null;
             $this->tag = '';
         }
 

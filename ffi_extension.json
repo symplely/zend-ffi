@@ -12,7 +12,6 @@
             "zend/Types/OpCode.php",
             "zend/Types/PhpStream.php",
             "zend/Types/Resource.php",
-            "zend/Types/TsHashTable.php",
             "zend/Types/ZendClassConstant.php",
             "zend/Types/ZendClassEntry.php",
             "zend/Types/ZendClosure.php",

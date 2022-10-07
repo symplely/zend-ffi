@@ -98,6 +98,7 @@ if (!\function_exists('zval_stack')) {
      * -
      * - `ZE::TYPE_P`   for `Z_TYPE_P()`  `unsigned char`
      * - `ZE::TYPE_INFO_P`  for `Z_TYPE_INFO_P()` `unsigned char`
+     * - `ZE::REFCOUNTED`   for `Z_REFCOUNTED()` `boolean`
      * - `ZE::TYPE_INFO_REFCOUNTED`  for `Z_TYPE_INFO_REFCOUNTED()` `boolean`
      * - `ZE::LVAL_P`   for `Z_LVAL_P()`  `zend_long`
      * - `ZE::DVAL_P`   for `Z_DVAL_P()`  `double`
@@ -144,7 +145,7 @@ if (!\function_exists('zval_stack')) {
         if (\is_cdata($ptr) && !\is_null($ptr->{$name})) {
             $zval = \zval_native(\zval_macro(
                 ZE::OBJ_P,
-                \zend_cast('zend_object*', $ptr->{$name})
+                \ze_cast('zend_object*', $ptr->{$name})
             ));
         }
 

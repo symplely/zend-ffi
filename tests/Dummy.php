@@ -6,7 +6,7 @@ namespace Tests;
 
 class Dummy
 {
-    const SOME_CONST = 123;
+    public const SOME_CONST = 123;
 
     public int $property = 42;
 

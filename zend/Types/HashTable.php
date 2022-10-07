@@ -33,7 +33,7 @@ if (!\class_exists('HashTable')) {
      * };
      *```
      */
-    class HashTable extends \ZE implements \IteratorAggregate
+    final class HashTable extends \ZE implements \IteratorAggregate
     {
         protected $isZval = false;
 
@@ -69,9 +69,7 @@ if (!\class_exists('HashTable')) {
         public function str_find(string $key): ?Zval
         {
             $string = ZendString::init($key);
-            $result = (\PHP_ZTS)
-                ? \ze_ffi()->zend_ts_hash_str_find($this->ze_other_ptr, $string->value(), $string->length())
-                : \ze_ffi()->zend_hash_str_find($this->ze_other_ptr, $string->value(), $string->length());
+            $result = \ze_ffi()->zend_hash_str_find($this->ze_other_ptr, $string->value(), $string->length());
 
             return \is_cdata($result) ? Zval::init_value($result) : $result;
         }
@@ -86,9 +84,7 @@ if (!\class_exists('HashTable')) {
         public function find(string $key): ?Zval
         {
             $string = ZendString::init($key);
-            $result = (\PHP_ZTS)
-                ? \ze_ffi()->zend_ts_hash_find($this->ze_other_ptr, \ffi_ptr($string()))
-                : \ze_ffi()->zend_hash_find($this->ze_other_ptr, \ffi_ptr($string()));
+            $result = \ze_ffi()->zend_hash_find($this->ze_other_ptr, \ffi_ptr($string()));
 
             return \is_cdata($result) ? Zval::init_value($result) : $result;
         }
@@ -102,9 +98,7 @@ if (!\class_exists('HashTable')) {
         public function delete(string $key): self
         {
             $string = ZendString::init($key);
-            $result = (\PHP_ZTS)
-                ? \ze_ffi()->zend_ts_hash_del($this->ze_other_ptr, \ffi_ptr($string()))
-                : \ze_ffi()->zend_hash_del($this->ze_other_ptr, \ffi_ptr($string()));
+            $result = \ze_ffi()->zend_hash_del($this->ze_other_ptr, \ffi_ptr($string()));
 
             if ($result === \ZE::FAILURE) {
                 return \ze_ffi()->zend_error(\E_WARNING, "Can not delete an item with key %s", $key);
@@ -119,14 +113,12 @@ if (!\class_exists('HashTable')) {
         public function add(string $key, Zval $value): self
         {
             $string = ZendString::init($key);
-            $result = (\PHP_ZTS)
-                ? \ze_ffi()->zend_ts_hash_add($this->ze_other_ptr, \ffi_ptr($string()), $value())
-                : \ze_ffi()->zend_hash_add_or_update(
-                    $this->ze_other_ptr,
-                    \ffi_ptr($string()),
-                    $value(),
-                    \ZE::HASH_ADD_NEW
-                );
+            $result = \ze_ffi()->zend_hash_add_or_update(
+                $this->ze_other_ptr,
+                \ffi_ptr($string()),
+                $value(),
+                \ZE::HASH_ADD_NEW
+            );
 
             if ($result === \ZE::FAILURE) {
                 return \ze_ffi()->zend_error(\E_WARNING, "Can not add an item with key %s", $key);

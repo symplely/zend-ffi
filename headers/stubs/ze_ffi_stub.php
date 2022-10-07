@@ -7,6 +7,21 @@ interface rsrc_dtor_func_t extends closure
 interface user_opcode_handler_t extends closure
 {
 }
+interface ts_allocate_ctor extends closure
+{
+}
+interface ts_allocate_dtor extends closure
+{
+}
+interface tsrm_thread_begin_func_t extends closure
+{
+}
+interface tsrm_thread_end_func_t extends closure
+{
+}
+interface tsrm_shutdown_func_t extends closure
+{
+}
 
 abstract class SOCKET extends int
 {
@@ -113,9 +128,6 @@ abstract class ZendResource extends zend_resource
 {
 }
 
-abstract class TsHashTable extends FFI\CData
-{
-}
 abstract class zend_reference extends FFI\CData
 {
 }
@@ -219,7 +231,16 @@ abstract class intptr_t extends long
 abstract class size_t extends uint32_t
 {
 }
-abstract class size_ptr extends \FFI\CData
+abstract class ts_rsrc_id extends int
+{
+}
+abstract class ts_rsrc_id_ptr extends \FFI\CData
+{
+}
+abstract class MUTEX_T extends \FFI\CData
+{
+}
+abstract class THREAD_T extends int
 {
 }
 abstract class errno_t extends uint32_t
@@ -229,9 +250,6 @@ abstract class errno_t extends uint32_t
 
 interface FFI
 {
-    /** @return void_ptr */
-    public function tsrm_get_ls_cache();
-
     /** @return int */
     public function zend_register_list_destructors_ex(?rsrc_dtor_func_t $ld, ?rsrc_dtor_func_t $pld, const_char $type_name, int $module_number);
 
@@ -267,36 +285,6 @@ interface FFI
 
     /** @return zval */
     public function zend_hash_next_index_insert(HashTable &$ht, zval &$pData);
-
-    /** @return zval */
-    public function zend_ts_hash_str_find(TsHashTable &$ht, const_char &$key, size_t $len);
-
-    /** @return zval */
-    public function zend_ts_hash_str_update(TsHashTable &$ht, const_char &$key, size_t $len, zval &$pData);
-
-    /** @return zval */
-    public function zend_ts_hash_next_index_insert(TsHashTable &$ht, zval &$pData);
-
-    /** @return zval */
-    public function zend_ts_hash_str_add(TsHashTable &$ht, const_char &$key, size_t $len, zval &$pData);
-
-    /** @return void */
-    public function zend_ts_hash_destroy(TsHashTable &$ht);
-
-    /** @return void */
-    public function zend_ts_hash_clean(TsHashTable &$ht);
-
-    /** @return zval */
-    public function zend_ts_hash_find(TsHashTable &$ht, zend_string &$key);
-
-    /** @return zend_result */
-    public function zend_ts_hash_del(TsHashTable &$ht, zend_string &$key);
-
-    /** @return zval */
-    public function zend_ts_hash_update(TsHashTable &$ht, zend_string &$key, zval &$pData);
-
-    /** @return zval */
-    public function zend_ts_hash_add(TsHashTable &$ht, zend_string &$key, zval &$pData);
 
     /** @return zend_function */
     public function zend_fetch_function(zend_string &$name);
@@ -414,4 +402,98 @@ interface FFI
 
     /** @return int */
     public function ap_php_asprintf(char &$buf, const_char &$format, ...$args);
+
+    /** @return void */
+    public function tsrm_win32_startup();
+
+    /** @return void */
+    public function tsrm_win32_shutdown();
+
+    /* startup/shutdown */
+    /** @return int */
+    public function tsrm_startup(int $expected_threads, int $expected_resources, int $debug_level, char &$debug_filename);
+
+    /** @return void */
+    public function tsrm_shutdown();
+
+    /** @return void */
+    public function tsrm_env_lock();
+
+    /** @return void */
+    public function tsrm_env_unlock();
+
+    /* allocates a new thread-safe-resource id */
+    /** @return ts_rsrc_id */
+    public function ts_allocate_id(ts_rsrc_id &$rsrc_id, size_t $size, ts_allocate_ctor $ctor, ts_allocate_dtor $dtor);
+
+    /* Fast resource in reserved (pre-allocated) space */
+    /** @return void */
+    public function tsrm_reserve(size_t $size);
+
+    /** @return ts_rsrc_id */
+    public function ts_allocate_fast_id(ts_rsrc_id &$rsrc_id, size_t &$offset, size_t $size, ts_allocate_ctor $ctor, ts_allocate_dtor $dtor);
+
+    /* fetches the requested resource for the current thread */
+    /** @return void_ptr */
+    public function ts_resource_ex(ts_rsrc_id $id, THREAD_T &$th_id);
+    // #define ts_resource(id) ts_resource_ex(id, NULL)
+
+    /* frees all resources allocated for the current thread */
+    /** @return void */
+    public function ts_free_thread();
+
+    /* deallocates all occurrences of a given id */
+    /** @return void */
+    public function ts_free_id(ts_rsrc_id $id);
+
+    /** @return void */
+    public function tsrm_error_set(int $level, char &$debug_filename);
+
+    /* utility functions */
+    /** @return THREAD_T */
+    public function tsrm_thread_id();
+
+    /** @return THREAD_T */
+    public function tsrm_mutex_alloc();
+
+    /** @return void */
+    public function tsrm_mutex_free(MUTEX_T $mutexp);
+
+    /** @return int */
+    public function tsrm_mutex_lock(MUTEX_T $mutexp);
+
+    /** @return int */
+    public function tsrm_mutex_unlock(MUTEX_T $mutexp);
+
+    /** @return void_ptr */
+    public function tsrm_set_new_thread_begin_handler(tsrm_thread_begin_func_t $new_thread_begin_handler);
+
+    /** @return void_ptr */
+    public function tsrm_set_new_thread_end_handler(tsrm_thread_end_func_t $new_thread_end_handler);
+
+    /** @return void_ptr */
+    public function tsrm_set_shutdown_handler(tsrm_shutdown_func_t $shutdown_handler);
+
+    /* these 3 APIs should only be used by people that fully understand the threading model
+ * used by PHP/Zend and the selected SAPI. */
+    /** @return void_ptr */
+    public function tsrm_new_interpreter_context();
+
+    /** @return void_ptr */
+    public function tsrm_set_interpreter_context(void_t &$new_ctx);
+
+    /** @return void */
+    public function tsrm_free_interpreter_context(void_t &$context);
+
+    /** @return void_ptr */
+    public function tsrm_get_ls_cache();
+
+    /** @return uint8_t */
+    public function tsrm_is_main_thread();
+
+    /** @return uint8_t */
+    public function tsrm_is_shutdown();
+
+    /** @return const_char */
+    public function tsrm_api_name();
 }
