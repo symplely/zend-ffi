@@ -82,6 +82,7 @@ The functions in [preload.php](https://github.com/symplely/zend-ffi/blob/main/pr
 - [How to Use PHP FFI in Programming](https://spiralscout.com/blog/how-to-use-php-ffi-in-programming)
 - [PHP FFI and what it can do for you](https://phpconference.com/blog/php-ffi-and-what-it-can-do-for-you/)
 - [Zend API - Hacking the Core of PHP](https://www.cs.helsinki.fi/u/laine/php/zend.html)
+- [PHP at the Core A Hacker's Guide - Manual](http://php.adamharvey.name/manual/en/internals2.php)
 - [PHP Internals Book](https://www.phpinternalsbook.com/index.html)
 - [Upgrading PHP extensions from PHP5 to NG](https://wiki.php.net/phpng-upgrading)
 - [Extending and Embedding PHP](https://flylib.com/books/en/2.565.1/)

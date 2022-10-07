@@ -35,7 +35,7 @@ abstract class uint64_t extends int
 abstract class int32_t extends int
 {
 }
-abstract class int32_ptr extends FFI\CData
+abstract class int32_ptr extends int_ptr
 {
 }
 abstract class int64_t extends int
@@ -231,10 +231,13 @@ abstract class intptr_t extends long
 abstract class size_t extends uint32_t
 {
 }
+abstract class size_ptr extends int_ptr
+{
+}
 abstract class ts_rsrc_id extends int
 {
 }
-abstract class ts_rsrc_id_ptr extends \FFI\CData
+abstract class ts_rsrc_id_ptr extends int_ptr
 {
 }
 abstract class MUTEX_T extends \FFI\CData

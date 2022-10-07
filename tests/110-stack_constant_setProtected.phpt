@@ -44,7 +44,7 @@ class Entry
         };
 
         $value = $child->getConstant();
-        var_dump(123 === $value);
+      //  var_dump(123 === $value);
     }
 
     public function run()

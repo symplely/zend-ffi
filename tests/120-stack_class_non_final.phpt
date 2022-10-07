@@ -33,7 +33,7 @@ class Entry
         $instance = new class extends Dummy
         {
         };
-        var_dump($instance instanceof Dummy);
+       // var_dump($instance instanceof Dummy);
     }
 
     public function run()
