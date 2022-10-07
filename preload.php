@@ -6,66 +6,13 @@ use FFI\CData;
 use FFI\CType;
 use ZE\PhpStream;
 
-if (!\defined('None'))
-  \define('None', null);
-
 if (!\defined('DS'))
   \define('DS', \DIRECTORY_SEPARATOR);
-
-if (!\defined('IS_WINDOWS'))
-  \define('IS_WINDOWS', ('\\' === \DS));
-
-if (!\defined('IS_LINUX'))
-  \define('IS_LINUX', ('/' === \DS));
-
-if (!\defined('IS_MACOS'))
-  \define('IS_MACOS', (\PHP_OS === 'Darwin'));
-
-if (!\defined('EOL'))
-  \define('EOL', \PHP_EOL);
-
-if (!\defined('CRLF'))
-  \define('CRLF', "\r\n");
-
-if (!\defined('IS_ZTS'))
-  \define('IS_ZTS', \ZEND_THREAD_SAFE);
-
-if (!\defined('IS_CLI')) {
-  /**
-   * Check if php is running from cli (command line).
-   */
-  \define(
-    'IS_CLI',
-    \defined('STDIN') ||
-      (empty($_SERVER['REMOTE_ADDR']) && !isset($_SERVER['HTTP_USER_AGENT']) && \count($_SERVER['argv']) > 0)
-  );
-}
-
-if (!\defined('SYS_CONSOLE')) {
-  /**
-   * The OS physical _input/output_ console `DEVICE`.
-   */
-  \define('SYS_CONSOLE', \IS_WINDOWS ? '\\\\?\\CON' : '/dev/tty');
-}
-
-if (!\defined('SYS_NULL')) {
-  /**
-   * The OS physical _null_ `DEVICE`.
-   */
-  \define('SYS_NULL', \IS_WINDOWS ? '\\\\?\\NUL' : '/dev/null');
-}
 
 if (!\defined('IS_PHP81'))
   \define('IS_PHP81', ((float) \phpversion() >= 8.1));
 
-if (!\defined('IS_PHP8'))
-  \define('IS_PHP8', ((float) \phpversion() >= 8.0));
-
-if (!\defined('IS_PHP74'))
-  \define('IS_PHP74', ((float) \phpversion() >= 7.4) && !\IS_PHP8);
-
 if (!\function_exists('setup_ffi_loader')) {
-
   function ffi_cdef(string $code, string $lib = null): \FFI
   {
     if (!empty($lib)) {
