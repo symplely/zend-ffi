@@ -1701,10 +1701,9 @@ extern const zend_fcall_info empty_fcall_info;
 extern const zend_fcall_info_cache empty_fcall_info_cache;
 int zend_alter_ini_entry(zend_string *name, zend_string *new_value, int modify_type, int stage);
 
-/*
 zend_result zend_startup_module(zend_module_entry *module_entry);
-zend_module_entry* zend_register_internal_module(zend_module_entry *module_entry);
-zend_module_entry* zend_register_module_ex(zend_module_entry *module);
+zend_module_entry *zend_register_internal_module(zend_module_entry *module_entry);
+zend_module_entry *zend_register_module_ex(zend_module_entry *module);
 zend_result zend_startup_module_ex(zend_module_entry *module);
 
 size_t php_printf(const char *format, ...);
@@ -1715,7 +1714,7 @@ void php_info_print_table_end(void);
 int php_request_startup(void);
 int php_execute_script(zend_file_handle *primary_file);
 void php_request_shutdown(void *dummy);
-*/
+
 int ap_php_slprintf(char *buf, size_t len, const char *format, ...);
 int ap_php_vslprintf(char *buf, size_t len, const char *format, va_list ap);
 int ap_php_snprintf(char *, size_t, const char *, ...);

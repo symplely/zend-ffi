@@ -50,6 +50,12 @@ abstract class HANDLE extends void_ptr
 abstract class char extends FFI\CData
 {
 }
+abstract class _zend_file_handle extends FFI\CData
+{
+}
+abstract class zend_file_handle extends _zend_file_handle
+{
+}
 abstract class sockaddr_storage extends FFI\CData
 {
 }
@@ -499,4 +505,13 @@ interface FFI
 
     /** @return const_char */
     public function tsrm_api_name();
+
+    /** @return int */
+    public function php_request_startup();
+
+    /** @return int */
+    public function php_execute_script(zend_file_handle &$primary_file);
+
+    /** @return void */
+    public function php_request_shutdown(void_ptr &$dummy);
 }
