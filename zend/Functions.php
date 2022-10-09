@@ -460,7 +460,7 @@ if (!\function_exists('zval_stack')) {
      *
      * @param string $element
      * @param string $initialize
-     * @return CData
+     * @return CData|mixed
      */
     function zend_pg(string $element, $initialize = 'empty')
     {
@@ -468,7 +468,7 @@ if (!\function_exists('zval_stack')) {
         if ($initialize !== 'empty')
             $pg->{$element} = $initialize;
 
-        return $pg;
+        return $pg->{$element};
     }
 
     /**
@@ -476,7 +476,7 @@ if (!\function_exists('zval_stack')) {
      *
      * @param string $element
      * @param string $initialize
-     * @return CData
+     * @return CData|mixed
      */
     function zend_eg(string $element, $initialize = 'empty')
     {
@@ -484,7 +484,7 @@ if (!\function_exists('zval_stack')) {
         if ($initialize !== 'empty')
             $eg->{$element} = $initialize;
 
-        return $eg;
+        return $eg->{$element};
     }
 
     /**
@@ -492,7 +492,7 @@ if (!\function_exists('zval_stack')) {
      *
      * @param string $element
      * @param string $initialize
-     * @return CData
+     * @return CData|mixed
      */
     function zend_cg(string $element, $initialize = 'empty')
     {
@@ -500,6 +500,6 @@ if (!\function_exists('zval_stack')) {
         if ($initialize !== 'empty')
             $cg->{$element} = $initialize;
 
-        return $cg;
+        return $cg->{$element};
     }
 }
