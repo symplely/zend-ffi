@@ -73,39 +73,82 @@ if (!\trait_exists('ZETrait')) {
             return $ctx;
         }
 
-        public static function tsrmg($rsrc_id, string $type): ?CData
+        public static function tsrmg(int $rsrc_id, string $type, string $element = null): ?CData
         {
             if (\PHP_ZTS) {
-                return \ze_ffi()->cast(
-                    $type,
+                $tls = \ze_ffi()->cast(
+                    $type . '*',
                     \ffi_ptr(\ze_ffi()->cast(
                         'void ***',
                         \ze_ffi()->tsrm_get_ls_cache()
-                    )[($rsrc_id - 1)])
+                    ))[($rsrc_id - 1)]
                 );
+
+                return \is_null($element) ? $tls : $tls->{$element};
             }
 
             return null;
         }
 
-        #define TSRM_SHUFFLE_RSRC_ID(rsrc_id)		((rsrc_id)+1)
-        #define TSRM_UNSHUFFLE_RSRC_ID(rsrc_id)		((rsrc_id)-1)
+        public static function tsrmg_static(int $rsrc_id, string $type, string $element = null): ?CData
+        {
+            static $_tsrm_ls_cache = null;
+            if (\PHP_ZTS) {
+                if (\is_null($_tsrm_ls_cache))
+                    $_tsrm_ls_cache = \ze_ffi()->tsrm_get_ls_cache();
 
-        #define TSRMLS_FETCH_FROM_CTX(ctx)	void ***tsrm_ls = (void ***) ctx
-        #define TSRMLS_SET_CTX(ctx)		ctx = (void ***) tsrm_get_ls_cache()
-        #define TSRMG(id, type, element)	(TSRMG_BULK(id, type)->element)
-        #define TSRMG_BULK(id, type)	((type) (*((void ***) tsrm_get_ls_cache()))[TSRM_UNSHUFFLE_RSRC_ID(id)])
-        #define TSRMG_FAST(offset, type, element)	(TSRMG_FAST_BULK(offset, type)->element)
-        #define TSRMG_FAST_BULK(offset, type)	((type) (((char*) tsrm_get_ls_cache())+(offset)))
+                $tls = \ze_ffi()->cast(
+                    $type . '*',
+                    \ffi_ptr(\ze_ffi()->cast(
+                        'void ***',
+                        $_tsrm_ls_cache
+                    ))[($rsrc_id - 1)]
+                );
 
-        #define TSRMG_STATIC(id, type, element)	(TSRMG_BULK_STATIC(id, type)->element)
-        #define TSRMG_BULK_STATIC(id, type)	((type) (*((void ***) TSRMLS_CACHE))[TSRM_UNSHUFFLE_RSRC_ID(id)])
-        #define TSRMG_FAST_STATIC(offset, type, element)	(TSRMG_FAST_BULK_STATIC(offset, type)->element)
-        #define TSRMG_FAST_BULK_STATIC(offset, type)	((type) (((char*) TSRMLS_CACHE)+(offset)))
-        #define TSRMLS_CACHE_EXTERN() extern TSRM_TLS void *TSRMLS_CACHE;
-        #define TSRMLS_CACHE_DEFINE() TSRM_TLS void *TSRMLS_CACHE = NULL;
-        #define TSRMLS_CACHE_UPDATE() TSRMLS_CACHE = tsrm_get_ls_cache()
-        #define TSRMLS_CACHE _tsrm_ls_cache
+                return \is_null($element) ? $tls : $tls->{$element};
+            }
+
+            return null;
+        }
+
+        public static function tsrmg_fast(string $offset, string $type, string $element = null): ?CData
+        {
+            if (\PHP_ZTS) {
+                $tls = \ze_ffi()->cast(
+                    $type . '*',
+                    \ze_ffi()->cast(
+                        'char*',
+                        \ze_ffi()->tsrm_get_ls_cache()
+                    ) + \ze_ffi()->{$offset}
+                );
+
+                return \is_null($element) ? $tls : $tls->{$element};
+            }
+
+            return null;
+        }
+
+        public static function tsrmg_fast_static(string $offset, string $type, string $element = null): ?CData
+        {
+            static $_tsrm_ls_cache = null;
+
+            if (\PHP_ZTS) {
+                if (\is_null($_tsrm_ls_cache))
+                    $_tsrm_ls_cache = \ze_ffi()->tsrm_get_ls_cache();
+
+                $tls = \ze_ffi()->cast(
+                    $type . '*',
+                    \ze_ffi()->cast(
+                        'char*',
+                        $_tsrm_ls_cache
+                    ) + \ze_ffi()->{$offset}
+                );
+
+                return \is_null($element) ? $tls : $tls->{$element};
+            }
+
+            return null;
+        }
 
         public static function module_registry()
         {

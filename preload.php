@@ -168,13 +168,17 @@ if (!\function_exists('setup_ffi_loader')) {
    * @property zend_internal_function $zend_pass_function
    * @property zend_object_handlers $std_object_handlers
    * @property HashTable $module_registry
+   * @property int $compiler_globals_id if ZTS
    * @property size_t $compiler_globals_offset if ZTS
+   * @property zend_compiler_globals $compiler_globals if NTS
+   * @property int $executor_globals_id if ZTS
    * @property size_t $executor_globals_offset if ZTS
    * @property zend_execute_data $executor_globals if NTS
-   * @property zend_compiler_globals $compiler_globals if NTS
+   * @property int core_globals_id if ZTS
+   * @property size_t core_globals_offset if ZTS
+   * @property _php_core_globals core_globals if NTS
    * @property php_stream_ops php_stream_stdio_ops;
    * @property php_stream_wrapper php_plain_files_wrapper;
-   * @property szend_module_struct szend_module;
    * @property zend_fcall_info empty_fcall_info;
    * @property zend_fcall_info_cache empty_fcall_info_cache;
    */

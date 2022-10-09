@@ -513,5 +513,5 @@ interface FFI
     public function php_execute_script(zend_file_handle &$primary_file);
 
     /** @return void */
-    public function php_request_shutdown(void_ptr &$dummy);
+    public function php_request_shutdown(?void_ptr &$dummy);
 }

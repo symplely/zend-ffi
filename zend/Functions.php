@@ -454,4 +454,52 @@ if (!\function_exists('zval_stack')) {
     {
         return PhpStream::zval_to_fd_select($handle, $fd_type);
     }
+
+    /**
+     * Represents `PG()` macro.
+     *
+     * @param string $element
+     * @param string $initialize
+     * @return CData
+     */
+    function zend_pg(string $element, $initialize = 'empty')
+    {
+        $pg = (\PHP_ZTS) ? Zval::tsrmg_fast_static('core_globals_offset', 'php_core_globals') : \ze_ffi()->core_globals;
+        if ($initialize !== 'empty')
+            $pg->{$element} = $initialize;
+
+        return $pg;
+    }
+
+    /**
+     * Represents `EG()` macro.
+     *
+     * @param string $element
+     * @param string $initialize
+     * @return CData
+     */
+    function zend_eg(string $element, $initialize = 'empty')
+    {
+        $eg = (\PHP_ZTS) ? Zval::tsrmg_fast('executor_globals_offset', 'zend_executor_globals') : \ze_ffi()->executor_globals;
+        if ($initialize !== 'empty')
+            $eg->{$element} = $initialize;
+
+        return $eg;
+    }
+
+    /**
+     * Represents `CG()` macro.
+     *
+     * @param string $element
+     * @param string $initialize
+     * @return CData
+     */
+    function zend_cg(string $element, $initialize = 'empty')
+    {
+        $cg = (\PHP_ZTS) ? Zval::tsrmg_fast('compiler_globals_offset', 'zend_compiler_globals') : \ze_ffi()->compiler_globals;
+        if ($initialize !== 'empty')
+            $cg->{$element} = $initialize;
+
+        return $cg;
+    }
 }

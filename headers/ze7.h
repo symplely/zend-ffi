@@ -1607,3 +1607,127 @@ int ap_php_snprintf(char *, size_t, const char *, ...);
 int ap_php_vsnprintf(char *, size_t, const char *, va_list ap);
 int ap_php_vasprintf(char **buf, const char *format, va_list ap);
 int ap_php_asprintf(char **buf, const char *format, ...);
+
+typedef struct _php_core_globals php_core_globals;
+extern struct _php_core_globals core_globals;
+
+typedef struct _arg_separators
+{
+	char *output;
+	char *input;
+} arg_separators;
+
+struct _php_core_globals
+{
+	zend_bool implicit_flush;
+
+	zend_long output_buffering;
+
+	zend_bool enable_dl;
+
+	char *output_handler;
+
+	char *unserialize_callback_func;
+	zend_long serialize_precision;
+
+	zend_long memory_limit;
+	zend_long max_input_time;
+
+	zend_bool track_errors;
+	zend_bool display_errors;
+	zend_bool display_startup_errors;
+	zend_bool log_errors;
+	zend_long log_errors_max_len;
+	zend_bool ignore_repeated_errors;
+	zend_bool ignore_repeated_source;
+	zend_bool report_memleaks;
+	char *error_log;
+
+	char *doc_root;
+	char *user_dir;
+	char *include_path;
+	char *open_basedir;
+	char *extension_dir;
+	char *php_binary;
+	char *sys_temp_dir;
+
+	char *upload_tmp_dir;
+	zend_long upload_max_filesize;
+
+	char *error_append_string;
+	char *error_prepend_string;
+
+	char *auto_prepend_file;
+	char *auto_append_file;
+
+	char *input_encoding;
+	char *internal_encoding;
+	char *output_encoding;
+
+	arg_separators arg_separator;
+
+	char *variables_order;
+
+	HashTable rfc1867_protected_variables;
+
+	short connection_status;
+	zend_bool ignore_user_abort;
+
+	unsigned char header_is_being_sent;
+
+	zend_llist tick_functions;
+
+	zval http_globals[6];
+
+	zend_bool expose_php;
+
+	zend_bool register_argc_argv;
+	zend_bool auto_globals_jit;
+
+	char *docref_root;
+	char *docref_ext;
+
+	zend_bool html_errors;
+	zend_bool xmlrpc_errors;
+
+	zend_long xmlrpc_error_number;
+
+	zend_bool activated_auto_globals[8];
+
+	zend_bool modules_activated;
+	zend_bool file_uploads;
+	zend_bool during_request_startup;
+	zend_bool allow_url_fopen;
+	zend_bool enable_post_data_reading;
+	zend_bool report_zend_debug;
+
+	int last_error_type;
+	char *last_error_message;
+	char *last_error_file;
+	int last_error_lineno;
+
+	char *php_sys_temp_dir;
+
+	char *disable_functions;
+	char *disable_classes;
+	zend_bool allow_url_include;
+
+	zend_long max_input_nesting_level;
+	zend_long max_input_vars;
+	zend_bool in_user_include;
+
+	char *user_ini_filename;
+	zend_long user_ini_cache_ttl;
+
+	char *request_order;
+
+	zend_bool mail_x_header;
+	char *mail_log;
+
+	zend_bool in_error_log;
+
+	zend_long syslog_facility;
+	char *syslog_ident;
+	zend_bool have_called_openlog;
+	zend_long syslog_filter;
+};
