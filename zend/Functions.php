@@ -502,4 +502,48 @@ if (!\function_exists('zval_stack')) {
 
         return $cg->{$element};
     }
+
+    function tsrmls_set_ctx()
+    {
+        global $tsrm_ls;
+        if (\PHP_ZTS) {
+            $tsrm_ls = \ze_ffi()->cast('void ***', \ze_ffi()->tsrm_get_ls_cache());
+        }
+    }
+
+    function tsrmls_fetch_from_ctx(): ?CData
+    {
+        global $tsrm_ls;
+        if (\PHP_ZTS) {
+            return $tsrm_ls;
+        }
+
+        return null;
+    }
+
+    function tsrmls_cache_define()
+    {
+        global $_tsrm_ls_cache;
+        if (\PHP_ZTS) {
+            $_tsrm_ls_cache = null;
+        }
+    }
+
+    function tsrmls_cache_update()
+    {
+        global $_tsrm_ls_cache;
+        if (\PHP_ZTS) {
+            $_tsrm_ls_cache = \ze_ffi()->tsrm_get_ls_cache();
+        }
+    }
+
+    function tsrmls_cache(): ?CData
+    {
+        global $_tsrm_ls_cache;
+        if (\PHP_ZTS) {
+            return $_tsrm_ls_cache;
+        }
+
+        return null;
+    }
 }

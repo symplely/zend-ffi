@@ -444,7 +444,7 @@ interface FFI
 
     /* fetches the requested resource for the current thread */
     /** @return void_ptr */
-    public function ts_resource_ex(ts_rsrc_id $id, THREAD_T &$th_id);
+    public function ts_resource_ex(ts_rsrc_id $id, ?THREAD_T &$th_id);
     // #define ts_resource(id) ts_resource_ex(id, NULL)
 
     /* frees all resources allocated for the current thread */

@@ -55,24 +55,6 @@ if (!\trait_exists('ZETrait')) {
             return $value;
         }
 
-        public static function tsrmls_set_ctx(&$ctx): CData
-        {
-            if (\PHP_ZTS) {
-                $ctx = \ze_ffi()->cast('void ***', \ze_ffi()->tsrm_get_ls_cache());
-            }
-
-            return $ctx;
-        }
-
-        public static function tsrmls_fetch_from_ctx(&$ctx): CData
-        {
-            if (\PHP_ZTS) {
-                $ctx = \ze_ffi()->cast('void ***', $ctx);
-            }
-
-            return $ctx;
-        }
-
         public static function tsrmg(int $rsrc_id, string $type, string $element = null): ?CData
         {
             if (\PHP_ZTS) {
