@@ -292,7 +292,7 @@ if (!\function_exists('setup_ffi_loader')) {
    * @param string $method callable
    * @return \Closure
    */
-  function closure_call(object $class, string $method): \Closure
+  function closure_from(object $class, string $method): \Closure
   {
     return \Closure::fromCallable([$class, $method]);
   }

@@ -127,6 +127,13 @@ $data = $module->get_globals();
 $data[0] = 5;
 $data[9] = 15;
 var_dump($data);
+
+ob_start();
+phpinfo(8);
+$value = ob_get_clean();
+
+preg_match('/simple_counters support => enabled/', $value, $matches);
+var_dump($matches[0]);
 ```
 
 ## Reference/Credits

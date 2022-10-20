@@ -39,10 +39,17 @@ $data = $module->get_globals();
 $data[0] = 5;
 $data[9] = 15;
 var_dump($data);
+
+ob_start();
+phpinfo(8);
+$value = ob_get_clean();
+
+preg_match('/simple_counters support => enabled/', $value, $matches);
+var_dump($matches[0]);
 --EXPECTF--
 global_startup
 module_startup
-object(FFI\CData:uint32_t[10])#16 (10) {
+object(FFI\CData:uint32_t[10])#%d (10) {
   [0]=>
   int(5)
   [1]=>
@@ -64,3 +71,4 @@ object(FFI\CData:uint32_t[10])#16 (10) {
   [9]=>
   int(15)
 }
+string(34) "simple_counters support => enabled"

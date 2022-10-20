@@ -383,24 +383,24 @@ if (!\class_exists('StandardModule')) {
                 }
             }
 
-            $module->info_func = \closure_call($this, 'module_info');
+            $module->info_func = \closure_from($this, 'module_info');
             if ($this->m_startup)
-                $module->module_startup_func = \closure_call($this, 'module_startup');
+                $module->module_startup_func = \closure_from($this, 'module_startup');
 
             if ($this->m_shutdown)
-                $module->module_shutdown_func = \closure_call($this, 'module_shutdown');
+                $module->module_shutdown_func = \closure_from($this, 'module_shutdown');
 
             if ($this->r_startup)
-                $module->request_startup_func = \closure_call($this, 'request_startup');
+                $module->request_startup_func = \closure_from($this, 'request_startup');
 
             if ($this->r_shutdown)
-                $module->request_shutdown_func = \closure_call($this, 'request_shutdown');
+                $module->request_shutdown_func = \closure_from($this, 'request_shutdown');
 
             if ($this->g_startup || !\is_null($globalType))
-                $module->globals_ctor = \closure_call($this, 'global_startup');
+                $module->globals_ctor = \closure_from($this, 'global_startup');
 
             if ($this->g_shutdown || !\is_null($globalType))
-                $module->globals_dtor = \closure_call($this, 'global_shutdown');
+                $module->globals_dtor = \closure_from($this, 'global_shutdown');
 
             // $module pointer will be updated, as registration method returns a copy of memory
             $realModulePointer = \ze_ffi()->zend_register_module_ex(\FFI::addr($module));
