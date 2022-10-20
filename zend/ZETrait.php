@@ -58,13 +58,8 @@ if (!\trait_exists('ZETrait')) {
         public static function tsrmg(int $rsrc_id, string $type, string $element = null): ?CData
         {
             if (\PHP_ZTS) {
-                $tls = \ze_ffi()->cast(
-                    $type . '*',
-                    \ffi_ptr(\ze_ffi()->cast(
-                        'void ***',
-                        \ze_ffi()->tsrm_get_ls_cache()
-                    ))[($rsrc_id - 1)]
-                );
+                $ptr = \ze_ffi()->cast('void ***', \ze_ffi()->tsrm_get_ls_cache())[0];
+                $tls = \ze_ffi()->cast($type, $ptr[($rsrc_id - 1)]);
 
                 return \is_null($element) ? $tls : $tls->{$element};
             }
@@ -74,18 +69,9 @@ if (!\trait_exists('ZETrait')) {
 
         public static function tsrmg_static(int $rsrc_id, string $type, string $element = null): ?CData
         {
-            static $_tsrm_ls_cache = null;
             if (\PHP_ZTS) {
-                if (\is_null($_tsrm_ls_cache))
-                    $_tsrm_ls_cache = \ze_ffi()->tsrm_get_ls_cache();
-
-                $tls = \ze_ffi()->cast(
-                    $type . '*',
-                    \ffi_ptr(\ze_ffi()->cast(
-                        'void ***',
-                        $_tsrm_ls_cache
-                    ))[($rsrc_id - 1)]
-                );
+                $ptr = \ze_ffi()->cast('void ***', \tsrmls_cache())[0];
+                $tls = \ze_ffi()->cast($type, $ptr[($rsrc_id - 1)]);
 
                 return \is_null($element) ? $tls : $tls->{$element};
             }
@@ -96,13 +82,8 @@ if (!\trait_exists('ZETrait')) {
         public static function tsrmg_fast(string $offset, string $type, string $element = null): ?CData
         {
             if (\PHP_ZTS) {
-                $tls = \ze_ffi()->cast(
-                    $type . '*',
-                    \ze_ffi()->cast(
-                        'char*',
-                        \ze_ffi()->tsrm_get_ls_cache()
-                    ) + \ze_ffi()->{$offset}
-                );
+                $ptr = \ze_ffi()->cast('char*', \ze_ffi()->tsrm_get_ls_cache());
+                $tls = \ze_ffi()->cast($type, $ptr + \ze_ffi()->{$offset});
 
                 return \is_null($element) ? $tls : $tls->{$element};
             }
@@ -112,19 +93,9 @@ if (!\trait_exists('ZETrait')) {
 
         public static function tsrmg_fast_static(string $offset, string $type, string $element = null): ?CData
         {
-            static $_tsrm_ls_cache = null;
-
             if (\PHP_ZTS) {
-                if (\is_null($_tsrm_ls_cache))
-                    $_tsrm_ls_cache = \ze_ffi()->tsrm_get_ls_cache();
-
-                $tls = \ze_ffi()->cast(
-                    $type . '*',
-                    \ze_ffi()->cast(
-                        'char*',
-                        $_tsrm_ls_cache
-                    ) + \ze_ffi()->{$offset}
-                );
+                $ptr = \ze_ffi()->cast('char*', \tsrmls_cache());
+                $tls = \ze_ffi()->cast($type, $ptr + \ze_ffi()->{$offset});
 
                 return \is_null($element) ? $tls : $tls->{$element};
             }
@@ -168,7 +139,7 @@ if (!\trait_exists('ZETrait')) {
          */
         protected function is_type_info_refcounted(int $typeInfo): bool
         {
-            return ($typeInfo & ZE::Z_TYPE_FLAGS_MASK) != 0;
+            return ($typeInfo & \ZE::Z_TYPE_FLAGS_MASK) != 0;
         }
 
         /**
@@ -220,7 +191,7 @@ if (!\trait_exists('ZETrait')) {
          */
         public function gc_add_flags($flags)
         {
-            $this->gc()->gc->u->type_info |= ($flags) << ZE::GC_FLAGS_SHIFT;
+            $this->gc()->gc->u->type_info |= ($flags) << \ZE::GC_FLAGS_SHIFT;
 
             return $this->gc()->gc->u->type_info;
         }
@@ -230,7 +201,7 @@ if (!\trait_exists('ZETrait')) {
          */
         public function gc_type()
         {
-            return ($this->gc_type_info() & ZE::GC_TYPE_MASK);
+            return ($this->gc_type_info() & \ZE::GC_TYPE_MASK);
         }
 
         /**
@@ -240,7 +211,7 @@ if (!\trait_exists('ZETrait')) {
         {
             $info = \is_null($ptr) ? $this->gc_type_info() : $ptr->gc->u->type_info;
 
-            return ($info >> ZE::GC_FLAGS_SHIFT) & (ZE::GC_FLAGS_MASK >> ZE::GC_FLAGS_SHIFT);
+            return ($info >> \ZE::GC_FLAGS_SHIFT) & (\ZE::GC_FLAGS_MASK >> \ZE::GC_FLAGS_SHIFT);
         }
 
         /**
@@ -248,7 +219,7 @@ if (!\trait_exists('ZETrait')) {
          */
         public function gc_info()
         {
-            return ($this->gc_type_info() >> ZE::GC_INFO_SHIFT);
+            return ($this->gc_type_info() >> \ZE::GC_INFO_SHIFT);
         }
 
         /**

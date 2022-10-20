@@ -29,15 +29,6 @@ if (!\class_exists('ZendObject')) {
         protected $isZval = false;
         private HashTable $properties;
 
-        public function __call($method, $args)
-        {
-            if (\method_exists($this->reflection, $method)) {
-                return $this->reflection->$method(...$args);
-            } else {
-                throw new \Error("$method does not exist");
-            }
-        }
-
         public static function init(object $instance): self
         {
             $refValue = Zval::constructor($instance);

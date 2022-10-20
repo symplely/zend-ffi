@@ -6,6 +6,7 @@
             "zend/Core.php",
             "zend/CStruct.php",
             "zend/Functions.php",
+            "zend/StandardModule.php",
             "zend/ZE.php",
             "zend/ZETrait.php",
             "zend/Types/HashTable.php",

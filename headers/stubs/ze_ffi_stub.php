@@ -388,6 +388,9 @@ interface FFI
     /** @return zend_result */
     public function zend_startup_module_ex(zend_module_entry &$module);
 
+    /** @return void */
+    public function module_destructor(zend_module_entry &$module);
+
     /** @return int */
     public function zend_alter_ini_entry(zend_string &$name, zend_string &$new_value, int $modify_type, int $stage);
 
@@ -425,6 +428,9 @@ interface FFI
     /** @return void */
     public function tsrm_shutdown();
 
+    /** @return int */
+    public function php_tsrm_startup();
+
     /** @return void */
     public function tsrm_env_lock();
 
@@ -433,14 +439,14 @@ interface FFI
 
     /* allocates a new thread-safe-resource id */
     /** @return ts_rsrc_id */
-    public function ts_allocate_id(ts_rsrc_id &$rsrc_id, size_t $size, ts_allocate_ctor $ctor, ts_allocate_dtor $dtor);
+    public function ts_allocate_id(ts_rsrc_id_ptr &$rsrc_id, size_t $size, ?ts_allocate_ctor $ctor, ?ts_allocate_dtor $dtor);
 
     /* Fast resource in reserved (pre-allocated) space */
     /** @return void */
     public function tsrm_reserve(size_t $size);
 
     /** @return ts_rsrc_id */
-    public function ts_allocate_fast_id(ts_rsrc_id &$rsrc_id, size_t &$offset, size_t $size, ts_allocate_ctor $ctor, ts_allocate_dtor $dtor);
+    public function ts_allocate_fast_id(ts_rsrc_id_ptr &$rsrc_id, size_t &$offset, size_t $size, ts_allocate_ctor $ctor, ts_allocate_dtor $dtor);
 
     /* fetches the requested resource for the current thread */
     /** @return void_ptr */
@@ -514,4 +520,34 @@ interface FFI
 
     /** @return void */
     public function php_request_shutdown(?void_ptr &$dummy);
+
+    /** @return void */
+    public function php_info_print_table_start();
+
+    /** @return void */
+    public function php_info_print_table_header(int $num_cols, ...$args);
+
+    /** @return void */
+    public function php_info_print_table_row(int $num_cols, ...$args);
+
+    /** @return void */
+    public function php_info_print_table_end();
+
+    /** @return void */
+    public function zend_activate();
+
+    /** @return void */
+    public function zend_deactivate();
+
+    /** @return void */
+    public function zend_call_destructors();
+
+    /** @return void */
+    public function zend_activate_modules();
+
+    /** @return void */
+    public function zend_deactivate_modules();
+
+    /** @return void */
+    public function zend_post_deactivate_modules();
 }

@@ -52,17 +52,6 @@ if (!\class_exists('ZendClassEntry')) {
          */
         private static array $objectHandlers = [];
 
-        protected \ReflectionClass $reflection;
-
-        public function __call($method, $args)
-        {
-            if (\method_exists($this->reflection, $method)) {
-                return $this->reflection->$method(...$args);
-            } else {
-                throw new \Error("$method does not exist");
-            }
-        }
-
         /**
          * @return ZendClassEntry|\ReflectionClass
          */

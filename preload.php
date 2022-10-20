@@ -103,10 +103,10 @@ if (!\function_exists('setup_ffi_loader')) {
    * @param bool $owned
    * @return CData char **pointer** of `string`
    */
-  function ffi_char(string $string, bool $owned = false): CData
+  function ffi_char(string $string, bool $owned = false, bool $persistent = false): CData
   {
     $size = \strlen($string);
-    $ptr = \FFI::new('char[' . ($size + 1) . ']', $owned);
+    $ptr = \FFI::new('char[' . ($size + 1) . ']', $owned, $persistent);
     \FFI::memcpy($ptr, $string, $size);
 
     return $ptr;
@@ -163,20 +163,24 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * @return \FFI **_global zend C structures_:**
+   * @return \FFI global **zend/php _C data_** structures:
    *
    * @property zend_internal_function $zend_pass_function
    * @property zend_object_handlers $std_object_handlers
    * @property HashTable $module_registry
+   * @property sapi_module_struct sapi_module
    * @property int $compiler_globals_id if ZTS
    * @property size_t $compiler_globals_offset if ZTS
    * @property zend_compiler_globals $compiler_globals if NTS
-   * @property int $executor_globals_id if ZTS
-   * @property size_t $executor_globals_offset if ZTS
-   * @property zend_execute_data $executor_globals if NTS
-   * @property int core_globals_id if ZTS
-   * @property size_t core_globals_offset if ZTS
-   * @property _php_core_globals core_globals if NTS
+   * @property int sapi_globals_id if ZTS
+   * @property size_t sapi_globals_offset if ZTS
+   * @property sapi_globals_struct sapi_globals if NTS
+   * @property int $executor_globals_id; if ZTS
+   * @property size_t $executor_globals_offset; if ZTS
+   * @property zend_execute_data $executor_globals; if NTS
+   * @property int core_globals_id; if ZTS
+   * @property size_t core_globals_offset; if ZTS
+   * @property _php_core_globals core_globals; if NTS
    * @property php_stream_ops php_stream_stdio_ops;
    * @property php_stream_wrapper php_plain_files_wrapper;
    * @property zend_fcall_info empty_fcall_info;
@@ -279,6 +283,18 @@ if (!\function_exists('setup_ffi_loader')) {
   function reflect_object_name(object $handle): string
   {
     return (new \ReflectionObject($handle))->getName();
+  }
+
+  /**
+   * Converts a **class** instance `method` into a _closure_.
+   *
+   * @param object $class instance
+   * @param string $method callable
+   * @return \Closure
+   */
+  function closure_call(object $class, string $method): \Closure
+  {
+    return \Closure::fromCallable([$class, $method]);
   }
 
   /**
@@ -447,6 +463,9 @@ if (!\function_exists('setup_ffi_loader')) {
         }
       }
     }
+
+    if (\PHP_ZTS)
+      \tsrmls_cache_define();
   }
 
   function win_ffi_loader(string $winFile = '.\\headers\\msvcrt.h'): void
@@ -473,6 +492,32 @@ if (!\function_exists('setup_ffi_loader')) {
     }
 
     \setup_ffi_loader('win', $winFile);
+  }
+
+  function tsrmls_cache_define()
+  {
+    if (\PHP_ZTS) {
+      global $_tsrm_ls_cache;
+      $_tsrm_ls_cache = null;
+    }
+  }
+
+  function tsrmls_cache_update()
+  {
+    if (\PHP_ZTS) {
+      global $_tsrm_ls_cache;
+      $_tsrm_ls_cache = \ze_ffi()->tsrm_get_ls_cache();
+    }
+  }
+
+  function tsrmls_cache(): ?CData
+  {
+    if (\PHP_ZTS) {
+      global $_tsrm_ls_cache;
+      return $_tsrm_ls_cache;
+    }
+
+    return null;
   }
 
   \zend_preloader();

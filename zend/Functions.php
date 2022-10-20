@@ -123,7 +123,7 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
-     * @param object $ptr _struct_ with `->data` field
+     * @param object $ptr _struct_ with `->data` field **or** by `$name`
      * @param object $instance to be _cast_ to `void*`
      * @param string $name data field name other than `->data` the default
      * @return object $ptr
@@ -139,6 +139,11 @@ if (!\function_exists('zval_stack')) {
         return $ptr;
     }
 
+    /**
+     * @param object $ptr _struct_ with `->data` field **or**
+     * @param string $name data field name other than `->data` the default
+     * @return object|null
+     */
     function zval_get_data(object $ptr, string $name = 'data'): ?object
     {
         $zval = null;
@@ -155,7 +160,7 @@ if (!\function_exists('zval_stack')) {
     /**
      * Represents `zend_gc_addref` macro.
      *
-     * @param object $instance
+     * @param object|mixed $instance
      * @return object
      */
     function zval_add_ref(object $instance): object
@@ -168,7 +173,7 @@ if (!\function_exists('zval_stack')) {
     /**
      * Represents `zend_gc_delref` macro.
      *
-     * @param object $instance
+     * @param object|mixed $instance
      * @return object
      */
     function zval_del_ref(object $instance): object
@@ -181,12 +186,23 @@ if (!\function_exists('zval_stack')) {
     /**
      * Check for `IS_OBJ_DESTRUCTOR_CALLED`, with `GC_ADD_FLAGS` macro.
      *
-     * @param object $instance
+     * @param object|mixed $instance
      * @return int
      */
     function zval_skip_dtor(object $instance): int
     {
-        return \zval_stack(0)->gc_add_flags(ZE::IS_OBJ_DESTRUCTOR_CALLED);
+        return \zval_stack(0)->gc_add_flags(\ZE::IS_OBJ_DESTRUCTOR_CALLED);
+    }
+
+    /**
+     * Check for `IS_OBJ_DESTRUCTOR_CALLED`, with `GC_FLAGS(GC_TYPE_INFO)` macro.
+     *
+     * @param object|mixed $instance
+     * @return bool
+     */
+    function zval_is_dtor(object $instance): bool
+    {
+        return (bool) (\zval_stack(0)->gc_flags() & \ZE::IS_OBJ_DESTRUCTOR_CALLED);
     }
 
     /**
@@ -503,45 +519,52 @@ if (!\function_exists('zval_stack')) {
         return $cg->{$element};
     }
 
-    function tsrmls_set_ctx()
+    /**
+     * Represents `SG()` macro.
+     *
+     * @param string $element
+     * @param string $initialize
+     * @return CData|mixed
+     */
+    function zend_sg(string $element, $initialize = 'empty')
     {
-        global $tsrm_ls;
+        $cg = (\PHP_ZTS) ? Zval::tsrmg_fast('sapi_globals_offset', 'sapi_globals_struct') : \ze_ffi()->sapi_globals;
+        if ($initialize !== 'empty')
+            $cg->{$element} = $initialize;
+
+        return $cg->{$element};
+    }
+
+    function tsrmls_activate()
+    {
+        if (\PHP_ZTS) {
+            \ze_ffi()->ts_resource_ex(0, null);
+            \tsrmls_cache_update();
+        }
+    }
+
+    function tsrmls_deactivate()
+    {
+        if (\PHP_ZTS) {
+            \ze_ffi()->ts_free_id(0);
+            \tsrmls_cache_define();
+        }
+    }
+
+    function tsrmls_set_ctx(&$tsrm_ls)
+    {
+        global $ctx_tsrm_ls;
         if (\PHP_ZTS) {
             $tsrm_ls = \ze_ffi()->cast('void ***', \ze_ffi()->tsrm_get_ls_cache());
+            $ctx_tsrm_ls = $tsrm_ls;
         }
     }
 
     function tsrmls_fetch_from_ctx(): ?CData
     {
-        global $tsrm_ls;
+        global $ctx_tsrm_ls;
         if (\PHP_ZTS) {
-            return $tsrm_ls;
-        }
-
-        return null;
-    }
-
-    function tsrmls_cache_define()
-    {
-        global $_tsrm_ls_cache;
-        if (\PHP_ZTS) {
-            $_tsrm_ls_cache = null;
-        }
-    }
-
-    function tsrmls_cache_update()
-    {
-        global $_tsrm_ls_cache;
-        if (\PHP_ZTS) {
-            $_tsrm_ls_cache = \ze_ffi()->tsrm_get_ls_cache();
-        }
-    }
-
-    function tsrmls_cache(): ?CData
-    {
-        global $_tsrm_ls_cache;
-        if (\PHP_ZTS) {
-            return $_tsrm_ls_cache;
+            return $ctx_tsrm_ls;
         }
 
         return null;

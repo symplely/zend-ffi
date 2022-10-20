@@ -43,20 +43,9 @@ if (!\class_exists('ZendModule')) {
      * };
      *```
      */
-    final class ZendModule extends \ZE
+    class ZendModule extends \ZE
     {
         protected $isZval = false;
-
-        protected \ReflectionExtension $reflection;
-
-        public function __call($method, $args)
-        {
-            if (\method_exists($this->reflection, $method)) {
-                return $this->reflection->$method(...$args);
-            } else {
-                throw new \Error("$method does not exist");
-            }
-        }
 
         /**
          * @return ZendModule|\ReflectionExtension
@@ -99,8 +88,6 @@ if (!\class_exists('ZendModule')) {
 
         /**
          * Returns the size of module itself
-         *
-         * Typically, this should be equal to Core::type('zend_module_entry')
          */
         public function size(): int
         {

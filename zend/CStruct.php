@@ -37,7 +37,6 @@ if (!\class_exists('CStruct')) {
             bool $owned = true,
             bool $persistent = false
         ) {
-
             $this->tag = $tag;
             $this->isInteger = $isInteger;
             $this->isOwned = $owned;

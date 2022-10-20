@@ -41,18 +41,6 @@ if (!\class_exists('ZendFunction')) {
     {
         protected $isZval = false;
 
-        /** @var \ReflectionFunction */
-        protected ?object $reflection = null;
-
-        public function __call($method, $args)
-        {
-            if (\method_exists($this->reflection, $method)) {
-                return $this->reflection->$method(...$args);
-            } else {
-                throw new \Error("$method does not exist");
-            }
-        }
-
         /**
          * @return ZendFunction|\ReflectionFunction
          */

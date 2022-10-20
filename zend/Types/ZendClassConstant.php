@@ -27,16 +27,6 @@ if (!\class_exists('ZendClassConstant')) {
     final class ZendClassConstant extends \ZE
     {
         protected $isZval = false;
-        protected \ReflectionClassConstant $reflection;
-
-        public function __call($method, $args)
-        {
-            if (\method_exists($this->reflection, $method)) {
-                return $this->reflection->$method(...$args);
-            } else {
-                throw new \Error("$method does not exist");
-            }
-        }
 
         /**
          * @return ZendClassConstant|\ReflectionClassConstant

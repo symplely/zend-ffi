@@ -1231,6 +1231,7 @@ typedef struct
 /* startup/shutdown */
 int tsrm_startup(int expected_threads, int expected_resources, int debug_level, char *debug_filename);
 void tsrm_shutdown(void);
+int php_tsrm_startup(void);
 
 void tsrm_win32_startup(void);
 void tsrm_win32_shutdown(void);
@@ -1808,6 +1809,78 @@ typedef struct _zend_fcall_info_cache
 	zend_object *object;
 } zend_fcall_info_cache;
 
+typedef struct _sapi_post_entry sapi_post_entry;
+struct _sapi_post_entry
+{
+	char *content_type;
+	uint32_t content_type_len;
+	void (*post_reader)(void);
+	void (*post_handler)(char *content_type_dup, void *arg);
+};
+
+typedef struct
+{
+	const char *request_method;
+	char *query_string;
+	char *cookie_data;
+	zend_long content_length;
+
+	char *path_translated;
+	char *request_uri;
+
+	/* Do not use request_body directly, but the php://input stream wrapper instead */
+	struct _php_stream *request_body;
+
+	const char *content_type;
+
+	zend_bool headers_only;
+	zend_bool no_headers;
+	zend_bool headers_read;
+
+	sapi_post_entry *post_entry;
+
+	char *content_type_dup;
+
+	/* for HTTP authentication */
+	char *auth_user;
+	char *auth_password;
+	char *auth_digest;
+
+	/* this is necessary for the CGI SAPI module */
+	char *argv0;
+
+	char *current_user;
+	int current_user_length;
+
+	/* this is necessary for CLI module */
+	int argc;
+	char **argv;
+	int proto_num;
+} sapi_request_info;
+
+typedef struct _sapi_globals_struct
+{
+	void *server_context;
+	sapi_request_info request_info;
+	sapi_headers_struct sapi_headers;
+	int64_t read_post_bytes;
+	unsigned char post_read;
+	unsigned char headers_sent;
+	zend_stat_t global_stat;
+	char *default_mimetype;
+	char *default_charset;
+	HashTable *rfc1867_uploaded_files;
+	zend_long post_max_size;
+	int options;
+	zend_bool sapi_started;
+	double global_request_time;
+	HashTable known_post_content_types;
+	zval callback_func;
+	zend_fcall_info_cache fci_cache;
+} sapi_globals_struct;
+
+extern int sapi_globals_id;
+extern size_t sapi_globals_offset;
 extern const zend_fcall_info empty_fcall_info;
 extern const zend_fcall_info_cache empty_fcall_info_cache;
 int zend_alter_ini_entry(zend_string *name, zend_string *new_value, int modify_type, int stage);
@@ -1959,3 +2032,10 @@ struct _php_core_globals
 	zend_bool have_called_openlog;
 	zend_long syslog_filter;
 };
+
+void zend_activate(void);
+void zend_deactivate(void);
+void zend_call_destructors(void);
+void zend_activate_modules(void);
+void zend_deactivate_modules(void);
+void zend_post_deactivate_modules(void);

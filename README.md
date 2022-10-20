@@ -74,7 +74,60 @@ For a simple FFI integration process **create/edit**:
 
 ## Documentation
 
-The functions in [preload.php](https://github.com/symplely/zend-ffi/blob/main/preload.php) and [Functions.php](https://github.com/symplely/zend-ffi/blob/main/api/Functions.php) should be used or expanded upon.
+The functions in [preload.php](https://github.com/symplely/zend-ffi/blob/main/preload.php) and [Functions.php](https://github.com/symplely/zend-ffi/blob/main/zend/Functions.php) should be used or expanded upon.
+
+For general FFI `C data` handling see **CStruct** [_class_](https://github.com/symplely/zend-ffi/blob/main/zend/CStruct.php).
+
+Functions `c_int_type()`, `c_struct_type()`, `c_array_type()` and `c_typedef()` are wrappers for any _C data typedef_ turning it into PHP **CStruct** class instance, with all **FFI** functions as methods with additional features.
+
+The whole PHP lifecycle process can be achieved by just extending **StandardModule** [_abstract class_](https://github.com/symplely/zend-ffi/blob/main/zend/StandardModule.php).
+
+```php
+declare(strict_types=1);
+
+require 'vendor/autoload.php';
+
+final class SimpleCountersModule extends \StandardModule
+{
+    protected ?string $module_version = '0.4';
+
+    //Represents ZEND_DECLARE_MODULE_GLOBALS macro.
+    protected ?string $global_type = 'unsigned int[10]';
+
+    // Do module startup?
+    protected bool $m_startup = true;
+
+    // Represents PHP_MINIT_FUNCTION() macro.
+    public function module_startup(int $type, int $module_number): int
+    {
+        echo 'module_startup' . \PHP_EOL;
+        return \ZE::SUCCESS;
+    }
+
+    // Represents PHP_GINIT_FUNCTION() macro.
+    public function global_startup(\FFI\CData $memory): void
+    {
+        if (\PHP_ZTS) {
+            \tsrmls_activate();
+        }
+
+        echo 'global_startup' . \PHP_EOL;
+        \FFI::memset($this->get_globals(), 0, $this->globals_size());
+    }
+}
+
+$module = new SimpleCountersModule();
+if (!$module->is_registered()) {
+    $module->register();
+    $module->startup();
+}
+
+// Represents ZEND_MODULE_GLOBALS_ACCESSOR() macro.
+$data = $module->get_globals();
+$data[0] = 5;
+$data[9] = 15;
+var_dump($data);
+```
 
 ## Reference/Credits
 

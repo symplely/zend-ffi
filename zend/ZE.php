@@ -323,6 +323,11 @@ if (!\class_exists('ZE')) {
         protected ?CData $ze_other = null;
         protected ?CData $ze_other_ptr = null;
 
+        /**
+         * @var \Reflector|\ReflectionClass|\ReflectionFunction|\ReflectionExtension|\ReflectionClassConstant|null
+         */
+        protected ?\Reflector $reflection;
+
         protected $isZval = true;
 
         /**
@@ -333,6 +338,15 @@ if (!\class_exists('ZE')) {
         private static array $constant_names = [];
 
         use ZETrait;
+
+        public function __call($method, $args)
+        {
+            if (\method_exists($this->reflection, $method)) {
+                return $this->reflection->$method(...$args);
+            } else {
+                throw new \Error("$method does not exist");
+            }
+        }
 
         protected function __construct(string $typedef, bool $isZval = true)
         {
@@ -361,8 +375,12 @@ if (!\class_exists('ZE')) {
                 if (\is_cdata($this->ze_other_ptr) && !\is_null_ptr($this->ze_other_ptr))
                     \FFI::free($this->ze_other_ptr);
 
+                if (\is_cdata($this->ze_other) && !\is_null_ptr($this->ze_other))
+                    \FFI::free($this->ze_other);
+
                 $this->ze_other_ptr = null;
                 $this->ze_other = null;
+                $this->reflection = null;
             } else {
                 if (\is_cdata($this->ze_ptr) && !\is_null_ptr($this->ze_ptr))
                     \FFI::free($this->ze_ptr);
