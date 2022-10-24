@@ -418,6 +418,11 @@ if (!\function_exists('zval_stack')) {
         return Zval::init_value($ptr);
     }
 
+    function zval_blank(): Zval
+    {
+        return Zval::init();
+    }
+
     /**
      * @param resource $stream
      * @return array<Zval|uv_file|int>
@@ -474,13 +479,97 @@ if (!\function_exists('zval_stack')) {
     /**
      * Represents `PG()` macro.
      *
-     * @param string $element
+     *```cpp
+     *struct _php_core_globals
+     *{
+     *	zend_bool implicit_flush;
+     *	zend_long output_buffering;
+     *	zend_bool enable_dl;
+     *	char *output_handler;
+     *	char *unserialize_callback_func;
+     *	zend_long serialize_precision;
+     *	zend_long memory_limit;
+     *	zend_long max_input_time;
+     *	zend_bool track_errors;
+     *	zend_bool display_errors;
+     *	zend_bool display_startup_errors;
+     *	zend_bool log_errors;
+     *	zend_long log_errors_max_len;
+     *	zend_bool ignore_repeated_errors;
+     *	zend_bool ignore_repeated_source;
+     *	zend_bool report_memleaks;
+     *	char *error_log;
+     *	char *doc_root;
+     *	char *user_dir;
+     *	char *include_path;
+     *	char *open_basedir;
+     *	char *extension_dir;
+     *	char *php_binary;
+     *	char *sys_temp_dir;
+     *	char *upload_tmp_dir;
+     *	zend_long upload_max_filesize;
+     *	char *error_append_string;
+     *	char *error_prepend_string;
+     *	char *auto_prepend_file;
+     *	char *auto_append_file;
+     *	char *input_encoding;
+     *	char *internal_encoding;
+     *	char *output_encoding;
+     *	arg_separators arg_separator;
+     *	char *variables_order;
+     *	HashTable rfc1867_protected_variables;
+     *	short connection_status;
+     *	zend_bool ignore_user_abort;
+     *	unsigned char header_is_being_sent;
+     *	zend_llist tick_functions;
+     *	zval http_globals[6];
+     *	zend_bool expose_php;
+     *	zend_bool register_argc_argv;
+     *	zend_bool auto_globals_jit;
+     *	char *docref_root;
+     *	char *docref_ext;
+     *	zend_bool html_errors;
+     *	zend_bool xmlrpc_errors;
+     *	zend_long xmlrpc_error_number;
+     *	zend_bool activated_auto_globals[8];
+     *	zend_bool modules_activated;
+     *	zend_bool file_uploads;
+     *	zend_bool during_request_startup;
+     *	zend_bool allow_url_fopen;
+     *	zend_bool enable_post_data_reading;
+     *	zend_bool report_zend_debug;
+     *	int last_error_type;
+     *	char *last_error_message;
+     *	char *last_error_file;
+     *	int last_error_lineno;
+     *	char *php_sys_temp_dir;
+     *	char *disable_functions;
+     *	char *disable_classes;
+     *	zend_bool allow_url_include;
+     *	zend_bool com_initialized;
+     *	zend_long max_input_nesting_level;
+     *	zend_long max_input_vars;
+     *	zend_bool in_user_include;
+     *	char *user_ini_filename;
+     *	zend_long user_ini_cache_ttl;
+     *	char *request_order;
+     *	zend_bool mail_x_header;
+     *	char *mail_log;
+     *	zend_bool in_error_log;
+     *	zend_bool windows_show_crt_warning;
+     *	zend_long syslog_facility;
+     *	char *syslog_ident;
+     *	zend_bool have_called_openlog;
+     *	zend_long syslog_filter;
+     *};
+     *```
+     * @param string $element field
      * @param string $initialize
      * @return CData|mixed
      */
     function zend_pg(string $element, $initialize = 'empty')
     {
-        $pg = (\PHP_ZTS) ? Zval::tsrmg_fast_static('core_globals_offset', 'php_core_globals') : \ze_ffi()->core_globals;
+        $pg = (\PHP_ZTS) ? Zval::tsrmg_fast_static('core_globals_offset', 'php_core_globals*') : \ze_ffi()->core_globals;
         if ($initialize !== 'empty')
             $pg->{$element} = $initialize;
 
@@ -490,13 +579,85 @@ if (!\function_exists('zval_stack')) {
     /**
      * Represents `EG()` macro.
      *
-     * @param string $element
+     *```cpp
+     *struct _zend_executor_globals
+     *{
+     *	zval uninitialized_zval;
+     *	zval error_zval;
+     *	zend_array *symtable_cache[32];
+     *	zend_array **symtable_cache_limit;
+     *	zend_array **symtable_cache_ptr;
+     *	zend_array symbol_table;
+     *	HashTable included_files;
+     *	jmp_buf *bailout;
+     *	int error_reporting;
+     *	int exit_status;
+     *	HashTable *function_table;
+     *	HashTable *class_table;
+     *	HashTable *zend_constants;
+     *	zval *vm_stack_top;
+     *	zval *vm_stack_end;
+     *	zend_vm_stack vm_stack;
+     *	size_t vm_stack_page_size;
+     *	struct _zend_execute_data *current_execute_data;
+     *	zend_class_entry *fake_scope;
+     *	uint32_t jit_trace_num;
+     *	zend_long precision;
+     *	int ticks_count;
+     *	uint32_t persistent_constants_count;
+     *	uint32_t persistent_functions_count;
+     *	uint32_t persistent_classes_count;
+     *	HashTable *in_autoload;
+     *	zend_bool full_tables_cleanup;
+     *	zend_bool no_extensions;
+     *	zend_bool vm_interrupt;
+     *	zend_bool timed_out;
+     *	zend_long hard_timeout;
+     *	OSVERSIONINFOEX windows_version_info;
+     *	HashTable regular_list;
+     *	HashTable persistent_list;
+     *	int user_error_handler_error_reporting;
+     *	zval user_error_handler;
+     *	zval user_exception_handler;
+     *	zend_stack user_error_handlers_error_reporting;
+     *	zend_stack user_error_handlers;
+     *	zend_stack user_exception_handlers;
+     *	zend_error_handling_t error_handling;
+     *	zend_class_entry *exception_class;
+     *	zend_long timeout_seconds;
+     *	int lambda_count;
+     *	HashTable *ini_directives;
+     *	HashTable *modified_ini_directives;
+     *	zend_ini_entry *error_reporting_ini_entry;
+     *	zend_objects_store objects_store;
+     *	zend_object *exception, *prev_exception;
+     *	const zend_op *opline_before_exception;
+     *	zend_op exception_op[3];
+     *	struct _zend_module_entry *current_module;
+     *	zend_bool active;
+     *	zend_uchar flags;
+     *	zend_long assertions;
+     *	uint32_t ht_iterators_count;
+     *	uint32_t ht_iterators_used;
+     *	HashTableIterator *ht_iterators;
+     *	HashTableIterator ht_iterators_slots[16];
+     *	void *saved_fpu_cw_ptr;
+     *	zend_function trampoline;
+     *	zend_op call_trampoline_op;
+     *	HashTable weakrefs;
+     *	zend_bool exception_ignore_args;
+     *	zend_long exception_string_param_max_len;
+     *	zend_get_gc_buffer get_gc_buffer;
+     *	void *reserved[6];
+     *};
+     *```
+     * @param string $element field
      * @param string $initialize
      * @return CData|mixed
      */
     function zend_eg(string $element, $initialize = 'empty')
     {
-        $eg = (\PHP_ZTS) ? Zval::tsrmg_fast('executor_globals_offset', 'zend_executor_globals') : \ze_ffi()->executor_globals;
+        $eg = (\PHP_ZTS) ? Zval::tsrmg_fast('executor_globals_offset', 'zend_executor_globals*') : \ze_ffi()->executor_globals;
         if ($initialize !== 'empty')
             $eg->{$element} = $initialize;
 
@@ -506,13 +667,59 @@ if (!\function_exists('zval_stack')) {
     /**
      * Represents `CG()` macro.
      *
-     * @param string $element
+     *```cpp
+     *struct _zend_compiler_globals
+     *{
+     *	zend_stack loop_var_stack;
+     *	zend_class_entry *active_class_entry;
+     *	zend_string *compiled_filename;
+     *	int zend_lineno;
+     *	zend_op_array *active_op_array;
+     *	HashTable *function_table;
+     *	HashTable *class_table;
+     *	HashTable *auto_globals;
+     *  zend_uchar parse_error;
+     *	zend_bool in_compilation;
+     *	zend_bool short_tags;
+     *	zend_bool unclean_shutdown;
+     *	zend_bool ini_parser_unbuffered_errors;
+     *	zend_llist open_files;
+     *	struct _zend_ini_parser_param *ini_parser_param;
+     *	zend_bool skip_shebang;
+     *	zend_bool increment_lineno;
+     *	zend_string *doc_comment;
+     *	uint32_t extra_fn_flags;
+     *	uint32_t compiler_options;
+     *	zend_oparray_context context;
+     *	zend_file_context file_context;
+     *	zend_arena *arena;
+     *	HashTable interned_strings;
+     *	const zend_encoding **script_encoding_list;
+     *	size_t script_encoding_list_size;
+     *	zend_bool multibyte;
+     *	zend_bool detect_unicode;
+     *	zend_bool encoding_declared;
+     *	zend_ast *ast;
+     *	zend_arena *ast_arena;
+     *	zend_stack delayed_oplines_stack;
+     *	HashTable *memoized_exprs;
+     *	int memoize_mode;
+     *	void *map_ptr_base;
+     *	size_t map_ptr_size;
+     *	size_t map_ptr_last;
+     *	HashTable *delayed_variance_obligations;
+     *	HashTable *delayed_autoloads;
+     *	uint32_t rtd_key_counter;
+     *	zend_stack short_circuiting_opnums;
+     *};
+     *```
+     * @param string $element field
      * @param string $initialize
      * @return CData|mixed
      */
     function zend_cg(string $element, $initialize = 'empty')
     {
-        $cg = (\PHP_ZTS) ? Zval::tsrmg_fast('compiler_globals_offset', 'zend_compiler_globals') : \ze_ffi()->compiler_globals;
+        $cg = (\PHP_ZTS) ? Zval::tsrmg_fast('compiler_globals_offset', 'zend_compiler_globals*') : \ze_ffi()->compiler_globals;
         if ($initialize !== 'empty')
             $cg->{$element} = $initialize;
 
@@ -522,7 +729,29 @@ if (!\function_exists('zval_stack')) {
     /**
      * Represents `SG()` macro.
      *
-     * @param string $element
+     *```cpp
+     * typedef struct _sapi_globals_struct
+     *{
+     *	void *server_context;
+     *	sapi_request_info request_info;
+     *	sapi_headers_struct sapi_headers;
+     *	int64_t read_post_bytes;
+     *	unsigned char post_read;
+     *	unsigned char headers_sent;
+     *	zend_stat_t global_stat;
+     *	char *default_mimetype;
+     *	char *default_charset;
+     *	HashTable *rfc1867_uploaded_files;
+     *	zend_long post_max_size;
+     *	int options;
+     *	zend_bool sapi_started;
+     *	double global_request_time;
+     *	HashTable known_post_content_types;
+     *	zval callback_func;
+     *	zend_fcall_info_cache fci_cache;
+     *} sapi_globals_struct;
+     *```
+     * @param string $element field
      * @param string $initialize
      * @return CData|mixed
      */

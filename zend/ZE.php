@@ -194,6 +194,12 @@ if (!\class_exists('ZE')) {
         const ZEND_INTERNAL_CLASS       = 1;
         const ZEND_USER_CLASS           = 2;
 
+        const ZEND_EVAL                 = (1 << 0);
+        const ZEND_INCLUDE              = (1 << 1);
+        const ZEND_INCLUDE_ONCE         = (1 << 2);
+        const ZEND_REQUIRE              = (1 << 3);
+        const ZEND_REQUIRE_ONCE         = (1 << 4);
+
         /**
          * User opcode handler return values
          */

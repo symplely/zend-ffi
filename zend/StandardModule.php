@@ -257,11 +257,10 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_RINIT_FUNCTION()` _macro_.
          *
-         * @param integer $type
-         * @param integer $module_number
+         * @param mixed $args
          * @return integer
          */
-        public function request_startup(int $type, int $module_number): int
+        public function request_startup(...$args): int
         {
             return \ZE::SUCCESS;
         }
@@ -269,11 +268,10 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_RSHUTDOWN_FUNCTION()` _macro_.
          *
-         * @param integer $type
-         * @param integer $module_number
+         * @param mixed $args
          * @return integer
          */
-        public function request_shutdown(int $type, int $module_number): int
+        public function request_shutdown(...$args): int
         {
             return \ZE::SUCCESS;
         }

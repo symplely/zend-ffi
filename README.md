@@ -141,13 +141,16 @@ var_dump($matches[0]);
 - [Introduction to PHP FFI](https://dev.to/verkkokauppacom/introduction-to-php-ffi-po3)
 - [How to Use PHP FFI in Programming](https://spiralscout.com/blog/how-to-use-php-ffi-in-programming)
 - [PHP FFI and what it can do for you](https://phpconference.com/blog/php-ffi-and-what-it-can-do-for-you/)
+- [Getting Started with PHP-FFI](https://www.youtube.com/watch?v=7pfjvRupoqg) **Youtube**
+
 - [Zend API - Hacking the Core of PHP](https://www.cs.helsinki.fi/u/laine/php/zend.html)
 - [PHP at the Core A Hacker's Guide - Manual](http://php.adamharvey.name/manual/en/internals2.php)
 - [PHP Internals Book](https://www.phpinternalsbook.com/index.html)
 - [Upgrading PHP extensions from PHP5 to NG](https://wiki.php.net/phpng-upgrading)
 - [Extending and Embedding PHP](https://flylib.com/books/en/2.565.1/)
 - [Whitepaper: Writing PHP Extensions - Zend](https://www.zend.com/sites/zend/files/pdfs/whitepaper-zend-php-extensions.pdf) **PDF**
-- [Getting Started with PHP-FFI](https://www.youtube.com/watch?v=7pfjvRupoqg) **Youtube**
+- [Part V:  Extensibility](http://php.find-info.ru/php/016/part05.html)
+
 - [Awesome PHP FFI](https://github.com/gabrielrcouto/awesome-php-ffi)
 - [Z-Engine library](https://github.com/lisachenko/z-engine)
 

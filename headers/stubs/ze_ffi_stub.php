@@ -80,6 +80,9 @@ abstract class va_list extends char
 abstract class const_char extends string
 {
 }
+abstract class sapi_module_struct extends FFI\CData
+{
+}
 abstract class void_t extends FFI\CData
 {
 }
@@ -388,9 +391,6 @@ interface FFI
     /** @return zend_result */
     public function zend_startup_module_ex(zend_module_entry &$module);
 
-    /** @return void */
-    public function module_destructor(zend_module_entry &$module);
-
     /** @return int */
     public function zend_alter_ini_entry(zend_string &$name, zend_string &$new_value, int $modify_type, int $stage);
 
@@ -518,6 +518,12 @@ interface FFI
     /** @return int */
     public function php_execute_script(zend_file_handle &$primary_file);
 
+    /** @return int */
+    public function php_execute_simple_script(zend_file_handle &$primary_file, zval &$ret);
+
+    /** @return int */
+    public function zend_execute_scripts(int $type, ?zval &$retval, int $file_count, ...$args);
+
     /** @return void */
     public function php_request_shutdown(?void_ptr &$dummy);
 
@@ -550,4 +556,31 @@ interface FFI
 
     /** @return void */
     public function zend_post_deactivate_modules();
+
+    /** @return int */
+    public function sapi_send_headers();
+
+    /** @return void */
+    public function sapi_startup(sapi_module_struct &$sf);
+
+    /** @return void */
+    public function sapi_shutdown();
+
+    /** @return void */
+    public function sapi_activate();
+
+    /** @return void */
+    public function sapi_deactivate();
+
+    /** @return void */
+    public function sapi_initialize_empty_request();
+
+    /** @return void */
+    public function sapi_add_request_header(char &$var, int $var_len, char &$val, int $val_len, void_ptr &$arg);
+
+    /** @return void */
+    public function zend_stream_init_filename(zend_file_handle &$handle, const_char $filename);
+
+    /** @return void */
+    public function zend_file_handle_dtor(zend_file_handle &$fh);
 }

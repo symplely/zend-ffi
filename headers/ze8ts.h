@@ -1786,6 +1786,8 @@ void php_info_print_table_row(int num_cols, ...);
 void php_info_print_table_end(void);
 int php_request_startup(void);
 int php_execute_script(zend_file_handle *primary_file);
+int php_execute_simple_script(zend_file_handle *primary_file, zval *ret);
+int zend_execute_scripts(int type, zval *retval, int file_count, ...);
 void php_request_shutdown(void *dummy);
 
 int ap_php_slprintf(char *buf, size_t len, const char *format, ...);
@@ -1926,3 +1928,13 @@ void zend_call_destructors(void);
 void zend_activate_modules(void);
 void zend_deactivate_modules(void);
 void zend_post_deactivate_modules(void);
+
+void sapi_startup(sapi_module_struct *sf);
+void sapi_shutdown(void);
+void sapi_activate(void);
+void sapi_deactivate(void);
+void sapi_initialize_empty_request(void);
+void sapi_add_request_header(char *var, unsigned int var_len, char *val, unsigned int val_len, void *arg);
+
+void zend_stream_init_filename(zend_file_handle *handle, const char *filename);
+void zend_file_handle_dtor(zend_file_handle *fh);
