@@ -18,8 +18,8 @@ if (!\class_exists('StandardModule')) {
      * protected string $ffi_tag = 'instance';
      *
      * // If not set, class name will be used as module name
-     * protected ?string $module_name = 'extension name';
-     * protected ?string $module_version = '0.0.0';
+     * private static ?string $module_name = 'extension name';
+     * private ?string $module_version = '0.0.0';
      *
      * // Represents `ZEND_DECLARE_MODULE_GLOBALS` _macro_.
      * protected ?string $global_type = null;
@@ -131,12 +131,12 @@ if (!\class_exists('StandardModule')) {
         /**
          * Unique name of this module
          */
-        protected ?string $module_name = null;
+        private static ?string $module_name = null;
 
         /**
          * Version number of this module
          */
-        protected ?string $module_version = self::NO_VERSION_YET;
+        private ?string $module_version = self::NO_VERSION_YET;
 
         /**
          * Sets global type (if present) or null if module doesn't use global memory.
@@ -161,6 +161,29 @@ if (!\class_exists('StandardModule')) {
 
         /** Do global shutdown? */
         protected bool $g_shutdown = false;
+
+        protected static $global_module;
+
+        final public static function set_module(?\StandardModule $module): void
+        {
+            if (\PHP_ZTS)
+                self::$global_module[\ze_ffi()->tsrm_thread_id()] = $module;
+            else
+                self::$global_module[static::get_name()] = $module;
+        }
+
+        /**
+         * Represents `ZEND_GET_MODULE()` _macro_.
+         *
+         * @return \StandardModule|null
+         */
+        final public static function get_module(): ?\StandardModule
+        {
+            if (\PHP_ZTS)
+                return self::$global_module[\ze_ffi()->tsrm_thread_id()];
+            else
+                return self::$global_module[static::get_name()];
+        }
 
         final public function __destruct()
         {
@@ -205,8 +228,8 @@ if (!\class_exists('StandardModule')) {
             if (!\is_null($ffi_tag))
                 $this->ffi_tag = $ffi_tag;
 
-            if (!\is_null($name) || \is_null($this->module_name))
-                $this->module_name = $name ?? self::detect_name();
+            if (!\is_null($name) || \is_null(static::$module_name))
+                static::$module_name = $name ?? self::detect_name();
 
             if (\is_null($this->module_version))
                 $this->module_version = $version;
@@ -219,9 +242,9 @@ if (!\class_exists('StandardModule')) {
             // if module is already registered, then we can use it immediately
             if ($this->is_registered()) {
                 /** @var Zval */
-                $ext = HashTable::init_value(static::module_registry())->find($this->module_name);
+                $ext = HashTable::init_value(static::module_registry())->find(static::$module_name);
                 if ($ext === null) {
-                    return \ze_ffi()->zend_error(\E_WARNING, "Module %s should be in the engine.", $this->module_name);
+                    return \ze_ffi()->zend_error(\E_WARNING, "Module %s should be in the engine.", static::$module_name);
                 }
 
                 $ptr = $ext->ptr();
@@ -329,9 +352,9 @@ if (!\class_exists('StandardModule')) {
         /**
          * Returns the unique name of this module.
          */
-        final public function get_name(): string
+        final public static function get_name(): string
         {
-            return $this->module_name;
+            return static::$module_name;
         }
 
         /**
@@ -339,7 +362,7 @@ if (!\class_exists('StandardModule')) {
          */
         final public function is_registered(): bool
         {
-            return \extension_loaded($this->module_name);
+            return \extension_loaded(static::$module_name);
         }
 
         /**
@@ -348,12 +371,12 @@ if (!\class_exists('StandardModule')) {
         final public function register(): void
         {
             if ($this->is_registered()) {
-                throw new \RuntimeException('Module ' . $this->module_name . ' was already registered.');
+                throw new \RuntimeException('Module ' . static::$module_name . ' was already registered.');
             }
 
             // We don't need persistent memory here, as PHP copies structures into persistent memory itself
             $module = \ze_ffi()->new('zend_module_entry');
-            $moduleName = $this->module_name;
+            $moduleName = static::$module_name;
             $module->size = \FFI::sizeof($module);
             $module->type = $this->target_persistent ? self::MODULE_PERSISTENT : self::MODULE_TEMPORARY;
             $module->name = \ffi_char($moduleName, false, $this->target_persistent);
@@ -416,7 +439,7 @@ if (!\class_exists('StandardModule')) {
         {
             $result = \ze_ffi()->zend_startup_module_ex($this->ze_other_ptr);
             if ($result !== \ZE::SUCCESS) {
-                throw new \RuntimeException('Can not startup module ' . $this->module_name);
+                throw new \RuntimeException('Can not startup module ' . static::$module_name);
             }
         }
 

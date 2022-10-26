@@ -35,6 +35,8 @@ if (!$module->is_registered()) {
     $module->startup();
 }
 
+SimpleCountersModule::set_module($module);
+var_dump(SimpleCountersModule::get_module());
 $data = $module->get_globals();
 $data[0] = 5;
 $data[9] = 15;
@@ -46,9 +48,16 @@ $value = ob_get_clean();
 
 preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
+SimpleCountersModule::set_module(null);
 --EXPECTF--
 global_startup
 module_startup
+object(SimpleCountersModule)#%d (2) {
+  ["_debug"]=>
+  bool(false)
+  ["_thread_safe"]=>
+  bool(true)
+}
 object(FFI\CData:uint32_t[10])#%d (10) {
   [0]=>
   int(5)
