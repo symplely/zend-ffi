@@ -48,7 +48,12 @@ $value = ob_get_clean();
 
 preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
+var_dump($module->global_type_id());
+
 SimpleCountersModule::set_module(null);
+$module->__destruct();
+var_dump($module->global_type_id());
+
 --EXPECTF--
 global_startup
 module_startup
@@ -81,3 +86,5 @@ object(FFI\CData:uint32_t[10])#%d (10) {
   int(15)
 }
 string(34) "simple_counters support => enabled"
+int(%d)
+NULL

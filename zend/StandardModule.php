@@ -453,6 +453,16 @@ if (!\class_exists('StandardModule')) {
         }
 
         /**
+         * For `ZTS` mode when using **global_type()**.
+         *
+         * @return integer|null
+         */
+        final public function global_type_id(): ?int
+        {
+            return $this->global_id[\ze_ffi()->tsrm_thread_id()] ?? null;
+        }
+
+        /**
          * This getter extends general logic with automatic casting global memory to required type.
          * - Represents `ZEND_MODULE_GLOBALS_ACCESSOR()` _macro_.
          * @param string|null $element
@@ -467,7 +477,7 @@ if (!\class_exists('StandardModule')) {
                         'void ***',
                         \tsrmls_cache()
                     )[0];
-                    $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $ptr[($this->global_id[\ze_ffi()->tsrm_thread_id()] - 1)]);
+                    $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $ptr[($this->global_type_id() - 1)]);
                 } else
                     $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $cdata);
             }
