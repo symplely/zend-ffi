@@ -512,6 +512,9 @@ interface FFI
     /** @return const_char */
     public function tsrm_api_name();
 
+    /** @return size_t */
+    public function php_printf(const_char &$format, ...$args);
+
     /** @return int */
     public function php_request_startup();
 
