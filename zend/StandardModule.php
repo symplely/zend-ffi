@@ -388,7 +388,7 @@ if (!\class_exists('StandardModule')) {
 
             $globalType = $this->global_type();
             if (!\is_null($globalType)) {
-                $module->globals_size = \FFI::sizeof(\FFI::type($globalType));
+                $module->globals_size = \FFI::sizeof(\Core::get($this->ffi_tag)->type($globalType));
                 if (\PHP_ZTS) {
                     $this->global_rsrc = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
                     $module->globals_id_ptr = $this->global_rsrc->addr();
