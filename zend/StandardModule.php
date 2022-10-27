@@ -18,8 +18,8 @@ if (!\class_exists('StandardModule')) {
      * protected string $ffi_tag = 'instance';
      *
      * // If not set, class name will be used as module name
-     * private static ?string $module_name = 'extension name';
-     * private ?string $module_version = '0.0.0';
+     * protected static ?string $module_name = 'extension name';
+     * protected ?string $module_version = '0.0.0';
      *
      * // Represents `ZEND_DECLARE_MODULE_GLOBALS` _macro_.
      * protected ?string $global_type = null;
@@ -90,12 +90,12 @@ if (!\class_exists('StandardModule')) {
         /**
          * `ZTS|NTS` _ts_rsrc_id_ or _C typedef_ **instance**
          */
-        private ?\CStruct $global_rsrc = null;
+        protected ?\CStruct $global_rsrc = null;
 
         /**
          * `ZTS` _ts_rsrc_id_
          */
-        private array $global_id = [];
+        protected array $global_id = [];
 
         /**
          * Set true if this module should be persistent or false if temporary
