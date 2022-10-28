@@ -13,13 +13,16 @@ if (!\class_exists('StandardModule')) {
      * - Represents `STANDARD_MODULE` macro of the PHP lifecycle:
      * https://www.phpinternalsbook.com/php7/extensions_design/php_lifecycle.html
      *
-     * _The following `3` properties MUST be declared:_
+     * _The following property MUST be declared:_
      *```php
+     * // An `FFI` instance tag *name*
      * protected string $ffi_tag = 'instance';
      *
      * // If not set, class name will be used as module name
-     * protected static ?string $module_name = 'extension name';
-     * protected ?string $module_version = '0.0.0';
+     * protected string $module_name = 'extension name';
+     *
+     * // Version number of this module
+     * protected $module_version = '0.0.0';
      *
      * // Represents `ZEND_DECLARE_MODULE_GLOBALS` _macro_.
      * protected ?string $global_type = null;
@@ -126,17 +129,18 @@ if (!\class_exists('StandardModule')) {
         /**
          * An `FFI` instance tag *name*
          */
-        protected string $ffi_tag = 'ze';
+        protected string $ffi_tag;
 
         /**
          * Unique name of this module
+         * - If not set, class name will be used as module name
          */
-        private static ?string $module_name = null;
+        protected string $module_name;
 
         /**
          * Version number of this module
          */
-        private ?string $module_version = self::NO_VERSION_YET;
+        protected string $module_version;
 
         /**
          * Sets global type (if present) or null if module doesn't use global memory.
@@ -202,10 +206,6 @@ if (!\class_exists('StandardModule')) {
         /**
          * Module constructor.
          *
-         * @param string $version Version number of this module
-         * @param string $ffi_tag **ffi** _instance_ of module
-         * @param string $name Unique name of this module
-         * - If not set, class name will be used as module name
          * @param boolean $target_persistent - Set true if this module should be persistent or false if temporary
          * @param boolean $target_threads Use `ZEND_THREAD_SAFE` as default if your module does not depend on thread-safe mode.
          * - Set the thread-safe mode for this module.
@@ -217,22 +217,16 @@ if (!\class_exists('StandardModule')) {
          * @return self
          */
         final public function __construct(
-            string $version = self::NO_VERSION_YET,
-            string $ffi_tag = null,
-            string $name = null,
             bool $target_persistent = false,
             bool $target_threads = \ZEND_THREAD_SAFE,
             bool $target_debug = \ZEND_DEBUG_BUILD,
             int $target_version = self::ZEND_MODULE_API_NO
         ) {
-            if (!\is_null($ffi_tag))
-                $this->ffi_tag = $ffi_tag;
+            if (!isset($this->ffi_tag))
+                return \ze_ffi()->zend_error(\E_ERROR, 'No `FFI` instance found!');
 
-            if (!\is_null($name) || \is_null(static::$module_name))
-                static::$module_name = $name ?? self::detect_name();
-
-            if (\is_null($this->module_version))
-                $this->module_version = $version;
+            if (!isset($this->module_name))
+                $this->module_name = self::detect_name();
 
             $this->target_threads = $target_threads;
             $this->target_persistent = $target_persistent;
@@ -242,9 +236,9 @@ if (!\class_exists('StandardModule')) {
             // if module is already registered, then we can use it immediately
             if ($this->is_registered()) {
                 /** @var Zval */
-                $ext = HashTable::init_value(static::module_registry())->find(static::$module_name);
+                $ext = HashTable::init_value(static::module_registry())->find($this->module_name);
                 if ($ext === null) {
-                    return \ze_ffi()->zend_error(\E_WARNING, "Module %s should be in the engine.", static::$module_name);
+                    return \ze_ffi()->zend_error(\E_WARNING, "Module %s should be in the engine.", $this->module_name);
                 }
 
                 $ptr = $ext->ptr();
@@ -354,7 +348,7 @@ if (!\class_exists('StandardModule')) {
          */
         final public static function get_name(): string
         {
-            return static::$module_name;
+            return static::get_module()->module_name;
         }
 
         /**
@@ -362,7 +356,7 @@ if (!\class_exists('StandardModule')) {
          */
         final public function is_registered(): bool
         {
-            return \extension_loaded(static::$module_name);
+            return \extension_loaded($this->module_name);
         }
 
         /**
@@ -371,19 +365,19 @@ if (!\class_exists('StandardModule')) {
         final public function register(): void
         {
             if ($this->is_registered()) {
-                throw new \RuntimeException('Module ' . static::$module_name . ' was already registered.');
+                throw new \RuntimeException('Module ' . $this->module_name . ' was already registered.');
             }
 
             // We don't need persistent memory here, as PHP copies structures into persistent memory itself
             $module = \ze_ffi()->new('zend_module_entry');
-            $moduleName = static::$module_name;
+            $moduleName = $this->module_name;
             $module->size = \FFI::sizeof($module);
             $module->type = $this->target_persistent ? self::MODULE_PERSISTENT : self::MODULE_TEMPORARY;
             $module->name = \ffi_char($moduleName, false, $this->target_persistent);
             $module->zend_api = $this->target_version;
             $module->zend_debug = (int)$this->target_debug;
             $module->zts = (int)$this->target_threads;
-            if (!\is_null($this->module_version))
+            if (isset($this->module_version))
                 $module->version = \ffi_char($this->module_version);
 
             $globalType = $this->global_type();
@@ -439,7 +433,7 @@ if (!\class_exists('StandardModule')) {
         {
             $result = \ze_ffi()->zend_startup_module_ex($this->ze_other_ptr);
             if ($result !== \ZE::SUCCESS) {
-                throw new \RuntimeException('Can not startup module ' . static::$module_name);
+                throw new \RuntimeException('Can not startup module ' . $this->module_name);
             }
         }
 

@@ -8,12 +8,14 @@ require 'vendor/autoload.php';
 
 final class SimpleCountersModule extends \StandardModule
 {
-    protected ?string $module_version = '0.4';
+    protected string $ffi_tag = 'ze';
+    protected string $module_version = '0.4';
     protected ?string $global_type = 'unsigned int[10]';
     protected bool $m_startup = true;
 
     public function module_startup(int $type, int $module_number): int
     {
+        SimpleCountersModule::set_module($this);
         echo 'module_startup' . \PHP_EOL;
         return \ZE::SUCCESS;
     }
@@ -35,7 +37,6 @@ if (!$module->is_registered()) {
     $module->startup();
 }
 
-SimpleCountersModule::set_module($module);
 var_dump(SimpleCountersModule::get_module());
 $data = $module->get_globals();
 $data[0] = 5;
@@ -48,6 +49,7 @@ $value = ob_get_clean();
 
 preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
+var_dump(SimpleCountersModule::get_name());
 var_dump($module->global_type_id());
 
 SimpleCountersModule::set_module(null);
@@ -86,5 +88,6 @@ object(FFI\CData:uint32_t[10])#%d (10) {
   int(15)
 }
 string(34) "simple_counters support => enabled"
+string(15) "simple_counters"
 int(%d)
 NULL
