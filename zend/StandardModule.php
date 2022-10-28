@@ -460,9 +460,10 @@ if (!\class_exists('StandardModule')) {
          * This getter extends general logic with automatic casting global memory to required type.
          * - Represents `ZEND_MODULE_GLOBALS_ACCESSOR()` _macro_.
          * @param string|null $element
+         * @param mixed $initialize set element value
          * @return null|CData|mixed
          */
-        final public function get_globals(string $element = null)
+        final public function get_globals(string $element = null, $initialize = 'empty')
         {
             $cdata = $this->globals();
             if ($cdata !== null) {
@@ -472,9 +473,12 @@ if (!\class_exists('StandardModule')) {
                         \tsrmls_cache()
                     )[0];
                     $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $ptr[($this->global_type_id() - 1)]);
-                } else
-                    $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $cdata);
+                } //else
+                //   $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $cdata);
             }
+
+            if ($initialize !== 'empty' && !\is_null($element))
+                $cdata->{$element} = $initialize;
 
             return \is_null($element) ? $cdata : $cdata->{$element};
         }

@@ -564,7 +564,7 @@ if (!\function_exists('zval_stack')) {
      *};
      *```
      * @param string $element field
-     * @param string $initialize
+     * @param mixed $initialize set element value
      * @return CData|mixed
      */
     function zend_pg(string $element, $initialize = 'empty')
@@ -652,7 +652,7 @@ if (!\function_exists('zval_stack')) {
      *};
      *```
      * @param string $element field
-     * @param string $initialize
+     * @param mixed $initialize set element value
      * @return CData|mixed
      */
     function zend_eg(string $element, $initialize = 'empty')
@@ -714,7 +714,7 @@ if (!\function_exists('zval_stack')) {
      *};
      *```
      * @param string $element field
-     * @param string $initialize
+     * @param mixed $initialize set element value
      * @return CData|mixed
      */
     function zend_cg(string $element, $initialize = 'empty')
@@ -752,7 +752,7 @@ if (!\function_exists('zval_stack')) {
      *} sapi_globals_struct;
      *```
      * @param string $element field
-     * @param string $initialize
+     * @param mixed $initialize set element value
      * @return CData|mixed
      */
     function zend_sg(string $element, $initialize = 'empty')
