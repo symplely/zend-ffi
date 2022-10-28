@@ -9,8 +9,76 @@ use ZE\PhpStream;
 if (!\defined('DS'))
   \define('DS', \DIRECTORY_SEPARATOR);
 
+if (!\defined('None'))
+  \define('None', null);
+
+if (!\defined('INET_ADDRSTRLEN'))
+  \define('INET_ADDRSTRLEN', 22);
+
+if (!\defined('INET6_ADDRSTRLEN'))
+  \define('INET6_ADDRSTRLEN', 65);
+
+if (!\defined('DS'))
+  \define('DS', \DIRECTORY_SEPARATOR);
+
+if (!\defined('IS_WINDOWS'))
+  \define('IS_WINDOWS', ('\\' === \DS));
+
+if (!\defined('IS_LINUX'))
+  \define('IS_LINUX', ('/' === \DS));
+
+if (!\defined('IS_MACOS'))
+  \define('IS_MACOS', (\PHP_OS === 'Darwin'));
+
+if (!\defined('EOL'))
+  \define('EOL', \PHP_EOL);
+
+if (!\defined('CRLF'))
+  \define('CRLF', "\r\n");
+
+if (!\defined('IS_ZTS'))
+  \define('IS_ZTS', \ZEND_THREAD_SAFE);
+
+if (!\defined('IS_CLI')) {
+  /**
+   * Check if php is running from cli (command line).
+   */
+  \define(
+    'IS_CLI',
+    \defined('STDIN') ||
+      (empty($_SERVER['REMOTE_ADDR']) && !isset($_SERVER['HTTP_USER_AGENT']) && \count($_SERVER['argv']) > 0)
+  );
+}
+
+if (!\defined('SYS_CONSOLE')) {
+  /**
+   * O.S. physical __input/output__ console `DEVICE`.
+   */
+  \define('SYS_CONSOLE', \IS_WINDOWS ? '\\\\?\\CON' : '/dev/tty');
+}
+
+if (!\defined('SYS_NULL')) {
+  /**
+   * O.S. physical __null__ `DEVICE`.
+   */
+  \define('SYS_NULL', \IS_WINDOWS ? '\\\\?\\NUL' : '/dev/null');
+}
+
+if (!\defined('SYS_PIPE')) {
+  /**
+   * O.S. physical __pipe__ prefix `string name` including trailing slash.
+   */
+  \define('SYS_PIPE', \IS_WINDOWS ? '\\\\.\\pipe\\' : \getcwd() . '/');
+}
+
 if (!\defined('IS_PHP81'))
   \define('IS_PHP81', ((float) \phpversion() >= 8.1));
+
+if (!\defined('IS_PHP8'))
+  \define('IS_PHP8', ((float) \phpversion() >= 8.0));
+
+if (!\defined('IS_PHP74'))
+  \define('IS_PHP74', ((float) \phpversion() >= 7.4) && !\IS_PHP8);
 
 if (!\function_exists('setup_ffi_loader')) {
   function ffi_cdef(string $code, string $lib = null): \FFI
@@ -515,6 +583,41 @@ if (!\function_exists('setup_ffi_loader')) {
     if (\PHP_ZTS) {
       global $_tsrm_ls_cache;
       return $_tsrm_ls_cache;
+    }
+
+    return null;
+  }
+
+  function tsrmls_activate()
+  {
+    if (\PHP_ZTS) {
+      \ze_ffi()->ts_resource_ex(0, null);
+      \tsrmls_cache_update();
+    }
+  }
+
+  function tsrmls_deactivate()
+  {
+    if (\PHP_ZTS) {
+      \ze_ffi()->ts_free_id(0);
+      \tsrmls_cache_define();
+    }
+  }
+
+  function tsrmls_set_ctx(&$tsrm_ls)
+  {
+    global $ctx_tsrm_ls;
+    if (\PHP_ZTS) {
+      $tsrm_ls = \ze_ffi()->cast('void ***', \ze_ffi()->tsrm_get_ls_cache());
+      $ctx_tsrm_ls = $tsrm_ls;
+    }
+  }
+
+  function tsrmls_fetch_from_ctx(): ?CData
+  {
+    global $ctx_tsrm_ls;
+    if (\PHP_ZTS) {
+      return $ctx_tsrm_ls;
     }
 
     return null;

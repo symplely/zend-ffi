@@ -763,39 +763,4 @@ if (!\function_exists('zval_stack')) {
 
         return $cg->{$element};
     }
-
-    function tsrmls_activate()
-    {
-        if (\PHP_ZTS) {
-            \ze_ffi()->ts_resource_ex(0, null);
-            \tsrmls_cache_update();
-        }
-    }
-
-    function tsrmls_deactivate()
-    {
-        if (\PHP_ZTS) {
-            \ze_ffi()->ts_free_id(0);
-            \tsrmls_cache_define();
-        }
-    }
-
-    function tsrmls_set_ctx(&$tsrm_ls)
-    {
-        global $ctx_tsrm_ls;
-        if (\PHP_ZTS) {
-            $tsrm_ls = \ze_ffi()->cast('void ***', \ze_ffi()->tsrm_get_ls_cache());
-            $ctx_tsrm_ls = $tsrm_ls;
-        }
-    }
-
-    function tsrmls_fetch_from_ctx(): ?CData
-    {
-        global $ctx_tsrm_ls;
-        if (\PHP_ZTS) {
-            return $ctx_tsrm_ls;
-        }
-
-        return null;
-    }
 }
