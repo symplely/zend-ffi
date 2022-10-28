@@ -495,10 +495,12 @@ if (!\class_exists('StandardModule')) {
                     } else {
                         $elements = $cdata->{$element};
                     }
+
+                    return $elements;
                 }
             }
 
-            return \is_null($element) ? $cdata : $elements;
+            return $cdata;
         }
 
         /**
