@@ -473,14 +473,32 @@ if (!\class_exists('StandardModule')) {
                         \tsrmls_cache()
                     )[0];
                     $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $ptr[($this->global_type_id() - 1)]);
-                } //else
-                //   $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $cdata);
+                }
+
+                if ($initialize !== 'empty' && !\is_null($element)) {
+                    if (\strpos($element, '->') !== false) {
+                        $fields = \explode('->', $element);
+                        if (\count($fields) == 3)
+                            $cdata->{$fields[0]}->{$fields[1]}->{$fields[2]} = $initialize;
+                        elseif (\count($fields) == 2)
+                            $cdata->{$fields[0]}->{$fields[1]} = $initialize;
+                    } else {
+                        $cdata->{$element} = $initialize;
+                    }
+                } elseif (!\is_null($element)) {
+                    if (\strpos($element, '->') !== false) {
+                        $fields = \explode('->', $element);
+                        if (\count($fields) == 3)
+                            $elements = $cdata->{$fields[0]}->{$fields[1]}->{$fields[2]};
+                        elseif (\count($fields) == 2)
+                            $elements = $cdata->{$fields[0]}->{$fields[1]};
+                    } else {
+                        $elements = $cdata->{$element};
+                    }
+                }
             }
 
-            if ($initialize !== 'empty' && !\is_null($element))
-                $cdata->{$element} = $initialize;
-
-            return \is_null($element) ? $cdata : $cdata->{$element};
+            return \is_null($element) ? $cdata : $elements;
         }
 
         /**
