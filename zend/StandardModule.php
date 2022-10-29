@@ -89,7 +89,7 @@ if (!\class_exists('StandardModule')) {
         private const MODULE_TEMPORARY = 2;
 
         private const ZEND_MODULE_API_NO = 20190902;
-        private const NO_VERSION_YET = null;
+
         /**
          * `ZTS|NTS` _ts_rsrc_id_ or _C typedef_ **instance**
          */
@@ -470,7 +470,7 @@ if (!\class_exists('StandardModule')) {
                 if (\PHP_ZTS) {
                     $ptr = \ze_ffi()->cast(
                         'void ***',
-                        \tsrmls_cache()
+                        \ze_ffi()->tsrm_get_ls_cache()
                     )[0];
                     $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $ptr[($this->global_type_id() - 1)]);
                 }
