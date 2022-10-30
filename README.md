@@ -89,10 +89,10 @@ require 'vendor/autoload.php';
 
 final class SimpleCountersModule extends \StandardModule
 {
-    protected ?string $module_version = '0.4';
+    protected string $module_version = '0.4';
 
     //Represents ZEND_DECLARE_MODULE_GLOBALS macro.
-    protected ?string $global_type = 'unsigned int[10]';
+    protected string $global_type = 'unsigned int[10]';
 
     // Do module startup?
     protected bool $m_startup = true;
@@ -124,6 +124,7 @@ if (!$module->is_registered()) {
 
 // Represents ZEND_MODULE_GLOBALS_ACCESSOR() macro.
 $data = $module->get_globals();
+$module->get_globals('4', 20);
 $data[0] = 5;
 $data[9] = 15;
 var_dump($data);

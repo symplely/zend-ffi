@@ -467,7 +467,7 @@ if (!\class_exists('StandardModule')) {
         /**
          * This getter extends general logic with automatic casting global memory to required type.
          * - Represents `ZEND_MODULE_GLOBALS_ACCESSOR()` _macro_.
-         * @param string|null $element
+         * @param string|null $element field
          * @param mixed $initialize set element value
          * @return null|CData|mixed
          */
@@ -490,7 +490,10 @@ if (!\class_exists('StandardModule')) {
                         \ze_ffi()->tsrm_mutex_lock($mutex);
                     }
 
-                    if (\strpos($element, '->') !== false) {
+                    if (\strpos($element, '[', 0) === 0 || \is_numeric($element)) {
+                        $index = (int)(\is_numeric($element) ? $element : \str_replace(['[', ']'], '', $element));
+                        $cdata[$index] = $initialize;
+                    } elseif (\strpos($element, '->') !== false) {
                         $fields = \explode('->', $element);
                         if (\count($fields) == 3)
                             $cdata->{$fields[0]}->{$fields[1]}->{$fields[2]} = $initialize;
@@ -505,7 +508,10 @@ if (!\class_exists('StandardModule')) {
                         \ze_ffi()->tsrm_mutex_free($mutex);
                     }
                 } elseif (!\is_null($element)) {
-                    if (\strpos($element, '->') !== false) {
+                    if ((\strpos($element, '[', 0) === 0) || \is_numeric($element)) {
+                        $index = (int)(\is_numeric($element) ? $element : \str_replace(['[', ']'], '', $element));
+                        $elements = $cdata[$index];
+                    } elseif (\strpos($element, '->') !== false) {
                         $fields = \explode('->', $element);
                         if (\count($fields) == 3)
                             $elements = $cdata->{$fields[0]}->{$fields[1]}->{$fields[2]};

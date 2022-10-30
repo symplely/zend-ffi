@@ -39,6 +39,7 @@ if (!$module->is_registered()) {
 
 var_dump(SimpleCountersModule::get_module());
 $data = $module->get_globals();
+$module->get_globals('4', 20);
 $data[0] = 5;
 $data[9] = 15;
 var_dump($data);
@@ -51,6 +52,7 @@ preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
 var_dump(SimpleCountersModule::get_name());
 var_dump($module->global_type_id());
+var_dump($module->ffi());
 
 SimpleCountersModule::set_module(null);
 $module->__destruct();
@@ -90,7 +92,7 @@ object(FFI\CData:uint32_t[10])#%d (10) {
   [3]=>
   int(0)
   [4]=>
-  int(0)
+  int(20)
   [5]=>
   int(0)
   [6]=>
@@ -105,4 +107,6 @@ object(FFI\CData:uint32_t[10])#%d (10) {
 string(34) "simple_counters support => enabled"
 string(15) "simple_counters"
 int(%d)
+object(FFI)#%d (0) {
+}
 NULL
