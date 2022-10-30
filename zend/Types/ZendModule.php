@@ -176,6 +176,13 @@ if (!\class_exists('ZendModule')) {
                 }
             }
 
+            $result['_size'] = $this->size();
+            $result['_globals_size'] = $this->globals_size();
+            $result['_globals'] = $this->globals();
+            $result['_module_started'] = $this->module_started();
+            $result['_module_number'] = $this->module_number();
+            $result['_zend_api'] = $this->zend_api();
+
             return $result;
         }
     }

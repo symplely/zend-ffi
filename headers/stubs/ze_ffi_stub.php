@@ -468,7 +468,7 @@ interface FFI
     /** @return THREAD_T */
     public function tsrm_thread_id();
 
-    /** @return THREAD_T */
+    /** @return MUTEX_T */
     public function tsrm_mutex_alloc();
 
     /** @return void */

@@ -22,7 +22,7 @@ if (!\class_exists('StandardModule')) {
      * protected string $module_name = 'extension name';
      *
      * // Version number of this module
-     * protected $module_version = '0.0.0';
+     * protected string $module_version = '0.0.0';
      *
      * // Represents `ZEND_DECLARE_MODULE_GLOBALS` _macro_.
      * protected ?string $global_type = null;
@@ -189,6 +189,16 @@ if (!\class_exists('StandardModule')) {
                 return self::$global_module[static::get_name()];
         }
 
+        /**
+         * Returns module's `FFI` instance.
+         *
+         * @return \FFI
+         */
+        final public function ffi(): \FFI
+        {
+            return \Core::get($this->ffi_tag);
+        }
+
         final public function __destruct()
         {
             if (\PHP_ZTS) {
@@ -313,8 +323,6 @@ if (!\class_exists('StandardModule')) {
                     );
                 }
             }
-
-            \FFI::memset($this->get_globals(), 0, $this->globals_size());
         }
 
         /**
@@ -378,11 +386,11 @@ if (!\class_exists('StandardModule')) {
             $module->zend_debug = (int)$this->target_debug;
             $module->zts = (int)$this->target_threads;
             if (isset($this->module_version))
-                $module->version = \ffi_char($this->module_version);
+                $module->version = \ffi_char($this->module_version, false, $this->target_persistent);
 
             $globalType = $this->global_type();
             if (!\is_null($globalType)) {
-                $module->globals_size = \FFI::sizeof(\Core::get($this->ffi_tag)->type($globalType));
+                $module->globals_size = \FFI::sizeof($this->ffi()->type($globalType));
                 if (\PHP_ZTS) {
                     $this->global_rsrc = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
                     $module->globals_id_ptr = $this->global_rsrc->addr();
@@ -472,10 +480,16 @@ if (!\class_exists('StandardModule')) {
                         'void ***',
                         \ze_ffi()->tsrm_get_ls_cache()
                     )[0];
-                    $cdata = \Core::get($this->ffi_tag)->cast($this->global_type(), $ptr[($this->global_type_id() - 1)]);
+
+                    $cdata = $this->ffi()->cast($this->global_type(), $ptr[($this->global_type_id() - 1)]);
                 }
 
                 if ($initialize !== 'empty' && !\is_null($element)) {
+                    if (\PHP_ZTS) {
+                        $mutex = \ze_ffi()->tsrm_mutex_alloc();
+                        \ze_ffi()->tsrm_mutex_lock($mutex);
+                    }
+
                     if (\strpos($element, '->') !== false) {
                         $fields = \explode('->', $element);
                         if (\count($fields) == 3)
@@ -484,6 +498,11 @@ if (!\class_exists('StandardModule')) {
                             $cdata->{$fields[0]}->{$fields[1]} = $initialize;
                     } else {
                         $cdata->{$element} = $initialize;
+                    }
+
+                    if (\PHP_ZTS) {
+                        \ze_ffi()->tsrm_mutex_unlock($mutex);
+                        \ze_ffi()->tsrm_mutex_free($mutex);
                     }
                 } elseif (!\is_null($element)) {
                     if (\strpos($element, '->') !== false) {
@@ -496,7 +515,7 @@ if (!\class_exists('StandardModule')) {
                         $elements = $cdata->{$element};
                     }
 
-                    return $elements;
+                    $cdata = $elements;
                 }
             }
 

@@ -59,11 +59,26 @@ var_dump($module->global_type_id());
 --EXPECTF--
 global_startup
 module_startup
-object(SimpleCountersModule)#%d (2) {
+object(SimpleCountersModule)#%d (8) {
   ["_debug"]=>
   bool(false)
   ["_thread_safe"]=>
   bool(true)
+  ["_size"]=>
+  int(%d)
+  ["_globals_size"]=>
+  int(%d)
+  ["_globals"]=>
+  object(FFI\CData:int32_t*)#%d (1) {
+    [0]=>
+    int(%d)
+  }
+  ["_module_started"]=>
+  bool(true)
+  ["_module_number"]=>
+  int(0)
+  ["_zend_api"]=>
+  int(%d)
 }
 object(FFI\CData:uint32_t[10])#%d (10) {
   [0]=>
