@@ -179,7 +179,7 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `ZEND_GET_MODULE()` _macro_.
          *
-         * @return \StandardModule|null
+         * @return static|null
          */
         final public static function get_module(): ?\StandardModule
         {
