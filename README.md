@@ -27,7 +27,7 @@ _To setup a skeleton for FFI integration._
 `FFI` is enabled by default in `php.ini` since `PHP 7.4`, as to `OpCache`, they should not be changed unless already manually disabled.
 Only the `preload` section might need setting up if better performance is desired.
 
-It seems all `php.ini` setting **files** on Windows does not them enabled.
+It seems all the `php.ini` setting **files** on Windows does not have them enabled.
 
 ```ini
 extension=ffi

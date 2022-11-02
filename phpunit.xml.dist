@@ -10,12 +10,14 @@
     <filter>
         <whitelist>
             <directory suffix=".php">zend/</directory>
+            <file>preload.php</file>
             <exclude>
                 <directory suffix=".php">examples/</directory>
                 <directory suffix=".h">headers/</directory>
                 <file>headers/stubs/ze_ffi_stub.php</file>
                 <file>headers/stubs/win_ffi_stub.php</file>
                 <file>.ignore_autoload.php</file>
+                <file>ffi_preloader.php</file>
             </exclude>
         </whitelist>
     </filter>
