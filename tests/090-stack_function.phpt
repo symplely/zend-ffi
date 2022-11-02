@@ -35,10 +35,7 @@ class Entry
             $refFunction = ZendFunction::init('var_dump');
             $refFunction->deprecated();
             var_dump($refFunction->isDeprecated() === true);
-
-            //    $this->expectException(Deprecated::class);
-            //   $this->expectExceptionMessageMatches('/Function var_dump\(\) is deprecated/');
-            var_dump(is_int($currentReporting));
+            is_int($currentReporting);
         } finally {
             error_reporting($currentReporting);
             $refFunction->deprecated(false);
@@ -101,8 +98,8 @@ class Entry
 
 $test = new Entry();
 $test->run();
---EXPECT--
-bool(true)
+--EXPECTF--
+Deprecated: Function var_dump() is deprecated in %s
 bool(true)
 Given function signature: "function ()" should be compatible with original "function (): ?string"
 bool(true)
