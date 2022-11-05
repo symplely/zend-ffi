@@ -94,7 +94,7 @@ if (!\class_exists('StandardModule')) {
          * `ZTS|NTS` _ts_rsrc_id_ or _C typedef_ **instance**
          * @var \CStruct[]
          */
-        protected array $global_rsrc = [];
+        protected $global_rsrc = [];
 
         /**
          * `ZTS` _ts_rsrc_id_
