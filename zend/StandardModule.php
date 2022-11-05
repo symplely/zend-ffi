@@ -186,8 +186,8 @@ if (!\class_exists('StandardModule')) {
         {
             if (\PHP_ZTS)
                 return self::$global_module[\ze_ffi()->tsrm_thread_id()];
-            else
-                return self::$global_module[static::get_name()];
+
+            return self::$global_module[static::get_name()];
         }
 
         /**
