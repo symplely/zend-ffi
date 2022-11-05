@@ -92,8 +92,9 @@ if (!\class_exists('StandardModule')) {
 
         /**
          * `ZTS|NTS` _ts_rsrc_id_ or _C typedef_ **instance**
+         * @var \CStruct[]
          */
-        protected ?\CStruct $global_rsrc = null;
+        protected array $global_rsrc = [];
 
         /**
          * `ZTS` _ts_rsrc_id_
@@ -205,11 +206,12 @@ if (!\class_exists('StandardModule')) {
                 $id = \ze_ffi()->tsrm_thread_id();
                 if (isset($this->global_id[$id])) {
                     \ze_ffi()->ts_free_id($this->global_id[$id]);
-                    unset($this->global_id[$id]);
+                    unset($this->global_id[$id], $this->global_rsrc[$id]);
                 }
+            } else {
+                $this->global_rsrc = null;
             }
 
-            $this->global_rsrc = null;
             $this->free();
         }
 
@@ -315,8 +317,9 @@ if (!\class_exists('StandardModule')) {
                 \tsrmls_activate();
                 $id = \ze_ffi()->tsrm_thread_id();
                 if (!isset($this->global_id[$id])) {
+                    $this->global_rsrc[$id] = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
                     $this->global_id[$id] = \ze_ffi()->ts_allocate_id(
-                        $this->global_rsrc->addr(),
+                        $this->global_rsrc[$id]->addr(),
                         $this->globals_size(),
                         null,
                         null
@@ -392,10 +395,11 @@ if (!\class_exists('StandardModule')) {
             if (!\is_null($globalType)) {
                 $module->globals_size = \FFI::sizeof($this->ffi()->type($globalType));
                 if (\PHP_ZTS) {
-                    $this->global_rsrc = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
-                    $module->globals_id_ptr = $this->global_rsrc->addr();
-                    $this->global_id[\ze_ffi()->tsrm_thread_id()] = \ze_ffi()->ts_allocate_id(
-                        $this->global_rsrc->addr(),
+                    $id = \ze_ffi()->tsrm_thread_id();
+                    $this->global_rsrc[$id] = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
+                    $module->globals_id_ptr = $this->global_rsrc[$id]->addr();
+                    $this->global_id[$id] = \ze_ffi()->ts_allocate_id(
+                        $this->global_rsrc[$id]->addr(),
                         $module->globals_size,
                         null,
                         null
@@ -443,6 +447,13 @@ if (!\class_exists('StandardModule')) {
             if ($result !== \ZE::SUCCESS) {
                 throw new \RuntimeException('Can not startup module ' . $this->module_name);
             }
+
+            if ($this->r_shutdown)
+                \register_shutdown_function(
+                    \closure_from($this, 'request_shutdown'),
+                    (int)$this->ze_other_ptr->type,
+                    $this->ze_other_ptr->module_number
+                );
         }
 
         /**

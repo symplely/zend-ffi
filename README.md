@@ -48,7 +48,7 @@ opcache.enable_cli=1
 ; "true"    - always enabled
 ffi.enable="preload"
 
-; List of headers files to preload, wildcard patterns allowed. Has no effect on Windows.
+; List of headers files to preload, wildcard patterns allowed. `ffi.preload` has no effect on Windows.
 ffi.preload=path/to/.cdef/ffi_preloader.php ; For simple integration with other FFI extensions
 ; Or
 ffi.preload=path/to/vendor/symplely/zend-ffi/preload.php ; For standalone usage
@@ -164,6 +164,8 @@ var_dump($matches[0]);
 - [Extending and Embedding PHP](https://flylib.com/books/en/2.565.1/)
 - [Whitepaper: Writing PHP Extensions - Zend](https://www.zend.com/sites/zend/files/pdfs/whitepaper-zend-php-extensions.pdf) **PDF**
 - [Part V:  Extensibility](http://php.find-info.ru/php/016/part05.html)
+- [In-depth study of PHP & Zend Engine TSRM Algorithms](https://r00thunt.com/2015/10/02/in-depth-study-of-php-zend-engine-tsrm-algorithms/)
+- [Threads and PHP](http://blog.jpauli.tech/2017-01-12-threads-and-php-html/)
 
 - [Awesome PHP FFI](https://github.com/gabrielrcouto/awesome-php-ffi)
 - [Z-Engine library](https://github.com/lisachenko/z-engine)

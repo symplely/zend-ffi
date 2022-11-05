@@ -567,13 +567,13 @@ if (!\function_exists('zval_stack')) {
      * @param mixed $initialize set element value
      * @return CData|mixed
      */
-    function zend_pg(string $element, $initialize = 'empty')
+    function zend_pg(string $element = null, $initialize = 'empty')
     {
         $pg = (\PHP_ZTS) ? Zval::tsrmg_fast_static('core_globals_offset', 'php_core_globals*') : \ze_ffi()->core_globals;
         if ($initialize !== 'empty')
             $pg->{$element} = $initialize;
 
-        return $pg->{$element};
+        return \is_null($element) ? $pg : $pg->{$element};
     }
 
     /**
@@ -655,13 +655,13 @@ if (!\function_exists('zval_stack')) {
      * @param mixed $initialize set element value
      * @return CData|mixed
      */
-    function zend_eg(string $element, $initialize = 'empty')
+    function zend_eg(string $element = null, $initialize = 'empty')
     {
         $eg = (\PHP_ZTS) ? Zval::tsrmg_fast('executor_globals_offset', 'zend_executor_globals*') : \ze_ffi()->executor_globals;
         if ($initialize !== 'empty')
             $eg->{$element} = $initialize;
 
-        return $eg->{$element};
+        return \is_null($element) ? $eg : $eg->{$element};
     }
 
     /**
@@ -717,13 +717,13 @@ if (!\function_exists('zval_stack')) {
      * @param mixed $initialize set element value
      * @return CData|mixed
      */
-    function zend_cg(string $element, $initialize = 'empty')
+    function zend_cg(string $element = null, $initialize = 'empty')
     {
         $cg = (\PHP_ZTS) ? Zval::tsrmg_fast('compiler_globals_offset', 'zend_compiler_globals*') : \ze_ffi()->compiler_globals;
         if ($initialize !== 'empty')
             $cg->{$element} = $initialize;
 
-        return $cg->{$element};
+        return \is_null($element) ? $cg : $cg->{$element};
     }
 
     /**
@@ -755,12 +755,12 @@ if (!\function_exists('zval_stack')) {
      * @param mixed $initialize set element value
      * @return CData|mixed
      */
-    function zend_sg(string $element, $initialize = 'empty')
+    function zend_sg(string $element = null, $initialize = 'empty')
     {
-        $cg = (\PHP_ZTS) ? Zval::tsrmg_fast('sapi_globals_offset', 'sapi_globals_struct') : \ze_ffi()->sapi_globals;
+        $sg = (\PHP_ZTS) ? Zval::tsrmg_fast('sapi_globals_offset', 'sapi_globals_struct*') : \ze_ffi()->sapi_globals;
         if ($initialize !== 'empty')
-            $cg->{$element} = $initialize;
+            $sg->{$element} = $initialize;
 
-        return $cg->{$element};
+        return \is_null($element) ? $sg : $sg->{$element};
     }
 }

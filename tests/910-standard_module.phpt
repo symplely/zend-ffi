@@ -12,11 +12,18 @@ final class SimpleCountersModule extends \StandardModule
     protected string $module_version = '0.4';
     protected ?string $global_type = 'unsigned int[10]';
     protected bool $m_startup = true;
+    protected bool $r_shutdown = true;
 
     public function module_startup(int $type, int $module_number): int
     {
         SimpleCountersModule::set_module($this);
         echo 'module_startup' . \PHP_EOL;
+        return \ZE::SUCCESS;
+    }
+
+    public function request_shutdown(...$args): int
+    {
+        echo 'request_shutdown' . \PHP_EOL;
         return \ZE::SUCCESS;
     }
 
@@ -50,14 +57,10 @@ $value = ob_get_clean();
 
 preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
+var_dump(\extension_loaded('simple_counters'));
 var_dump(SimpleCountersModule::get_name());
 var_dump($module->global_type_id());
 var_dump($module->ffi());
-
-SimpleCountersModule::set_module(null);
-$module->__destruct();
-var_dump($module->global_type_id());
-
 --EXPECTF--
 global_startup
 module_startup
@@ -105,8 +108,9 @@ object(FFI\CData:uint32_t[10])#%d (10) {
   int(15)
 }
 string(34) "simple_counters support => enabled"
+bool(true)
 string(15) "simple_counters"
 int(%d)
 object(FFI)#%d (0) {
 }
-NULL
+request_shutdown
