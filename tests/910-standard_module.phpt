@@ -12,12 +12,19 @@ final class SimpleCountersModule extends \StandardModule
     protected string $module_version = '0.4';
     protected ?string $global_type = 'unsigned int[10]';
     protected bool $m_startup = true;
+    protected bool $m_shutdown = true;
     protected bool $r_shutdown = true;
 
     public function module_startup(int $type, int $module_number): int
     {
         SimpleCountersModule::set_module($this);
         echo 'module_startup' . \PHP_EOL;
+        return \ZE::SUCCESS;
+    }
+
+    public function module_shutdown(int $type, int $module_number): int
+    {
+        echo 'module_shutdown' . \PHP_EOL;
         return \ZE::SUCCESS;
     }
 
@@ -36,6 +43,12 @@ final class SimpleCountersModule extends \StandardModule
         echo 'global_startup' . \PHP_EOL;
         \FFI::memset($this->get_globals(), 0, $this->globals_size());
     }
+
+    public function global_shutdown(\FFI\CData $memory): void
+    {
+        parent::global_shutdown($memory);
+        echo 'global_shutdown' . \PHP_EOL;
+    }
 }
 
 $module = new SimpleCountersModule();
@@ -44,6 +57,7 @@ if (!$module->is_registered()) {
     $module->startup();
 }
 
+$module->destruct_set();
 var_dump(SimpleCountersModule::get_module());
 $data = $module->get_globals();
 $module->get_globals('4', 20);
@@ -114,3 +128,5 @@ int(%d)
 object(FFI)#%d (0) {
 }
 request_shutdown
+module_shutdown
+global_shutdown

@@ -169,6 +169,44 @@ if (!\class_exists('StandardModule')) {
 
         protected static $global_module;
 
+        protected bool $destruct_on_request = false;
+
+        /**
+         * Set __`StandardModule`__ to call `module_shutdown()` and `global_shutdown()`
+         * on __`request_shutdown()`__ or __`module_destructor()`__.
+         *
+         * @return void
+         */
+        public function destruct_set(): void
+        {
+            $this->destruct_on_request = true;
+        }
+
+        public function is_destruct(): bool
+        {
+            return $this->destruct_on_request;
+        }
+
+        /**
+         * Executes `request_shutdown()`, and if __destruct_on_request__ is `true`, _module_shutdown()_ and _global_shutdown()_.
+         *
+         * @return void
+         */
+        final public function module_destructor(): void
+        {
+            if ($this->r_shutdown) {
+                $module = $this->__invoke();
+                if (!\is_null($module)) {
+                    $this->request_shutdown((int)$module->type, $module->module_number);
+                    if ($this->destruct_on_request) {
+                        $this->destruct_on_request = false;
+                        $this->module_shutdown((int)$module->type, $module->module_number);
+                        $this->global_shutdown($module);
+                    }
+                }
+            }
+        }
+
         final public static function set_module(?\StandardModule $module): void
         {
             if (\PHP_ZTS)
@@ -207,7 +245,9 @@ if (!\class_exists('StandardModule')) {
                     $id = \ze_ffi()->tsrm_thread_id();
                     if (isset($this->global_id[$id])) {
                         \ze_ffi()->ts_free_id($this->global_id[$id]);
-                        unset($this->global_id[$id], $this->global_rsrc[$id]);
+                        unset($this->global_id[$id]);
+                        if (!$this->target_persistent)
+                            unset($this->global_rsrc[$id]);
                     }
                 }
             } else {
@@ -339,7 +379,6 @@ if (!\class_exists('StandardModule')) {
         public function global_shutdown(CData $memory): void
         {
             $this->__destruct();
-            \tsrmls_deactivate();
         }
 
         /**
@@ -452,9 +491,7 @@ if (!\class_exists('StandardModule')) {
 
             if ($this->r_shutdown)
                 \register_shutdown_function(
-                    \closure_from($this, 'request_shutdown'),
-                    (int)$this->ze_other_ptr->type,
-                    $this->ze_other_ptr->module_number
+                    \closure_from($this, 'module_destructor')
                 );
         }
 
