@@ -203,10 +203,12 @@ if (!\class_exists('StandardModule')) {
         final public function __destruct()
         {
             if (\PHP_ZTS) {
-                $id = \ze_ffi()->tsrm_thread_id();
-                if (isset($this->global_id[$id])) {
-                    \ze_ffi()->ts_free_id($this->global_id[$id]);
-                    unset($this->global_id[$id], $this->global_rsrc[$id]);
+                if (\is_ze_ffi()) {
+                    $id = \ze_ffi()->tsrm_thread_id();
+                    if (isset($this->global_id[$id])) {
+                        \ze_ffi()->ts_free_id($this->global_id[$id]);
+                        unset($this->global_id[$id], $this->global_rsrc[$id]);
+                    }
                 }
             } else {
                 $this->global_rsrc = null;
