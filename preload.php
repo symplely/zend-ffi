@@ -343,6 +343,25 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
+   * Temporary enable `cli` if needed to preform a `php://fd/` **_php_stream_open_wrapper_ex()** call.
+   * - Same as `zval_fd_direct()` but returns underlying Zend **php_stream** _C structure_ of `resource`.
+   *
+   * @param integer $resource fd number
+   * @return PhpStream
+   */
+  function php_stream_direct(int $resource): ?PhpStream
+  {
+    return \cli_direct(function (int $type) {
+      $fd = \Core::get_stdio($type);
+      if ($fd === null) {
+        return PhpStream::open_wrapper('php://fd/' . $type, '', 0);
+      }
+
+      return $fd;
+    }, $resource);
+  }
+
+  /**
    * Gets class name
    *
    * @param object $handle
