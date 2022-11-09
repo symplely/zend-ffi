@@ -1845,3 +1845,7 @@ int zend_fcall_info_init(zval *callable, uint32_t check_flags, zend_fcall_info *
 int zend_fcall_info_call(zend_fcall_info *fci, zend_fcall_info_cache *fcc, zval *retval, zval *args);
 
 int zend_call_function(zend_fcall_info *fci, zend_fcall_info_cache *fci_cache);
+
+void zend_release_fcall_info_cache(zend_fcall_info_cache *fcc);
+zend_string *zend_get_callable_name_ex(zval *callable, zend_object *object);
+zend_string *zend_get_callable_name(zval *callable);

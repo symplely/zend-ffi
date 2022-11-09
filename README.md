@@ -150,6 +150,27 @@ preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
 ```
 
+A hack for `headers_sent()` like errors:
+**PHP Warning:  Cannot modify header information - headers already sent by (output started at xxxxxxxx**
+
+```php
+require 'vendor/autoload.php';
+
+function headers_sent_reset()
+{
+    zend_sg('headers_sent', 0);
+}
+
+echo 'any non-buffered output';
+var_dump(headers_sent()); // true
+
+headers_sent_reset();
+var_dump(headers_sent()); // false
+
+// This would have otherwise produced warning/errors!
+header('Location: http://www.example.com/');
+```
+
 ## Reference/Credits
 
 - [Introduction to PHP FFI](https://dev.to/verkkokauppacom/introduction-to-php-ffi-po3)

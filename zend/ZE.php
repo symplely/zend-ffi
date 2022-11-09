@@ -263,6 +263,13 @@ if (!\class_exists('ZE')) {
         const IS_TYPE_COLLECTABLE     = (1 << 1);
         const Z_TYPE_FLAGS_SHIFT      = 8;
 
+        const IS_CALLABLE_CHECK_SYNTAX_ONLY = (1 << 0);
+        const IS_CALLABLE_CHECK_NO_ACCESS   = (1 << 1);
+        const IS_CALLABLE_CHECK_IS_STATIC   = (1 << 2);
+        const IS_CALLABLE_CHECK_SILENT      = (1 << 3);
+
+        const IS_CALLABLE_STRICT  = (self::IS_CALLABLE_CHECK_IS_STATIC);
+
         /** array flags */
         const IS_ARRAY_IMMUTABLE      = self::GC_IMMUTABLE;
         const IS_ARRAY_PERSISTENT     = self::GC_PERSISTENT;
