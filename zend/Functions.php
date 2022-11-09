@@ -744,4 +744,40 @@ if (!\function_exists('zval_stack')) {
 
         return \is_null($element) ? $sg : $sg->{$element};
     }
+
+    function zend_fcall_info_call(callable $routine, ...$arguments)
+    {
+        $zval = \zval_stack(0);
+        $ret = \zval_blank();
+        if (!\is_null($arguments))
+            $args = \zval_stack(1);
+        else
+            $args = null;
+
+        $fci = \c_typedef('zend_fcall_info');
+        $fci()->param_count = 0;
+        $fci()->params = NULL;
+        $fcc = \c_typedef('zend_fcall_info_cache');
+        if (\ze_ffi()->zend_fcall_info_init(
+            $zval(),
+            0,
+            $fci(),
+            $fcc(),
+            null,
+            null
+        ) === 0) {
+            if (\ze_ffi()->zend_fcall_info_call(
+                $fci(),
+                $fcc(),
+                $ret(),
+                ($args instanceof Zval ? $args() : $args)
+            ) === 0) {
+                \ze_ffi()->zend_release_fcall_info_cache($fcc());
+
+                return \zval_native($ret);
+            }
+        }
+
+        return \ZE::FAILURE;
+    }
 }
