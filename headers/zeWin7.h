@@ -1587,12 +1587,8 @@ typedef struct _zend_fcall_info
 	zval *retval;
 	zval *params;
 	zend_object *object;
+	zend_bool no_separation;
 	uint32_t param_count;
-	/* This hashtable can also contain positional arguments (with integer keys),
-	 * which will be appended to the normal params[]. This makes it easier to
-	 * integrate APIs like call_user_func_array(). The usual restriction that
-	 * there may not be position arguments after named arguments applies. */
-	HashTable *named_params;
 } zend_fcall_info;
 
 typedef struct _zend_fcall_info_cache
