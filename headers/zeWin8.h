@@ -1845,3 +1845,21 @@ void sapi_add_request_header(char *var, unsigned int var_len, char *val, unsigne
 
 void zend_stream_init_filename(zend_file_handle *handle, const char *filename);
 void zend_file_handle_dtor(zend_file_handle *fh);
+
+/** Build zend_call_info/cache from a zval*
+ *
+ * Caller is responsible to provide a return value (fci->retval), otherwise the we will crash.
+ * In order to pass parameters the following members need to be set:
+ * fci->param_count = 0;
+ * fci->params = NULL;
+ * The callable_name argument may be NULL.
+ * Set check_flags to IS_CALLABLE_STRICT for every new usage!
+ */
+int zend_fcall_info_init(zval *callable, uint32_t check_flags, zend_fcall_info *fci, zend_fcall_info_cache *fcc, zend_string **callable_name, char **error);
+
+/** Call a function using information created by zend_fcall_info_init()/args().
+ * If args is given then those replace the argument info in fci is temporarily.
+ */
+int zend_fcall_info_call(zend_fcall_info *fci, zend_fcall_info_cache *fcc, zval *retval, zval *args);
+
+int zend_call_function(zend_fcall_info *fci, zend_fcall_info_cache *fci_cache);

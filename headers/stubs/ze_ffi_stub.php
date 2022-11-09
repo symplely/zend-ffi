@@ -190,6 +190,13 @@ abstract class _zend_objects_store extends FFI\CData
 {
 }
 
+abstract class zend_fcall_info extends FFI\CData
+{
+}
+abstract class zend_fcall_info_cache extends FFI\CData
+{
+}
+
 abstract class _zend_object extends FFI\CData
 {
 }
@@ -586,4 +593,27 @@ interface FFI
 
     /** @return void */
     public function zend_file_handle_dtor(zend_file_handle &$fh);
+
+    /**
+     * Build zend_call_info/cache from a zval*
+     *
+     * Caller is responsible to provide a return value (fci->retval), otherwise the we will crash.
+     * - In order to pass parameters the following members need to be set:
+     * - fci->param_count = 0;
+     * - fci->params = NULL;
+     * - The callable_name argument may be NULL.
+     * - Set check_flags to IS_CALLABLE_STRICT for every new usage!
+     *
+     * @return int */
+    public function zend_fcall_info_init(zval &$callable, uint32_t $check_flags, zend_fcall_info &$fci, zend_fcall_info_cache &$fcc, zend_string &$callable_name, char &$error);
+
+    /**
+     * Call a function using information created by zend_fcall_info_init()/args().
+     * - If args is given then those replace the argument info in fci is temporarily.
+     *
+     * @return int */
+    public function zend_fcall_info_call(zend_fcall_info &$fci, zend_fcall_info_cache &$fcc, zval &$retval, zval &$args);
+
+    /** @return int */
+    public function zend_call_function(zend_fcall_info &$fci, zend_fcall_info_cache &$fci_cache);
 }
