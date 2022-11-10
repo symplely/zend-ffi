@@ -589,6 +589,9 @@ interface FFI
     public function sapi_add_request_header(char &$var, int $var_len, char &$val, int $val_len, void_ptr &$arg);
 
     /** @return void */
+    public function sapi_terminate_process();
+
+    /** @return void */
     public function zend_stream_init_filename(zend_file_handle &$handle, const_char $filename);
 
     /** @return void */

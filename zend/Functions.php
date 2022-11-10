@@ -745,7 +745,7 @@ if (!\function_exists('zval_stack')) {
         return \is_null($element) ? $sg : $sg->{$element};
     }
 
-    function zend_fcall_info_call(callable $routine, ...$arguments)
+    function zend_fcall_info_call($routine, ...$arguments)
     {
         $zval = \zval_stack(0);
         $ret = \zval_blank();
@@ -779,5 +779,17 @@ if (!\function_exists('zval_stack')) {
         }
 
         return \ZE::FAILURE;
+    }
+
+    function zend_execute_scripts(string $file)
+    {
+
+        $primary_file = \c_struct_type('_zend_file_handle');
+        \ze_ffi()->zend_stream_init_filename($primary_file(), $file);
+        $ret = \zval_blank();
+        \ze_ffi()->zend_execute_scripts(\ZE::ZEND_REQUIRE, $ret(), 1, $primary_file());
+        \ze_ffi()->zend_file_handle_dtor($primary_file());
+
+        return \zval_native($ret);
     }
 }
