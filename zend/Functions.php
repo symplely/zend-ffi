@@ -744,6 +744,7 @@ if (!\function_exists('zval_stack')) {
 
         return \is_null($element) ? $sg : $sg->{$element};
     }
+
     function zend_fcall_info_call($routine, ...$arguments)
     {
         $zval = \zval_stack(0);
@@ -780,7 +781,7 @@ if (!\function_exists('zval_stack')) {
         return \ZE::FAILURE;
     }
 
-    function zend_call_function($routine, ...$arguments)
+    function zend_call_function($routine, $argument = null)
     {
         $zval = \zval_stack(0);
         $ret = \zval_blank();
@@ -796,9 +797,9 @@ if (!\function_exists('zval_stack')) {
             null,
             null
         ) === 0) {
-            $fci()->param_count = \count($arguments);
+            $fci()->param_count = 1;
             $fci()->retval = $ret();
-            $fci()->params = $args()[0];
+            $fci()->params = $args();
             if (\ze_ffi()->zend_call_function($fci(), $fcc()) === 0) {
                 \ze_ffi()->zend_release_fcall_info_cache($fcc());
 
