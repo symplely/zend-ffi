@@ -744,7 +744,6 @@ if (!\function_exists('zval_stack')) {
 
         return \is_null($element) ? $sg : $sg->{$element};
     }
-
     function zend_fcall_info_call($routine, ...$arguments)
     {
         $zval = \zval_stack(0);
@@ -781,9 +780,37 @@ if (!\function_exists('zval_stack')) {
         return \ZE::FAILURE;
     }
 
+    function zend_call_function($routine, ...$arguments)
+    {
+        $zval = \zval_stack(0);
+        $ret = \zval_blank();
+        $args = \zval_stack(1);
+
+        $fci = \c_typedef('zend_fcall_info');
+        $fcc = \c_typedef('zend_fcall_info_cache');
+        if (\ze_ffi()->zend_fcall_info_init(
+            $zval(),
+            0,
+            $fci(),
+            $fcc(),
+            null,
+            null
+        ) === 0) {
+            $fci()->param_count = \count($arguments);
+            $fci()->retval = $ret();
+            $fci()->params = $args()[0];
+            if (\ze_ffi()->zend_call_function($fci(), $fcc()) === 0) {
+                \ze_ffi()->zend_release_fcall_info_cache($fcc());
+
+                return \zval_native($ret);
+            }
+        }
+
+        return \ZE::FAILURE;
+    }
+
     function zend_execute_scripts(string $file)
     {
-
         $primary_file = \c_struct_type('_zend_file_handle');
         \ze_ffi()->zend_stream_init_filename($primary_file(), $file);
         $ret = \zval_blank();

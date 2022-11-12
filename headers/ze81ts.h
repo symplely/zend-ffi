@@ -1218,6 +1218,11 @@ zval *zend_hash_str_find(const HashTable *ht, const char *key, size_t len);
 zval *zend_hash_add_or_update(HashTable *ht, zend_string *key, zval *pData, uint32_t flag);
 zval *zend_hash_next_index_insert(HashTable *ht, zval *pData);
 
+typedef void (*copy_ctor_func_t)(zval *pElement);
+void zend_hash_copy(HashTable *target, HashTable *source, copy_ctor_func_t pCopyConstructor);
+void zend_hash_destroy(HashTable *ht);
+void zend_hash_clean(HashTable *ht);
+
 int zend_set_user_opcode_handler(zend_uchar opcode, user_opcode_handler_t handler);
 user_opcode_handler_t zend_get_user_opcode_handler(zend_uchar opcode);
 

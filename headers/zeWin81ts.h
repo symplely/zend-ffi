@@ -1354,6 +1354,11 @@ __declspec(dllimport) zval *__vectorcall zend_hash_str_find(const HashTable *ht,
 __declspec(dllimport) zval __vectorcall *zend_hash_add_or_update(HashTable *ht, zend_string *key, zval *pData, uint32_t flag);
 __declspec(dllimport) zval *__vectorcall zend_hash_next_index_insert(HashTable *ht, zval *pData);
 
+typedef void (*copy_ctor_func_t)(zval *pElement);
+__declspec(dllimport) void __vectorcall zend_hash_copy(HashTable *target, HashTable *source, copy_ctor_func_t pCopyConstructor);
+__declspec(dllimport) void __vectorcall zend_hash_destroy(HashTable *ht);
+__declspec(dllimport) void __vectorcall zend_hash_clean(HashTable *ht);
+
 int zend_set_user_opcode_handler(zend_uchar opcode, user_opcode_handler_t handler);
 user_opcode_handler_t zend_get_user_opcode_handler(zend_uchar opcode);
 

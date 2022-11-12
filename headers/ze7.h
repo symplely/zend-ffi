@@ -1379,6 +1379,11 @@ zval *zend_hash_str_find(const HashTable *ht, const char *key, size_t len);
 zval *zend_hash_add_or_update(HashTable *ht, zend_string *key, zval *pData, uint32_t flag);
 zval *zend_hash_next_index_insert(HashTable *ht, zval *pData);
 
+typedef void (*copy_ctor_func_t)(zval *pElement);
+void zend_hash_copy(HashTable *target, HashTable *source, copy_ctor_func_t pCopyConstructor);
+void zend_hash_destroy(HashTable *ht);
+void zend_hash_clean(HashTable *ht);
+
 void zend_object_std_init(zend_object *object, zend_class_entry *ce);
 zend_object *zend_objects_new(zend_class_entry *ce);
 void zend_objects_clone_members(zend_object *new_object, zend_object *old_object);
