@@ -7,10 +7,10 @@ Check/Test zend_fcall_info_call
 require 'vendor/autoload.php';
 
 var_dump(
-    zend_fcall_info_call(function (int $test = null) {
-        return 'ok ' . $test;
-    }, 1)
+    zend_fcall_info_call(function (int $test, string $test2) {
+        return 'ok ' . $test . ' - ' . $test2;
+    }, 1, 'test')
 );
 
 --EXPECTF--
-string(4) "ok 1"
+string(11) "ok 1 - test"
