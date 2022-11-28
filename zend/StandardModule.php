@@ -256,6 +256,11 @@ if (!\class_exists('StandardModule')) {
                 $this->global_rsrc = null;
             }
 
+            if ($this->r_startup && !$this->target_persistent) {
+                \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
+                $this->original_sapi_activate = null;
+            }
+
             $this->free();
         }
 
