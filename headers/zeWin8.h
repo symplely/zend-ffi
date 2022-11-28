@@ -1873,3 +1873,30 @@ int zend_call_function(zend_fcall_info *fci, zend_fcall_info_cache *fci_cache);
 void zend_release_fcall_info_cache(zend_fcall_info_cache *fcc);
 zend_string *zend_get_callable_name_ex(zval *callable, zend_object *object);
 zend_string *zend_get_callable_name(zval *callable);
+
+int sapi_flush(void);
+/*
+#define php_output_tearup() \
+	php_output_startup();   \
+	php_output_activate()
+#define php_output_teardown() \
+	php_output_end_all();     \
+	php_output_deactivate();  \
+	php_output_shutdown()
+*/
+
+/* MINIT */
+void php_output_startup(void);
+/* RINIT */
+int php_output_activate(void);
+
+void php_output_end_all(void);
+/* RSHUTDOWN */
+void php_output_deactivate(void);
+/* MSHUTDOWN */
+void php_output_shutdown(void);
+
+int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_modules, uint32_t num_additional_modules);
+void php_module_shutdown(void);
+int php_module_shutdown_wrapper(sapi_module_struct *sapi_globals);
+int zend_ini_global_shutdown(void);

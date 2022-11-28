@@ -582,6 +582,9 @@ interface FFI
     /** @return void */
     public function sapi_deactivate();
 
+    /** @return int */
+    public function sapi_flush();
+
     /** @return void */
     public function sapi_initialize_empty_request();
 
@@ -628,4 +631,31 @@ interface FFI
 
     /** @return zend_string */
     public function zend_get_callable_name(zval &$callable);
+
+    /** @return void */
+    public function php_output_startup();
+
+    /** @return int */
+    public function php_output_activate();
+
+    /** @return void */
+    public function php_output_end_all();
+
+    /** @return void */
+    public function php_output_deactivate();
+
+    /** @return void */
+    public function php_output_shutdown();
+
+    /** @return int */
+    public function php_module_startup(sapi_module_struct &$sf, ?zend_module_entry &$additional_modules, uint32_t $num_additional_modules);
+
+    /** @return void */
+    public function php_module_shutdown();
+
+    /** @return int */
+    public function php_module_shutdown_wrapper(sapi_module_struct &$sapi_globals);
+
+    /** @return int */
+    public function zend_ini_global_shutdown();
 }

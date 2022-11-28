@@ -1,7 +1,7 @@
 --TEST--
 Check for Stack Class Traits
 --SKIPIF--
-<?php if (!extension_loaded("ffi")) print "skip"; ?>
+<?php if (!extension_loaded("ffi") || extension_loaded("xdebug")) print "skip"; ?>
 --FILE--
 <?php
 require 'vendor/autoload.php';

@@ -13,6 +13,7 @@ final class SimpleCountersModule extends \StandardModule
     protected ?string $global_type = 'unsigned int[10]';
     protected bool $m_startup = true;
     protected bool $m_shutdown = true;
+    protected bool $r_startup = true;
     protected bool $r_shutdown = true;
 
     public function module_startup(int $type, int $module_number): int
@@ -25,6 +26,15 @@ final class SimpleCountersModule extends \StandardModule
     public function module_shutdown(int $type, int $module_number): int
     {
         echo 'module_shutdown' . \PHP_EOL;
+        return \ZE::SUCCESS;
+    }
+
+    public function request_startup(...$args): int
+    {
+        echo 'request_startup' . \PHP_EOL;
+        $data = $this->get_globals();
+        $data[5] = 25;
+        var_dump(zend_pg('modules_activated'));
         return \ZE::SUCCESS;
     }
 
@@ -78,6 +88,8 @@ var_dump($module->ffi());
 --EXPECTF--
 global_startup
 module_startup
+request_startup
+bool(true)
 object(SimpleCountersModule)#%d (8) {
   ["_debug"]=>
   bool(false)
@@ -111,7 +123,7 @@ object(FFI\CData:uint32_t[10])#%d (10) {
   [4]=>
   int(20)
   [5]=>
-  int(0)
+  int(25)
   [6]=>
   int(0)
   [7]=>

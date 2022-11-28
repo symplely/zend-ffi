@@ -816,7 +816,7 @@ if (!\function_exists('zval_stack')) {
         \ze_ffi()->zend_stream_init_filename($primary_file(), $file);
         $ret = \zval_blank();
         \ze_ffi()->zend_execute_scripts(\ZE::ZEND_REQUIRE, $ret(), 1, $primary_file());
-        \ze_ffi()->zend_file_handle_dtor($primary_file());
+        //\ze_ffi()->zend_file_handle_dtor($primary_file());
 
         return \zval_native($ret);
     }
