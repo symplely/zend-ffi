@@ -173,6 +173,8 @@ if (!\class_exists('StandardModule')) {
 
         protected ?CData $original_sapi_activate = null;
 
+        protected ?CData $original_sapi_deactivate = null;
+
         /**
          * Set __`StandardModule`__ to call `module_shutdown()` and `global_shutdown()`
          * on __`request_shutdown()`__ or __`module_destructor()`__.
@@ -202,8 +204,9 @@ if (!\class_exists('StandardModule')) {
                     $this->request_shutdown((int)$module->type, $module->module_number);
                     if ($this->destruct_on_request) {
                         $this->destruct_on_request = false;
-                        $this->module_shutdown((int)$module->type, $module->module_number);
-                        $this->global_shutdown($module);
+                        @\ze_ffi()->php_module_shutdown();
+                        // $this->module_shutdown((int)$module->type, $module->module_number);
+                        // $this->global_shutdown($module);
                     }
                 }
             }
@@ -259,6 +262,10 @@ if (!\class_exists('StandardModule')) {
             if ($this->r_startup && !$this->target_persistent) {
                 \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
                 $this->original_sapi_activate = null;
+            }
+
+            if ($this->r_shutdown && !$this->target_persistent) {
+                \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
             }
 
             $this->free();
@@ -470,8 +477,10 @@ if (!\class_exists('StandardModule')) {
                 $module->request_startup_func = \closure_from($this, 'request_startup');
             }
 
-            if ($this->r_shutdown)
+            if ($this->r_shutdown) {
+                $this->original_sapi_deactivate = \ze_ffi()->sapi_module->deactivate;
                 $module->request_shutdown_func = \closure_from($this, 'request_shutdown');
+            }
 
             if ($this->g_startup || !\is_null($globalType))
                 $module->globals_ctor = \closure_from($this, 'global_startup');
@@ -502,9 +511,27 @@ if (!\class_exists('StandardModule')) {
             if ($this->r_startup) {
                 $sapi_activate = $this->original_sapi_activate;
                 \ze_ffi()->sapi_module->activate = function (...$args) use ($sapi_activate, $module) {
+                    $sapi_result = \ZE::SUCCESS;
                     if (!\is_null($sapi_activate))
-                        $sapi_activate(...$args);
-                    return ($module->request_startup_func)($module->type, $module->module_number);
+                        $sapi_result = $sapi_activate(...$args);
+
+                    $result = ($module->request_startup_func)($module->type, $module->module_number);
+                    return $result == $sapi_result && $result === \ZE::SUCCESS
+                        ? \ZE::SUCCESS : \ZE::FAILURE;
+                };
+            }
+
+            if ($this->r_shutdown) {
+                $sapi_deactivate = $this->original_sapi_deactivate;
+                \ze_ffi()->sapi_module->deactivate = function (...$args) use ($sapi_deactivate, $module) {
+                    $sapi_result = \ZE::SUCCESS;
+                    $result = ($module->request_shutdown_func)($module->type, $module->module_number);
+
+                    if (!\is_null($sapi_deactivate))
+                        $sapi_result = $sapi_deactivate(...$args);
+
+                    return $result == $sapi_result && $result === \ZE::SUCCESS
+                        ? \ZE::SUCCESS : \ZE::FAILURE;
                 };
             }
 
@@ -519,7 +546,6 @@ if (!\class_exists('StandardModule')) {
                 );
 
             \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
-            //\ze_ffi()->php_request_startup();
         }
 
         /**
