@@ -266,6 +266,7 @@ if (!\class_exists('StandardModule')) {
 
             if ($this->r_shutdown && !$this->target_persistent) {
                 \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
+                $this->original_sapi_deactivate = null;
             }
 
             $this->free();
