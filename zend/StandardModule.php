@@ -504,7 +504,7 @@ if (!\class_exists('StandardModule')) {
                 \ze_ffi()->sapi_module->activate = function (...$args) use ($sapi_activate, $module) {
                     if (!\is_null($sapi_activate))
                         $sapi_activate(...$args);
-                    ($module->request_startup_func)($module->type, $module->module_number);
+                    return ($module->request_startup_func)($module->type, $module->module_number);
                 };
             }
 
