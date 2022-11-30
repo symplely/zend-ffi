@@ -109,11 +109,21 @@ final class SimpleCountersModule extends \StandardModule
 
     // Do module startup?
     protected bool $m_startup = true;
+    protected bool $r_startup = true;
 
     // Represents PHP_MINIT_FUNCTION() macro.
     public function module_startup(int $type, int $module_number): int
     {
         echo 'module_startup' . \PHP_EOL;
+        return \ZE::SUCCESS;
+    }
+
+    // Represents PHP_RINIT_FUNCTION() macro.
+    public function request_startup(...$args): int
+    {
+        echo 'request_startup' . \PHP_EOL;
+        $data = $this->get_globals();
+        $data[5] = 25;
         return \ZE::SUCCESS;
     }
 
