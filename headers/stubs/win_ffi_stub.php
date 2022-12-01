@@ -2,60 +2,70 @@
 
 interface FFI
 {
-    /** @return int */
-    public function _dup(int $fd);
+    /**
+     * Creates a thread to execute within the virtual address space of the calling process.
+     *
+     * - @link https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createthread
+     *
+     * @param LPSECURITY_ATTRIBUTES $lpThreadAttributes
+     * @param SIZE_T $dwStackSize
+     * @param LPTHREAD_START_ROUTINE $lpStartAddress
+     * @param LPVOID $lpParameter
+     * @param DWORD $dwCreationFlags
+     * @param LPDWORD $lpThreadId
+     * @return HANDLE
+     */
+    public function CreateThread(
+        ?LPSECURITY_ATTRIBUTES &$lpThreadAttributes,
+        SIZE_T $dwStackSize,
+        LPTHREAD_START_ROUTINE $lpStartAddress,
+        ?LPVOID &$lpParameter,
+        DWORD $dwCreationFlags,
+        ?LPDWORD &$lpThreadId
+    );
 
-    /** @return int */
-    public function _dup2(int $fd1, int $fd2);
+    /** @return DWORD */
+    public function SuspendThread(HANDLE &$hThread);
 
-    /** @return intptr_t */
-    public function _get_osfhandle(int $_FileHandle);
+    /** @return DWORD */
+    public function ResumeThread(HANDLE &$hThread);
 
-    /** @return int */
-    public function _write(int $fd, const_char &$buffer, int $count);
+    /** @return DWORD */
+    public function WaitForSingleObject(HANDLE &$hHandle, DWORD $dwMilliseconds);
 
-    /** @return int */
-    public function _read(int $fd, const_char &$buffer, int $buffer_size);
+    /** @return BOOL */
+    public function TerminateThread(HANDLE &$hThread, DWORD $dwExitCode);
 
-    /** @return int */
-    public function _close(int $_FileHandle);
+    /** @return BOOL */
+    public function CloseHandle(HANDLE &$hObject);
 
-    /** @return int */
-    public function _commit(int $_FileHandle);
+    /** @return BOOL */
+    public function GetExitCodeThread(HANDLE &$hThread, LPDWORD $lpExitCode);
 
-    /** @return int */
-    public function _eof(int $_FileHandle);
+    /** @return BOOL */
+    public function GetThreadContext(HANDLE &$hThread, LPCONTEXT &$lpContext);
 
-    /** @return long */
-    public function _filelength(int $_FileHandle);
+    /** @return DWORD */
+    public function GetLastError();
 
-    /** @return int */
-    public function _isatty(int $_FileHandle);
+    /** @return DWORD */
+    public function GetProcessIdOfThread(HANDLE &$Thread);
 
-    /** @return int */
-    public function _open_osfhandle(intptr_t $_OSFileHandle, int $_Flags);
+    /** @return DWORD */
+    public function GetThreadId(HANDLE &$Thread);
 
-    /** @return int */
-    public function _fileno(FILE &$stream);
+    /** @return DWORD */
+    public function GetCurrentThreadId();
 
-    /** @return FILE */
-    public function fopen(const_char &$filename, const_char &$mode);
+    /** @return HANDLE */
+    public function GetCurrentThread();
 
-    /** @return FILE */
-    public function _fdopen(int $_FileHandle, const_char &$_Mode);
-
-    /** @return int */
-    public function fclose(FILE &$_Stream);
-
-    /** @return errno_t */
-    public function fopen_s(FILE &$_Stream, const_char &$_FileName, const_char &$_Mode);
-
-    /** @return errno_t */
-    public function freopen_s(FILE &$_Stream, const_char &$_FileName, const_char &$_Mode, FILE &$_OldStream);
+    /** @return BOOL */
+    public function SwitchToThread();
 
     /** @return void */
-    public function clearerr(FILE &$_Stream);
+    public function Sleep(DWORD $dwMilliseconds);
 
-    /** @return int */
-    public function fflush(FILE &$_Stream);
+    /** @return DWORD */
+    public function SleepEx(DWORD $dwMilliseconds, BOOL $bAlertable);
 }

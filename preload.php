@@ -522,6 +522,14 @@ if (!\function_exists('setup_ffi_loader')) {
     $os = __DIR__ . \DS . (\PHP_OS_FAMILY === 'Windows' ? 'headers\zeWin' : 'headers/ze');
     $php = $os . \PHP_MAJOR_VERSION . $minor . (\PHP_ZTS ? 'ts' : '') . '.h';
     \setup_ffi_loader('ze', $php);
+
+    if (\PHP_ZTS) {
+      if (\IS_WINDOWS)
+        \setup_ffi_loader('win', __DIR__ . '\\headers\\windows_threads.h');
+      // else
+      //\setup_ffi_loader('nix', __DIR__ . '/headers/linux_threads.h');
+    }
+
     if (\file_exists('.' . \DS . 'ffi_extension.json')) {
       $ext_list = \json_decode(\file_get_contents('.' . \DS . 'ffi_extension.json'), true);
       $isDir = false;
@@ -553,32 +561,6 @@ if (!\function_exists('setup_ffi_loader')) {
 
     if (\PHP_ZTS)
       \tsrmls_cache_define();
-  }
-
-  function win_ffi_loader(string $winFile = '.\\headers\\msvcrt.h'): void
-  {
-    if (!(defined('STD_INPUT_HANDLE'))) {
-      /**
-       * The standard input device. Initially, this is the console input buffer.
-       */
-      \define('STD_INPUT_HANDLE', -10);
-    }
-
-    if (!(defined('STD_OUTPUT_HANDLE'))) {
-      /**
-       * The standard output device. Initially, this is the active console screen buffer.
-       */
-      \define('STD_OUTPUT_HANDLE', -11);
-    }
-
-    if (!(defined('STD_ERROR_HANDLE'))) {
-      /**
-       * The standard error device. Initially, this is the active console screen buffer.
-       */
-      \define('STD_ERROR_HANDLE', -12);
-    }
-
-    \setup_ffi_loader('win', $winFile);
   }
 
   function tsrmls_cache_define()

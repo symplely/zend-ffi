@@ -7,6 +7,12 @@ use FFI\CData;
 if (!\class_exists('ZE')) {
     abstract class ZE
     {
+        /**
+         * *Windows* - Infinite timeout for threads, use with:
+         * `WaitForSingleObject`, `WaitForMultipleObjects`, `WaitForMultipleObjectsEx`,
+         * `Sleep`, `SleepEx`. */
+        const INFINITE = 0xFFFFFFFF;
+
         const GC_COLLECTABLE = (1 << 4);
         /** used for recursion detection */
         const GC_PROTECTED = (1 << 5);

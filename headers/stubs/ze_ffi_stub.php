@@ -7,6 +7,10 @@ interface rsrc_dtor_func_t extends closure
 interface user_opcode_handler_t extends closure
 {
 }
+/** @var callable (LPVOID lpParameter) */
+interface ThreadProc extends closure
+{
+}
 interface ts_allocate_ctor extends closure
 {
 }
@@ -44,13 +48,40 @@ abstract class int64_t extends int
 abstract class DWORD extends int
 {
 }
+abstract class UINT extends int
+{
+}
 abstract class HANDLE extends void_ptr
+{
+}
+abstract class _CONTEXT extends FFI\CData
+{
+}
+abstract class LPCONTEXT extends _CONTEXT
 {
 }
 abstract class char extends FFI\CData
 {
 }
 abstract class _zend_file_handle extends FFI\CData
+{
+}
+abstract class _SECURITY_ATTRIBUTES extends FFI\CData
+{
+}
+abstract class LPSECURITY_ATTRIBUTES extends _SECURITY_ATTRIBUTES
+{
+}
+abstract class LPTHREAD_START_ROUTINE extends ThreadProc
+{
+}
+abstract class LPVOID extends void_ptr
+{
+}
+abstract class DWORD_PTR extends FFI\CData
+{
+}
+abstract class LPDWORD extends DWORD_PTR
 {
 }
 abstract class zend_file_handle extends _zend_file_handle
