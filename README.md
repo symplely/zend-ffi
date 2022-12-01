@@ -181,6 +181,16 @@ var_dump(headers_sent()); // false
 header('Location: http://www.example.com/');
 ```
 
+## To create proper _FFI_ C library headers from any `C` **ABI** library `*.h` file
+
+Linux:
+    `cpp -P -D"__attribute__(ARGS)=" path/to/original/header.h -o ffi_header.h`
+Windows:
+ First download [mcpp](http://mcpp.sourceforge.net/)
+    `mcpp -P -D"__attribute__(ARGS)=" path/to/original/header.h -o ffi_header.h`
+
+The option `-I  <directory>` might be needed to search/find additional include sources, and the output file will still need editing, mostly 96% proper headers, `FFI` will complain, just edit/check the 2 lines after the indicated line.
+
 ## Reference/Credits
 
 - [Introduction to PHP FFI](https://dev.to/verkkokauppacom/introduction-to-php-ffi-po3)
