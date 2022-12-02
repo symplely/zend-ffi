@@ -34,6 +34,8 @@ extension=ffi
 extension=openssl
 extension=sockets
 
+zend_extension=opcache
+
 [opcache]
 ; Determines if Zend OPCache is enabled
 opcache.enable=1
@@ -49,11 +51,11 @@ opcache.enable_cli=1
 ffi.enable="preload"
 
 ; List of headers files to preload, wildcard patterns allowed. `ffi.preload` has no effect on Windows.
-ffi.preload=path/to/.cdef/ffi_preloader.php ; For simple integration with other FFI extensions
-; Or
-ffi.preload=path/to/vendor/symplely/zend-ffi/preload.php ; For standalone usage
+ffi.preload=path/to/vendor/symplely/zend-ffi/headers/ze{%php version%}.h
 
-zend_extension=opcache
+opcache.preload==path/to/.cdef/ffi_preloader.php ; For simple integration with other FFI extensions
+; Or
+opcache.preload==path/to/vendor/symplely/zend-ffi/preload.php ; For standalone usage
 ```
 
 For a simple FFI integration process **create/edit**:

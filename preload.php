@@ -114,11 +114,6 @@ if (!\function_exists('setup_ffi_loader')) {
     return \ffi_object(Core::get_stdio(2));
   }
 
-  function ze_init(): void
-  {
-    \Core::init_zend();
-  }
-
   /**
    * Returns **cast** a `zend` pointer as `typedef`.
    *
@@ -264,6 +259,11 @@ if (!\function_exists('setup_ffi_loader')) {
     return \Core::get('win');
   }
 
+  function nix_ffi(): \FFI
+  {
+    return \Core::get('nix');
+  }
+
   /**
    * Checks whether the given `FFI\CData` object __C type__, it's *typedef* are equal.
    *
@@ -295,7 +295,11 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function is_null_ptr(object $ptr): bool
   {
-    return \Core::is_null($ptr);
+    try {
+      return \FFI::isNull(\ffi_object($ptr));
+    } catch (\Throwable $e) {
+      return true;
+    }
   }
 
   /**
@@ -305,17 +309,27 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function is_ze_ffi(): bool
   {
-    return \Core::is_ze_ffi();
+    return \Core::get('ze') instanceof \FFI;
   }
 
   /**
-   * Check for _active_ `Windows` **ffi** instance
+   * Check for _active_ `Windows` _thread_ **ffi** instance
    *
    * @return boolean
    */
   function is_win_ffi(): bool
   {
-    return \Core::is_win_ffi();
+    return \Core::get('win') instanceof \FFI;
+  }
+
+  /**
+   * Check for _active_ `Linux` _thread_ **ffi** instance
+   *
+   * @return boolean
+   */
+  function is_nix_ffi(): bool
+  {
+    return \Core::get('nix') instanceof \FFI;
   }
 
   /**
@@ -506,6 +520,23 @@ if (!\function_exists('setup_ffi_loader')) {
     return \CStruct::array_init($typedef, $ffi_tag, $size, $owned, $persistent);
   }
 
+  function ze_init(): void
+  {
+    if (!\is_ze_ffi()) {
+      // Try if preloaded
+      try {
+        \Core::set('ze', \FFI::scope("__zend__"));
+        \Core::scope_set();
+      } catch (\Throwable $e) {
+        \zend_preloader();
+      }
+
+      if (!\is_ze_ffi()) {
+        throw new \RuntimeException("FFI parse failed!");
+      }
+    }
+  }
+
   /**
    * @param string $tag name for a **FFI** `instance`
    * @param string $cdef_file C header file for `\FFI::load`
@@ -522,13 +553,6 @@ if (!\function_exists('setup_ffi_loader')) {
     $os = __DIR__ . \DS . (\PHP_OS_FAMILY === 'Windows' ? 'headers\zeWin' : 'headers/ze');
     $php = $os . \PHP_MAJOR_VERSION . $minor . (\PHP_ZTS ? 'ts' : '') . '.h';
     \setup_ffi_loader('ze', $php);
-
-    if (\PHP_ZTS) {
-      if (\IS_WINDOWS)
-        \setup_ffi_loader('win', __DIR__ . '\\headers\\windows_threads.h');
-      // else
-      //\setup_ffi_loader('nix', __DIR__ . '/headers/linux_threads.h');
-    }
 
     if (\file_exists('.' . \DS . 'ffi_extension.json')) {
       $ext_list = \json_decode(\file_get_contents('.' . \DS . 'ffi_extension.json'), true);
@@ -555,6 +579,20 @@ if (!\function_exists('setup_ffi_loader')) {
             \opcache_compile_file($file);
         } else {
           include_once $file;
+        }
+      }
+
+      if (\PHP_ZTS) {
+        try {
+          if (\IS_WINDOWS)
+            \Core::set('win', \FFI::scope("__threads__"));
+          // else
+          //  \Core::set('nix', \FFI::scope("__threads__"));
+        } catch (\Throwable $e) {
+          if (\IS_WINDOWS)
+            \setup_ffi_loader('win', __DIR__ . '\\headers\\windows_threads.h');
+          // else
+          //  \setup_ffi_loader('nix', __DIR__ . '/headers/linux_threads.h');
         }
       }
     }
@@ -624,5 +662,5 @@ if (!\function_exists('setup_ffi_loader')) {
     return null;
   }
 
-  \zend_preloader();
+  \ze_init();
 }

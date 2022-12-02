@@ -16,6 +16,8 @@ if (!\class_exists('Core')) {
 		private static ?PhpStream $stream_stderr = null;
 		private static ?PhpStream $stream_stdin = null;
 
+		private static bool $is_scoped = false;
+
 		private function __construct()
 		{
 		}
@@ -78,22 +80,6 @@ if (!\class_exists('Core')) {
 			self::$ffi = null;
 		}
 
-		public static function init_zend(): void
-		{
-			if (!self::is_ze_ffi()) {
-				// Try if preloaded
-				try {
-					self::set('ze', \FFI::scope("__zend__"));
-				} catch (\Throwable $e) {
-					\zend_preloader();
-				}
-
-				if (!self::is_ze_ffi()) {
-					throw new \RuntimeException("FFI parse failed!");
-				}
-			}
-		}
-
 		public static function cast(string $tag, $type, $ptr): ?CData
 		{
 			return self::$ffi[$tag]->cast($type, $ptr);
@@ -109,23 +95,14 @@ if (!\class_exists('Core')) {
 			return self::$ffi[$tag]->type($typedef);
 		}
 
-		public static function is_null(object $ptr): bool
+		public static function scope_set(): void
 		{
-			try {
-				return \FFI::isNull(\ffi_object($ptr));
-			} catch (\Throwable $e) {
-				return true;
-			}
+			self::$is_scoped = true;
 		}
 
-		public static function is_ze_ffi(): bool
+		public static function is_scoped(): bool
 		{
-			return isset(self::$ffi['ze']) && self::$ffi['ze'] instanceof \FFI;
-		}
-
-		public static function is_win_ffi(): bool
-		{
-			return isset(self::$ffi['win']) && self::$ffi['win'] instanceof \FFI;
+			return self::$is_scoped;
 		}
 	}
 }

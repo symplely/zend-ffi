@@ -204,15 +204,16 @@ if (!\class_exists('StandardModule')) {
                     $this->request_shutdown((int)$module->type, $module->module_number);
                     if ($this->destruct_on_request) {
                         $this->destruct_on_request = false;
-                        @\ze_ffi()->php_module_shutdown();
-                        // $this->module_shutdown((int)$module->type, $module->module_number);
-                        // $this->global_shutdown($module);
+                        //   @\ze_ffi()->php_module_shutdown();
+                        static::set_module(null);
+                        $this->module_shutdown((int)$module->type, $module->module_number);
+                        $this->global_shutdown($module);
                     }
                 }
             }
         }
 
-        final public static function set_module(?\StandardModule $module): void
+        final protected static function set_module(?\StandardModule $module): void
         {
             if (\PHP_ZTS)
                 self::$global_module[\ze_ffi()->tsrm_thread_id()] = $module;
@@ -245,37 +246,38 @@ if (!\class_exists('StandardModule')) {
 
         final public function __destruct()
         {
-            if (\PHP_ZTS) {
-                if (\is_ze_ffi()) {
-                    $id = \ze_ffi()->tsrm_thread_id();
-                    if (isset($this->global_id[$id])) {
-                        \ze_ffi()->ts_free_id($this->global_id[$id]);
-                        unset($this->global_id[$id]);
-                        if (!$this->target_persistent)
+            if (!$this->target_persistent) {
+                if (\PHP_ZTS) {
+                    if (\is_ze_ffi()) {
+                        $id = \ze_ffi()->tsrm_thread_id();
+                        if (isset($this->global_id[$id])) {
+                            \ze_ffi()->ts_free_id($this->global_id[$id]);
+                            unset($this->global_id[$id]);
                             unset($this->global_rsrc[$id]);
+                        }
                     }
+                } else {
+                    $this->global_rsrc = null;
                 }
-            } else {
-                $this->global_rsrc = null;
-            }
 
-            if ($this->r_startup && !$this->target_persistent) {
-                \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
-                $this->original_sapi_activate = null;
-            }
+                if ($this->r_startup) {
+                    \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
+                    $this->original_sapi_activate = null;
+                }
 
-            if ($this->r_shutdown && !$this->target_persistent) {
-                \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
-                $this->original_sapi_deactivate = null;
-            }
+                if ($this->r_shutdown) {
+                    \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
+                    $this->original_sapi_deactivate = null;
+                }
 
-            $this->free();
+                static::set_module(null);
+                $this->free();
+            }
         }
 
         /**
          * Module constructor.
          *
-         * @param boolean $target_persistent - Set true if this module should be persistent or false if temporary
          * @param boolean $target_threads Use `ZEND_THREAD_SAFE` as default if your module does not depend on thread-safe mode.
          * - Set the thread-safe mode for this module.
          * @param boolean $target_debug Use `ZEND_DEBUG_BUILD` as default if your module does not depend on debug mode.
@@ -286,7 +288,6 @@ if (!\class_exists('StandardModule')) {
          * @return self
          */
         final public function __construct(
-            bool $target_persistent = false,
             bool $target_threads = \ZEND_THREAD_SAFE,
             bool $target_debug = \ZEND_DEBUG_BUILD,
             int $target_version = self::ZEND_MODULE_API_NO
@@ -297,8 +298,8 @@ if (!\class_exists('StandardModule')) {
             if (!isset($this->module_name))
                 $this->module_name = self::detect_name();
 
+            $this->target_persistent = \Core::is_scoped(); // \ini_get('opcache.enable_cli') === '1';
             $this->target_threads = $target_threads;
-            $this->target_persistent = $target_persistent;
             $this->target_debug = $target_debug;
             $this->target_version = $target_version;
 
@@ -494,6 +495,7 @@ if (!\class_exists('StandardModule')) {
 
             $this->update($realModulePointer);
             $this->addReflection($moduleName);
+            static::set_module($this);
         }
 
         /**
@@ -512,11 +514,9 @@ if (!\class_exists('StandardModule')) {
             if ($this->r_startup) {
                 $sapi_activate = $this->original_sapi_activate;
                 \ze_ffi()->sapi_module->activate = function (...$args) use ($sapi_activate, $module) {
-                    $sapi_result = \ZE::SUCCESS;
-                    if (!\is_null($sapi_activate))
-                        $sapi_result = $sapi_activate(...$args);
-
                     $result = ($module->request_startup_func)($module->type, $module->module_number);
+                    $sapi_result = !\is_null($sapi_activate) ? $sapi_activate(...$args) : \ZE::SUCCESS;
+
                     return $result == $sapi_result && $result === \ZE::SUCCESS
                         ? \ZE::SUCCESS : \ZE::FAILURE;
                 };
@@ -525,11 +525,8 @@ if (!\class_exists('StandardModule')) {
             if ($this->r_shutdown) {
                 $sapi_deactivate = $this->original_sapi_deactivate;
                 \ze_ffi()->sapi_module->deactivate = function (...$args) use ($sapi_deactivate, $module) {
-                    $sapi_result = \ZE::SUCCESS;
                     $result = ($module->request_shutdown_func)($module->type, $module->module_number);
-
-                    if (!\is_null($sapi_deactivate))
-                        $sapi_result = $sapi_deactivate(...$args);
+                    $sapi_result = !\is_null($sapi_deactivate) ? $sapi_deactivate(...$args) : \ZE::SUCCESS;
 
                     return $result == $sapi_result && $result === \ZE::SUCCESS
                         ? \ZE::SUCCESS : \ZE::FAILURE;
@@ -546,7 +543,14 @@ if (!\class_exists('StandardModule')) {
                     \closure_from($this, 'module_destructor')
                 );
 
-            \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
+            if (
+                \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0)
+                !== \ZE::SUCCESS
+            ) {
+                throw new \RuntimeException(
+                    'Can not restart SAPI module ' . \ffi_string(\ze_ffi()->sapi_module->name)
+                );
+            }
         }
 
         /**
