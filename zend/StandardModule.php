@@ -171,9 +171,22 @@ if (!\class_exists('StandardModule')) {
 
         protected bool $destruct_on_request = false;
 
+        /** @var \Closure */
         protected ?CData $original_sapi_activate = null;
 
+        /** @var \Closure */
         protected ?CData $original_sapi_deactivate = null;
+
+        /** @var \Closure */
+        protected ?CData $original_sapi_output = null;
+
+        protected ?\Closure $module_sapi_output = null;
+
+        /** @var \MUTEX_T */
+        protected ?CData $output_mutex = null;
+
+        /** @var \MUTEX_T */
+        protected ?CData $module_mutex = null;
 
         /**
          * Set __`StandardModule`__ to call `module_shutdown()` and `global_shutdown()`
@@ -229,9 +242,9 @@ if (!\class_exists('StandardModule')) {
         final public static function get_module(): ?\StandardModule
         {
             if (\PHP_ZTS)
-                return self::$global_module[\ze_ffi()->tsrm_thread_id()];
+                return self::$global_module[\ze_ffi()->tsrm_thread_id()] ?? null;
 
-            return self::$global_module[static::get_name()];
+            return self::$global_module[static::get_name()] ?? null;
         }
 
         /**
@@ -255,6 +268,15 @@ if (!\class_exists('StandardModule')) {
                             unset($this->global_id[$id]);
                             unset($this->global_rsrc[$id]);
                         }
+
+                        \ze_ffi()->sapi_module->ub_write = $this->original_sapi_output;
+                        \ze_ffi()->tsrm_mutex_free($this->module_mutex);
+                        \ze_ffi()->tsrm_mutex_free($this->output_mutex);
+
+                        $this->original_sapi_output = null;
+                        $this->module_sapi_output = null;
+                        $this->module_mutex = null;
+                        $this->output_mutex = null;
                     }
                 } else {
                     $this->global_rsrc = null;
@@ -298,7 +320,6 @@ if (!\class_exists('StandardModule')) {
             if (!isset($this->module_name))
                 $this->module_name = self::detect_name();
 
-            $this->target_persistent = \Core::is_scoped(); // \ini_get('opcache.enable_cli') === '1';
             $this->target_threads = $target_threads;
             $this->target_debug = $target_debug;
             $this->target_version = $target_version;
@@ -314,6 +335,11 @@ if (!\class_exists('StandardModule')) {
                 $ptr = $ext->ptr();
                 $this->update(\ze_ffi()->cast('zend_module_entry*', $ptr));
                 $this->addReflection($ptr->name);
+
+                if (\PHP_ZTS && \is_null($this->module_mutex)) {
+                    $this->module_mutex = \ze_ffi()->tsrm_mutex_alloc();
+                    $this->output_mutex = \ze_ffi()->tsrm_mutex_alloc();
+                }
             }
         }
 
@@ -436,6 +462,12 @@ if (!\class_exists('StandardModule')) {
                 throw new \RuntimeException('Module ' . $this->module_name . ' was already registered.');
             }
 
+            $this->target_persistent = \Core::is_scoped(); // \ini_get('opcache.enable_cli') === '1';
+            if (\PHP_ZTS && \is_null($this->module_mutex)) {
+                $this->module_mutex = \ze_ffi()->tsrm_mutex_alloc();
+                $this->output_mutex = \ze_ffi()->tsrm_mutex_alloc();
+            }
+
             // We don't need persistent memory here, as PHP copies structures into persistent memory itself
             $module = \ze_ffi()->new('zend_module_entry');
             $moduleName = $this->module_name;
@@ -490,6 +522,18 @@ if (!\class_exists('StandardModule')) {
             if ($this->g_shutdown || !\is_null($globalType))
                 $module->globals_dtor = \closure_from($this, 'global_shutdown');
 
+            if (\PHP_ZTS) {
+                $this->original_sapi_output = \ze_ffi()->sapi_module->ub_write;
+                $this->module_sapi_output = function (string $str, int $len): int {
+                    \ze_ffi()->tsrm_mutex_lock($this->output_mutex);
+                    $result = ($this->original_sapi_output)($str, $len);
+                    \ze_ffi()->tsrm_mutex_unlock($this->output_mutex);
+
+                    return $result;
+                };
+            }
+
+
             // $module pointer will be updated, as registration method returns a copy of memory
             $realModulePointer = \ze_ffi()->zend_register_module_ex(\FFI::addr($module));
 
@@ -503,9 +547,10 @@ if (!\class_exists('StandardModule')) {
          *
          * Startup includes calling callbacks for global memory allocation, checking deps, etc
          */
-        final public function startup(): void
+        public function startup(): void
         {
             \ze_ffi()->php_output_end_all();
+            \ze_ffi()->php_output_deactivate();
             \ze_ffi()->php_output_shutdown();
             \ze_ffi()->sapi_flush();
             \ze_ffi()->sapi_deactivate();
@@ -533,8 +578,10 @@ if (!\class_exists('StandardModule')) {
                 };
             }
 
-            $result = \ze_ffi()->zend_startup_module_ex($module);
-            if ($result !== \ZE::SUCCESS) {
+            if (\PHP_ZTS)
+                \ze_ffi()->sapi_module->ub_write = $this->module_sapi_output;
+
+            if (\ze_ffi()->zend_startup_module_ex($module) !== \ZE::SUCCESS) {
                 throw new \RuntimeException('Can not startup module ' . $this->module_name);
             }
 
@@ -543,6 +590,7 @@ if (!\class_exists('StandardModule')) {
                     \closure_from($this, 'module_destructor')
                 );
 
+            \ze_ffi()->php_output_activate();
             if (
                 \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0)
                 !== \ZE::SUCCESS
@@ -593,10 +641,8 @@ if (!\class_exists('StandardModule')) {
                 }
 
                 if ($initialize !== 'empty' && !\is_null($element)) {
-                    if (\PHP_ZTS) {
-                        $mutex = \ze_ffi()->tsrm_mutex_alloc();
-                        \ze_ffi()->tsrm_mutex_lock($mutex);
-                    }
+                    if (\PHP_ZTS)
+                        \ze_ffi()->tsrm_mutex_lock($this->module_mutex);
 
                     if (\strpos($element, '[', 0) === 0 || \is_numeric($element)) {
                         $index = (int)(\is_numeric($element) ? $element : \str_replace(['[', ']'], '', $element));
@@ -611,10 +657,8 @@ if (!\class_exists('StandardModule')) {
                         $cdata->{$element} = $initialize;
                     }
 
-                    if (\PHP_ZTS) {
-                        \ze_ffi()->tsrm_mutex_unlock($mutex);
-                        \ze_ffi()->tsrm_mutex_free($mutex);
-                    }
+                    if (\PHP_ZTS)
+                        \ze_ffi()->tsrm_mutex_unlock($this->module_mutex);
                 } elseif (!\is_null($element)) {
                     if ((\strpos($element, '[', 0) === 0) || \is_numeric($element)) {
                         $index = (int)(\is_numeric($element) ? $element : \str_replace(['[', ']'], '', $element));

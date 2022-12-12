@@ -1258,9 +1258,9 @@ void ts_free_thread(void);
 void ts_free_id(ts_rsrc_id id);
 
 /* Debug support */
-//#define TSRM_ERROR_LEVEL_ERROR 1
-//#define TSRM_ERROR_LEVEL_CORE 2
-//#define TSRM_ERROR_LEVEL_INFO 3
+// #define TSRM_ERROR_LEVEL_ERROR 1
+// #define TSRM_ERROR_LEVEL_CORE 2
+// #define TSRM_ERROR_LEVEL_INFO 3
 
 typedef void (*tsrm_thread_begin_func_t)(THREAD_T thread_id);
 typedef void (*tsrm_thread_end_func_t)(THREAD_T thread_id);
@@ -2103,3 +2103,95 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 void php_module_shutdown(void);
 int php_module_shutdown_wrapper(sapi_module_struct *sapi_globals);
 int zend_ini_global_shutdown(void);
+
+struct __ptw32_mcs_node_t_
+{
+	struct __ptw32_mcs_node_t_ **lock; /* ptr to tail of queue */
+	struct __ptw32_mcs_node_t_ *next;  /* ptr to successor in queue */
+	HANDLE readyFlag;				   /* set after lock is released by
+										  predecessor */
+	HANDLE nextFlag;				   /* set after 'next' ptr is set by
+										  successor */
+};
+
+typedef struct __ptw32_mcs_node_t_ *__ptw32_mcs_lock_t;
+typedef struct pthread_cond_t_ *pthread_cond_t;
+typedef struct sem_t_ *sem_t;
+struct sem_t_
+{
+	int value;
+	__ptw32_mcs_lock_t lock;
+	HANDLE sem;
+	int leftToUnblock;
+};
+
+struct pthread_cond_t_
+{
+	long nWaitersBlocked;	/* Number of threads blocked            */
+	long nWaitersGone;		/* Number of threads timed out          */
+	long nWaitersToUnblock; /* Number of threads to unblock         */
+	sem_t semBlockQueue;	/* Queue up threads waiting for the     */
+	/*   condition to become signalled      */
+	sem_t semBlockLock; /* Semaphore that guards access to      */
+	/* | waiters blocked count/block queue  */
+	/* +-> Mandatory Sync.LEVEL-1           */
+	pthread_mutex_t mtxUnblockLock; /* Mutex that guards access to          */
+	/* | waiters (to)unblock(ed) counts     */
+	/* +-> Optional* Sync.LEVEL-2           */
+	pthread_cond_t next; /* Doubly linked list                   */
+	pthread_cond_t prev;
+};
+
+typedef HANDLE SEM_T;
+typedef struct _RTL_CONDITION_VARIABLE
+{
+	PVOID Ptr;
+} RTL_CONDITION_VARIABLE, *PRTL_CONDITION_VARIABLE;
+typedef RTL_CONDITION_VARIABLE CONDITION_VARIABLE, *PCONDITION_VARIABLE;
+typedef union
+{
+	CONDITION_VARIABLE cond_var;
+	struct
+	{
+		unsigned int waiters_count;
+		CRITICAL_SECTION waiters_count_lock;
+		HANDLE signal_event;
+		HANDLE broadcast_event;
+	} unused_; /* TODO: retained for ABI compatibility; remove me in v2.x. */
+} COND_T;
+
+typedef struct _zend_threads_t
+{
+	THREAD_T *tid;
+	struct
+	{
+		void *server;
+	} parent;
+	volatile int num_threads_alive;	  /* threads currently alive   */
+	volatile int num_threads_working; /* threads currently working */
+	MUTEX_T worker_mutex;
+	COND_T worker_all_idle;
+	int state;
+} zend_threads_t;
+
+typedef struct _zend_thread_t
+{
+	THREAD_T tid;
+	zend_fcall_info fci;
+	zend_fcall_info_cache fcc;
+	zval *args;
+	int status;
+} zend_thread_t;
+
+typedef struct _zend_server_context
+{
+	bool worker;
+	uintptr_t current_request;
+	uintptr_t main_request; /* Only available during worker initialization */
+	char *cookie_data;
+	bool finished;
+} zend_server_context;
+
+void _zend_bailout(const char *filename, uint32_t lineno);
+/* show an exception using zend_error(severity,...), severity should be E_ERROR */
+void zend_exception_error(zval *exception, int severity, ...);

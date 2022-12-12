@@ -6,6 +6,7 @@ use FFI\CData;
 use ZE\Zval;
 use ZE\Resource;
 use ZE\PhpStream;
+use ZE\HashTable;
 use ZE\ZendResource;
 use ZE\ZendExecutor;
 use ZE\ZendObject;
@@ -82,6 +83,32 @@ if (!\function_exists('zval_stack')) {
     function zval_native(Zval $zval)
     {
         $zval->native_value($argument);
+        return $argument;
+    }
+
+    /**
+     * Returns _native_ value of `Zval` **CData** for `userland`.
+     *
+     * @param Zval $zval
+     */
+    function zval_native_zend(CData $ptr)
+    {
+        Zval::init_value($ptr)->native_value($argument);
+
+        return $argument;
+    }
+
+    /**
+     * Returns _native_ value of CData after _cast_ to _typedef_ for `userland`.
+     *
+     * @param string $typedef
+     * @param CData $ptr
+     * @return mixed
+     */
+    function zval_native_cast(string $typedef, CData $ptr)
+    {
+        Zval::init_value(\ze_cast($typedef, $ptr))->native_value($argument);
+
         return $argument;
     }
 
@@ -743,6 +770,18 @@ if (!\function_exists('zval_stack')) {
             $sg->{$element} = $initialize;
 
         return \is_null($element) ? $sg : $sg->{$element};
+    }
+
+    /**
+     * Represents `zend_hash_str_find_ptr()` inline _macro_.
+     *
+     * @param HashTable|CData $ht
+     * @param string $name key
+     * @return CData
+     */
+    function zend_hash_str_find_ptr(CData $ht, string $name): CData
+    {
+        return HashTable::init_value($ht)->str_find($name)->ptr();
     }
 
     function zend_fcall_info_call($routine, ...$arguments)

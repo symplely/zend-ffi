@@ -11,6 +11,9 @@ interface user_opcode_handler_t extends closure
 interface ThreadProc extends closure
 {
 }
+interface LPTHREAD_START_ROUTINE extends ThreadProc
+{
+}
 interface ts_allocate_ctor extends closure
 {
 }
@@ -70,9 +73,6 @@ abstract class _SECURITY_ATTRIBUTES extends FFI\CData
 {
 }
 abstract class LPSECURITY_ATTRIBUTES extends _SECURITY_ATTRIBUTES
-{
-}
-abstract class LPTHREAD_START_ROUTINE extends ThreadProc
 {
 }
 abstract class LPVOID extends void_ptr
@@ -136,6 +136,9 @@ abstract class CStruct extends FFI\CData
 {
 }
 
+abstract class zend_thread_t extends CStruct
+{
+}
 abstract class ZendString extends zend_string
 {
 }
@@ -689,4 +692,13 @@ interface FFI
 
     /** @return int */
     public function zend_ini_global_shutdown();
+
+    /** @return void */
+    public function _zend_bailout(const_char &$filename, uint32_t $lineno);
+
+    /**
+     * show an exception using zend_error(severity,...), severity should be E_ERROR
+     * @return void
+     */
+    public function zend_exception_error(zval &$exception, int $severity, ...$args);
 }

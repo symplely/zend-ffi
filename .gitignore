@@ -83,3 +83,7 @@ phpunit
 test.php
 php-src-php-*/
 cmd/
+frankenphp/
+parallel/
+php_threading/
+pthreads4w-cmake/

@@ -137,6 +137,16 @@ if (!\function_exists('setup_ffi_loader')) {
     return \FFI::cast('void*', $ptr);
   }
 
+  function ffi_set(string $tag, ?FFI $ffi): void
+  {
+    \Core::set($tag, $ffi);
+  }
+
+  function ffi_get(string $tag): ?\FFI
+  {
+    return \Core::get($tag);
+  }
+
   /**
    * Returns `C pointer` _addr_ of `C data` _type_.
    *
@@ -196,11 +206,9 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function ffi_object(object $handle): CData
   {
-    $handler = $handle;
-    if ($handle instanceof \ZE || $handle instanceof \CStruct || !\is_cdata($handle))
-      $handler = $handle();
-
-    return $handler;
+    return ($handle instanceof \ZE || $handle instanceof \CStruct || !\is_cdata($handle))
+      ? $handle()
+      : $handle;
   }
 
   /**
@@ -212,6 +220,24 @@ if (!\function_exists('setup_ffi_loader')) {
   function ffi_free(object $ptr): void
   {
     \FFI::free(\ffi_object($ptr));
+  }
+
+  /**
+   * Check and manually removes an _list_ of previously created `C` data memory pointer.
+   *
+   * @param object|CData ...$ptr
+   * @return void
+   */
+  function ffi_free_if(object ...$ptr): void
+  {
+    foreach ($ptr as $cdata) {
+      try {
+        $object = \ffi_object($cdata);
+        if (!\FFI::isNull($object))
+          \FFI::free($object);
+      } catch (\Throwable $e) {
+      }
+    }
   }
 
   /**
@@ -354,6 +380,12 @@ if (!\function_exists('setup_ffi_loader')) {
       $cdata->name = \ffi_char($old);
 
     return $result;
+  }
+
+  function bail_if_fail($X, string $file, int $lineno)
+  {
+    if (($X) != 0)
+      \ze_ffi()->_zend_bailout($file, $lineno);
   }
 
   /**

@@ -68,4 +68,15 @@ interface FFI
 
     /** @return DWORD */
     public function SleepEx(DWORD $dwMilliseconds, BOOL $bAlertable);
+
+    /** @return DWORD */
+    public function WaitForMultipleObjects(
+        DWORD $nCount,
+        HANDLE &$lpHandles,
+        BOOL $bWaitAll,
+        DWORD $dwMilliseconds
+    );
+
+    /** @return void */
+    public function ExitProcess(UINT $uExitCode);
 }

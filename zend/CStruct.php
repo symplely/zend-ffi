@@ -20,6 +20,7 @@ if (!\class_exists('CStruct')) {
         protected ?CData $struct = null;
         protected ?CData $struct_ptr = null;
         protected ?CData $struct_casted = null;
+        protected $storage = null;
 
         public function __destruct()
         {
@@ -91,6 +92,16 @@ if (!\class_exists('CStruct')) {
         public function __toString(): string
         {
             return \ffi_str_typeof($this->__invoke());
+        }
+
+        public function get_storage($key)
+        {
+            return $this->storage[$key] ?? null;
+        }
+
+        public function set_storage($key, $item)
+        {
+            $this->storage[$key] = $item;
         }
 
         /**
@@ -330,6 +341,7 @@ if (!\class_exists('CStruct')) {
             if (\is_cdata($this->struct) && !$this->isOwned)
                 \FFI::free($this->struct);
 
+            unset($this->storage);
             $this->struct_ptr = null;
             $this->struct = null;
             $this->struct_casted = null;

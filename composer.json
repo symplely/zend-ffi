@@ -30,7 +30,8 @@
         "files": [
             "preload.php",
             "zend/Constants.php",
-            "zend/Functions.php"
+            "zend/Functions.php",
+            "zend/Threading.php"
         ],
         "psr-4": {
             "ZE\\": "zend/Types/",
