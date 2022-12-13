@@ -72,6 +72,9 @@ abstract class _zend_file_handle extends FFI\CData
 abstract class _SECURITY_ATTRIBUTES extends FFI\CData
 {
 }
+abstract class CONTEXT extends _CONTEXT
+{
+}
 abstract class LPSECURITY_ATTRIBUTES extends _SECURITY_ATTRIBUTES
 {
 }

@@ -87,3 +87,4 @@ frankenphp/
 parallel/
 php_threading/
 pthreads4w-cmake/
+pthreads/

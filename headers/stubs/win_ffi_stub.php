@@ -79,4 +79,7 @@ interface FFI
 
     /** @return void */
     public function ExitProcess(UINT $uExitCode);
+
+    /** @return BOOL */
+    public function SetThreadContext(HANDLE $hThread, CONTEXT &$lpContext);
 }
