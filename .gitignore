@@ -88,3 +88,4 @@ parallel/
 php_threading/
 pthreads4w-cmake/
 pthreads/
+ext-async/

@@ -28,6 +28,9 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
         protected ?\Closure $g_init = null;
         protected ?\Closure $g_end = null;
 
+        /** @var \zend_interrupt_function */
+        protected ?CData $original_interrupt_handler = null;
+
         const MODULES_TO_RELOAD = ['filter', 'session'];
 
         final public function thread_startup($runtime) //: Thread
@@ -101,6 +104,13 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
             //   \ze_ffi()->sapi_shutdown();
             \ze_ffi()->ts_free_thread();
+        }
+
+        final public function thread_interrupt(CData $execute_data)
+        {
+            if (\is_cdata($this->original_interrupt_handler)) {
+                ($this->original_interrupt_handler)($execute_data);
+            }
         }
 
         final public function thread_func(CData $arg)
@@ -238,12 +248,16 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
             \ze_ffi()->sapi_flush();
             // \ze_ffi()->sapi_deactivate();
             \ze_ffi()->sapi_shutdown();
+            $this->original_interrupt_handler = \ze_ffi()->zend_interrupt_function;
+            \ze_ffi()->zend_interrupt_function = \closure_from($this, 'thread_interrupt');
             return !\is_null($this->m_init)
                 ? ($this->m_init)($type, $module_number) : \ZE::SUCCESS;
         }
 
         public function module_shutdown(int $type, int $module_number): int
         {
+            \ze_ffi()->zend_interrupt_function = $this->original_interrupt_handler;
+            $this->original_interrupt_handler = null;
             return !\is_null($this->m_end)
                 ? ($this->m_end)($type, $module_number) : \ZE::SUCCESS;
         }

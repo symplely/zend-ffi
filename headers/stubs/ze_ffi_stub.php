@@ -11,6 +11,10 @@ interface user_opcode_handler_t extends closure
 interface ThreadProc extends closure
 {
 }
+/** @var callable (zend_execute_data *execute_data) */
+interface zend_interrupt_function extends closure
+{
+}
 interface LPTHREAD_START_ROUTINE extends ThreadProc
 {
 }
