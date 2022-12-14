@@ -239,12 +239,12 @@ if (!\class_exists('StandardModule')) {
          *
          * @return static|null
          */
-        final public static function get_module(): ?\StandardModule
+        final public static function get_module(): ?self
         {
             if (\PHP_ZTS)
-                return self::$global_module[\ze_ffi()->tsrm_thread_id()] ?? null;
+                return static::$global_module[\ze_ffi()->tsrm_thread_id()] ?? null;
 
-            return self::$global_module[static::get_name()] ?? null;
+            return static::$global_module[static::get_name()] ?? null;
         }
 
         /**
