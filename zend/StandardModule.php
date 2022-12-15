@@ -167,6 +167,8 @@ if (!\class_exists('StandardModule')) {
         /** Do global shutdown? */
         protected bool $g_shutdown = false;
 
+        protected bool $restart_sapi = true;
+
         protected static $global_module;
 
         protected bool $destruct_on_request = false;
@@ -176,14 +178,6 @@ if (!\class_exists('StandardModule')) {
 
         /** @var \Closure */
         protected ?CData $original_sapi_deactivate = null;
-
-        /** @var \Closure */
-        protected ?CData $original_sapi_output = null;
-
-        protected ?\Closure $module_sapi_output = null;
-
-        /** @var \MUTEX_T */
-        protected ?CData $output_mutex = null;
 
         /** @var \MUTEX_T */
         protected ?CData $module_mutex = null;
@@ -215,10 +209,9 @@ if (!\class_exists('StandardModule')) {
                 $module = $this->__invoke();
                 if (!\is_null($module)) {
                     $this->request_shutdown((int)$module->type, $module->module_number);
-                    if ($this->destruct_on_request) {
+                    if ($this->destruct_on_request && !$this->target_persistent) {
                         $this->destruct_on_request = false;
                         //   @\ze_ffi()->php_module_shutdown();
-                        static::set_module(null);
                         $this->module_shutdown((int)$module->type, $module->module_number);
                         $this->global_shutdown($module);
                     }
@@ -257,7 +250,7 @@ if (!\class_exists('StandardModule')) {
             return \Core::get($this->ffi_tag);
         }
 
-        final public function __destruct()
+        public function __destruct()
         {
             if (!$this->target_persistent) {
                 if (\PHP_ZTS) {
@@ -269,14 +262,8 @@ if (!\class_exists('StandardModule')) {
                             unset($this->global_rsrc[$id]);
                         }
 
-                        \ze_ffi()->sapi_module->ub_write = $this->original_sapi_output;
                         \ze_ffi()->tsrm_mutex_free($this->module_mutex);
-                        \ze_ffi()->tsrm_mutex_free($this->output_mutex);
-
-                        $this->original_sapi_output = null;
-                        $this->module_sapi_output = null;
                         $this->module_mutex = null;
-                        $this->output_mutex = null;
                     }
                 } else {
                     $this->global_rsrc = null;
@@ -335,12 +322,10 @@ if (!\class_exists('StandardModule')) {
                 $ptr = $ext->ptr();
                 $this->update(\ze_ffi()->cast('zend_module_entry*', $ptr));
                 $this->addReflection($ptr->name);
-
-                if (\PHP_ZTS && \is_null($this->module_mutex)) {
-                    $this->module_mutex = \ze_ffi()->tsrm_mutex_alloc();
-                    $this->output_mutex = \ze_ffi()->tsrm_mutex_alloc();
-                }
             }
+
+            if (\PHP_ZTS && \is_null($this->module_mutex))
+                $this->module_mutex = \ze_ffi()->tsrm_mutex_alloc();
         }
 
         /**
@@ -463,10 +448,6 @@ if (!\class_exists('StandardModule')) {
             }
 
             $this->target_persistent = \Core::is_scoped(); // \ini_get('opcache.enable_cli') === '1';
-            if (\PHP_ZTS && \is_null($this->module_mutex)) {
-                $this->module_mutex = \ze_ffi()->tsrm_mutex_alloc();
-                $this->output_mutex = \ze_ffi()->tsrm_mutex_alloc();
-            }
 
             // We don't need persistent memory here, as PHP copies structures into persistent memory itself
             $module = \ze_ffi()->new('zend_module_entry');
@@ -522,18 +503,6 @@ if (!\class_exists('StandardModule')) {
             if ($this->g_shutdown || !\is_null($globalType))
                 $module->globals_dtor = \closure_from($this, 'global_shutdown');
 
-            if (\PHP_ZTS) {
-                $this->original_sapi_output = \ze_ffi()->sapi_module->ub_write;
-                $this->module_sapi_output = function (string $str, int $len): int {
-                    \ze_ffi()->tsrm_mutex_lock($this->output_mutex);
-                    $result = ($this->original_sapi_output)($str, $len);
-                    \ze_ffi()->tsrm_mutex_unlock($this->output_mutex);
-
-                    return $result;
-                };
-            }
-
-
             // $module pointer will be updated, as registration method returns a copy of memory
             $realModulePointer = \ze_ffi()->zend_register_module_ex(\FFI::addr($module));
 
@@ -549,18 +518,20 @@ if (!\class_exists('StandardModule')) {
          */
         public function startup(): void
         {
-            \ze_ffi()->php_output_end_all();
-            \ze_ffi()->php_output_deactivate();
-            \ze_ffi()->php_output_shutdown();
-            \ze_ffi()->sapi_flush();
-            \ze_ffi()->sapi_deactivate();
-            \ze_ffi()->sapi_shutdown();
+            if ($this->restart_sapi) {
+                \ze_ffi()->php_output_end_all();
+                \ze_ffi()->php_output_deactivate();
+                \ze_ffi()->php_output_shutdown();
+                \ze_ffi()->sapi_flush();
+                \ze_ffi()->sapi_deactivate();
+                \ze_ffi()->sapi_shutdown();
+            }
+
             $module = $this->ze_other_ptr;
             if ($this->r_startup) {
-                $sapi_activate = $this->original_sapi_activate;
-                \ze_ffi()->sapi_module->activate = function (...$args) use ($sapi_activate, $module) {
+                \ze_ffi()->sapi_module->activate = function (...$args) use ($module) {
                     $result = ($module->request_startup_func)($module->type, $module->module_number);
-                    $sapi_result = !\is_null($sapi_activate) ? $sapi_activate(...$args) : \ZE::SUCCESS;
+                    $sapi_result = !\is_null($this->original_sapi_activate) ? ($this->original_sapi_activate)(...$args) : \ZE::SUCCESS;
 
                     return $result == $sapi_result && $result === \ZE::SUCCESS
                         ? \ZE::SUCCESS : \ZE::FAILURE;
@@ -568,18 +539,14 @@ if (!\class_exists('StandardModule')) {
             }
 
             if ($this->r_shutdown) {
-                $sapi_deactivate = $this->original_sapi_deactivate;
-                \ze_ffi()->sapi_module->deactivate = function (...$args) use ($sapi_deactivate, $module) {
+                \ze_ffi()->sapi_module->deactivate = \PHP_ZTS ? null : function (...$args) use ($module) {
                     $result = ($module->request_shutdown_func)($module->type, $module->module_number);
-                    $sapi_result = !\is_null($sapi_deactivate) ? $sapi_deactivate(...$args) : \ZE::SUCCESS;
+                    $sapi_result = !\is_null($this->original_sapi_deactivate) ? ($this->original_sapi_deactivate)(...$args) : \ZE::SUCCESS;
 
                     return $result == $sapi_result && $result === \ZE::SUCCESS
                         ? \ZE::SUCCESS : \ZE::FAILURE;
                 };
             }
-
-            if (\PHP_ZTS)
-                \ze_ffi()->sapi_module->ub_write = $this->module_sapi_output;
 
             if (\ze_ffi()->zend_startup_module_ex($module) !== \ZE::SUCCESS) {
                 throw new \RuntimeException('Can not startup module ' . $this->module_name);

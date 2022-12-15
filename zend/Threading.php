@@ -7,17 +7,20 @@ use ZE\PThread;
 use ZE\Thread;
 
 if (\PHP_ZTS && !\function_exists('pthread_init')) {
-    function threads_customization(
+    function threads_get_module(): ?\ThreadsModule
+    {
+        return \ThreadsModule::get_module();
+    }
+
+    function threads_customize(
         callable $module_startup = null,
         callable $module_shutdown = null,
         callable $request_startup = null,
         callable $request_shutdown = null,
         callable $global_startup = null,
-        callable $global_shutdown = null,
-        string $global_type = null,
-        string $ffi_tag = 'ze'
+        callable $global_shutdown = null
     ): \ThreadsModule {
-        $module = \ThreadsModule::get_module();
+        $module = \threads_get_module();
         if (\is_null($module)) {
             $module = new \ThreadsModule();
             $module->set_lifecycle(
@@ -28,7 +31,6 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
                 $global_startup,
                 $global_shutdown
             );
-            $module->set_global($global_type, $ffi_tag);
             $module->register();
             $module->startup();
 
@@ -41,9 +43,9 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
         );
     }
 
-    function threads_activation(): \ThreadsModule
+    function threads_activate(): \ThreadsModule
     {
-        $module = \ThreadsModule::get_module();
+        $module = \threads_get_module();
         if (\is_null($module)) {
             $module = new \ThreadsModule();
             $module->register();
@@ -55,9 +57,9 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
 
     function thread_init(): Thread
     {
-        $module = \ThreadsModule::get_module();
+        $module = \threads_get_module();
         if (\is_null($module)) {
-            $module = \threads_activation();
+            $module = \threads_activate();
         }
 
         return new Thread($module);
@@ -65,9 +67,9 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
 
     function pthread_init(): PThread
     {
-        $module = \ThreadsModule::get_module();
+        $module = \threads_get_module();
         if (\is_null($module)) {
-            $module = \threads_activation();
+            $module = \threads_activate();
         }
 
         return new PThread($module);

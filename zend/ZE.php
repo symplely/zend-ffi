@@ -7,6 +7,17 @@ use FFI\CData;
 if (!\class_exists('ZE')) {
     abstract class ZE
     {
+        const STATUS_WAIT_0             = (0x00000000);
+        const STATUS_ABANDONED_WAIT_0   = (0x00000080);
+        const WAIT_OBJECT_0             = ((self::STATUS_WAIT_0) + 0);
+        const WAIT_ABANDONED_0          = ((self::STATUS_ABANDONED_WAIT_0) + 0);
+
+        /**
+         * The wait operation timed out.
+         */
+        const WAIT_TIMEOUT = 0x00000102;
+        const WAIT_FAILED = 0xFFFFFFFF;
+
         /**
          * *Windows* - Infinite timeout for threads, use with:
          * `WaitForSingleObject`, `WaitForMultipleObjects`, `WaitForMultipleObjectsEx`,

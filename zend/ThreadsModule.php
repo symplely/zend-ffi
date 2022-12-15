@@ -31,6 +31,12 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
         /** @var \zend_interrupt_function */
         protected ?CData $original_interrupt_handler = null;
 
+        /** @var \Closure */
+        protected ?CData $original_sapi_output = null;
+
+        /** @var \MUTEX_T */
+        protected ?CData $output_mutex = null;
+
         const MODULES_TO_RELOAD = ['filter', 'session'];
 
         final public function thread_startup($runtime) //: Thread
@@ -157,12 +163,6 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
             //    pthread_mutex_unlock($thpool_p->thcount_lock);
         }
 
-        public function set_global(string $typedef, string $ffi_tag = 'ze')
-        {
-            $this->ffi_tag = $ffi_tag;
-            $this->global_type = $typedef;
-        }
-
         public function set_lifecycle(
             callable $m_init = null,
             callable $m_end = null,
@@ -194,60 +194,23 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
         public function startup(): void
         {
-            $module = $this->ze_other_ptr;
-            if ($this->r_startup) {
-                $sapi_activate = $this->original_sapi_activate;
-                \ze_ffi()->sapi_module->activate = function (...$args) use ($sapi_activate, $module) {
-                    $result = ($module->request_startup_func)($module->type, $module->module_number);
-                    $sapi_result = !\is_null($sapi_activate) ? $sapi_activate(...$args) : \ZE::SUCCESS;
+            if (\is_null($this->output_mutex))
+                $this->output_mutex = \ze_ffi()->tsrm_mutex_alloc();
 
-                    return $result == $sapi_result && $result === \ZE::SUCCESS
-                        ? \ZE::SUCCESS : \ZE::FAILURE;
-                };
-            }
+            $this->original_sapi_output = \ze_ffi()->sapi_module->ub_write;
+            \ze_ffi()->sapi_module->ub_write = function (string $str, int $len): int {
+                \ze_ffi()->tsrm_mutex_lock($this->output_mutex);
+                $result = ($this->original_sapi_output)($str, $len);
+                \ze_ffi()->tsrm_mutex_unlock($this->output_mutex);
 
-            if ($this->r_shutdown) {
-                $sapi_deactivate = $this->original_sapi_deactivate;
-                \ze_ffi()->sapi_module->deactivate = function (...$args) use ($sapi_deactivate, $module) {
-                    $result = ($module->request_shutdown_func)($module->type, $module->module_number);
-                    $sapi_result = !\is_null($sapi_deactivate) ? $sapi_deactivate(...$args) : \ZE::SUCCESS;
+                return $result;
+            };
 
-                    return $result == $sapi_result && $result === \ZE::SUCCESS
-                        ? \ZE::SUCCESS : \ZE::FAILURE;
-                };
-            }
-
-            if (\PHP_ZTS)
-                \ze_ffi()->sapi_module->ub_write = $this->module_sapi_output;
-
-            if (\ze_ffi()->zend_startup_module_ex($module) !== \ZE::SUCCESS) {
-                throw new \RuntimeException('Can not startup module ' . $this->module_name);
-            }
-
-            if ($this->r_shutdown)
-                \register_shutdown_function(
-                    \closure_from($this, 'module_destructor')
-                );
-
-            \ze_ffi()->php_output_activate();
-            if (
-                \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0)
-                !== \ZE::SUCCESS
-            ) {
-                throw new \RuntimeException(
-                    'Can not restart SAPI module ' . \ffi_string(\ze_ffi()->sapi_module->name)
-                );
-            }
+            parent::startup();
         }
 
         public function module_startup(int $type, int $module_number): int
         {
-            \ze_ffi()->php_output_end_all();
-            \ze_ffi()->php_output_deactivate();
-            \ze_ffi()->php_output_shutdown();
-            \ze_ffi()->sapi_flush();
-            // \ze_ffi()->sapi_deactivate();
-            \ze_ffi()->sapi_shutdown();
             $this->original_interrupt_handler = \ze_ffi()->zend_interrupt_function;
             \ze_ffi()->zend_interrupt_function = \closure_from($this, 'thread_interrupt');
             return !\is_null($this->m_init)
@@ -278,34 +241,30 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
         public function global_startup(CData $memory): void
         {
-            if (\PHP_ZTS) {
-                \tsrmls_activate();
-                $id = \ze_ffi()->tsrm_thread_id();
-                if (!isset($this->global_id[$id])) {
-                    $this->global_rsrc[$id] = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
-                    $this->global_id[$id] = \ze_ffi()->ts_allocate_id(
-                        $this->global_rsrc[$id]->addr(),
-                        $this->globals_size(),
-                        null,
-                        null
-                    );
-                }
-            }
-
+            parent::global_startup($memory);
             if (!\is_null($this->g_init)) ($this->g_init)($memory);
         }
 
-        /**
-         * Represents `PHP_GSHUTDOWN_FUNCTION()` _macro_.
-         *
-         * @param CData $memory `void*` needs to be __cast__ to `global_type()`
-         * @return void
-         */
         public function global_shutdown(CData $memory): void
         {
             if (!\is_null($this->g_end)) ($this->g_end)($memory);
 
             $this->__destruct();
+        }
+
+        public function __destruct()
+        {
+            if (!$this->target_persistent) {
+                if (\is_ze_ffi()) {
+                    \ze_ffi()->sapi_module->ub_write = $this->original_sapi_output;
+                    \ze_ffi()->tsrm_mutex_free($this->output_mutex);
+
+                    $this->original_sapi_output = null;
+                    $this->output_mutex = null;
+                }
+
+                parent::__destruct();
+            }
         }
     }
 }

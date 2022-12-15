@@ -2191,6 +2191,7 @@ typedef struct _zend_thread_t
 typedef struct _zend_server_context
 {
 	bool worker;
+	MUTEX_T server_mutex;
 	uintptr_t current_request;
 	uintptr_t main_request; /* Only available during worker initialization */
 	char *cookie_data;

@@ -5,13 +5,18 @@ use ZE\Zval;
 
 require 'vendor/autoload.php';
 
-$module = threads_customization(
+$module = threads_customize(
     function (int $type, int $module_number): int {
         echo 'module_startup' . \PHP_EOL;
+        $module = \threads_get_module();
+        $module->get_globals('server_mutex', \ze_ffi()->tsrm_mutex_alloc());
         return \ZE::SUCCESS;
     },
     function (int $type, int $module_number): int {
         echo 'module_shutdown' . \PHP_EOL;
+        $module = \threads_get_module()->get_globals('server_mutex');
+        \threads_get_module()->get_globals('server_mutex', null);
+        \ze_ffi()->tsrm_mutex_free($module);
         return \ZE::SUCCESS;
     },
     function (...$args): int {
@@ -23,17 +28,11 @@ $module = threads_customization(
         return \ZE::SUCCESS;
     },
     function (\FFI\CData $memory): void {
-        if (\PHP_ZTS) {
-            \tsrmls_activate();
-        }
-
         echo 'global_startup' . \PHP_EOL;
-        //  \FFI::memset($module->get_globals(), 0, $module->globals_size());
     },
     function (\FFI\CData $memory): void {
         echo 'global_shutdown' . \PHP_EOL;
-    },
-    'unsigned int[10]'
+    }
 );
 
 $module->destruct_set();
@@ -43,23 +42,8 @@ $module->destruct_set();
 define('MAX_THREADS', 3);
 define('BUF_SIZE', 255);
 
-
 function _tmain(\ThreadsModule $module)
 {
-    $MyThreadFunction = function (CData $lpParam) use ($module) {
-        print "     in thread ---------------------";
-        // $module->thread_startup(null);
-        // Cast the parameter to the correct data type.
-        // The pointer is known to be valid because
-        // it was checked for NULL before the thread was created.
-        $pDataArray = ffi_get('temp')->cast('PMYDATA*', $lpParam);
-
-        // Print the parameter values using thread-safe functions.
-        printf("Parameters = %d, %d\n", $pDataArray->val1, $pDataArray->val2);
-        // $module->thread_shutdown();
-        return 0;
-    };
-
     // Allocate memory for thread data.
     $pDataArray = c_array_type('MYDATA', 'temp', MAX_THREADS);
     if (\is_null($pDataArray())) {
@@ -79,14 +63,26 @@ function _tmain(\ThreadsModule $module)
         $pDataArray()[$i]->val1 = $i;
         $pDataArray()[$i]->val2 = $i + 100;
 
-        print("Creating Thread ");
+        print("Creating thread - ");
         // Create the thread to begin execution on its own.
         $hThreadArray()[$i] = win_ffi()->CreateThread(
-            NULL,                   // default security attributes
-            0,                      // use default stack size
-            $MyThreadFunction,      // thread function name
-            win_ffi()->cast('LPVOID', $pDataArray()[$i]), // argument to thread function
-            0,                      // use default creation flags
+            NULL,   // default security attributes
+            0,  // use default stack size
+            function (CData $lpParam) use ($module) {
+                print "     in thread ---------------------";
+                //  $module->thread_startup(null);
+                // Cast the parameter to the correct data type.
+                // The pointer is known to be valid because
+                // it was checked for NULL before the thread was created.
+                $pDataArray = ffi_get('temp')->cast('PMYDATA*', $lpParam);
+
+                // Print the parameter values using thread-safe functions.
+                printf("Parameters = %d, %d\n", $pDataArray->val1, $pDataArray->val2);
+                //  $module->thread_shutdown();
+                return 0;
+            },  // thread function name
+            win_ffi()->cast('LPVOID', $pDataArray()[$i]),   // argument to thread function
+            0,  // use default creation flags
             $dwThreadIdArray[$i]()  // returns the thread identifier
         );
 
@@ -101,9 +97,11 @@ function _tmain(\ThreadsModule $module)
     } // End of main thread creation loop.
 
     // Wait until all threads have terminated.
-    $dword = win_ffi()->WaitForMultipleObjects(MAX_THREADS, $hThreadArray(), TRUE, 1);
+    $dword = win_ffi()->WaitForMultipleObjects(MAX_THREADS, $hThreadArray(), TRUE, \ZE::INFINITE);
     // win_ffi()->WaitForSingleObject($hThreadArray()[1], \ZE::INFINITE);
-    printf("CreateEvent error: %d\n", $dword);
+
+    printf("WaitForMultipleObjects result: %d\n", $dword);
+
     // Close all thread handles and free memory allocations.
     for ($i = 0; $i < MAX_THREADS; $i++) {
         win_ffi()->CloseHandle($hThreadArray()[$i]);
@@ -122,5 +120,4 @@ ffi_set(
 } MYDATA, *PMYDATA;')
 );
 
-$pDataArray = c_array_type('MYDATA', 'temp', MAX_THREADS);
 _tmain($module);
