@@ -71,7 +71,6 @@ tests/*.out
 
 # make dist output
 libuv-*.tar.*
-*.cmake
 *.rule
 *.stamp
 *.depend
@@ -89,3 +88,5 @@ php_threading/
 pthreads4w-cmake/
 pthreads/
 ext-async/
+pthreads4w-code-*/
+pthreads4w-code.zip
