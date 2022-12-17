@@ -708,4 +708,7 @@ interface FFI
      * @return void
      */
     public function zend_exception_error(zval &$exception, int $severity, ...$args);
+
+    /** @return zend_string */
+    public function zend_print_zval_r_to_str(zval &$expr, int $indent);
 }

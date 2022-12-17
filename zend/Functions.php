@@ -859,4 +859,11 @@ if (!\function_exists('zval_stack')) {
 
         return \zval_native($ret);
     }
+
+    function zend_print_zval_r_to_str($variable, int $indent = 0): string
+    {
+        return ZendString::init_value(
+            \ze_ffi()->zend_print_zval_r_to_str(\zval_stack(0)(), $indent)
+        )->value();
+    }
 }

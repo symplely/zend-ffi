@@ -7,6 +7,7 @@ use FFI\CData;
 if (!\class_exists('ZE')) {
     abstract class ZE
     {
+        const CREATE_SUSPENDED          = 0x00000004;
         const STATUS_WAIT_0             = (0x00000000);
         const STATUS_ABANDONED_WAIT_0   = (0x00000080);
         const WAIT_OBJECT_0             = ((self::STATUS_WAIT_0) + 0);

@@ -2201,6 +2201,7 @@ typedef struct _zend_server_context
 void _zend_bailout(const char *filename, uint32_t lineno);
 /* show an exception using zend_error(severity,...), severity should be E_ERROR */
 void zend_exception_error(zval *exception, int severity, ...);
+zend_string *zend_print_zval_r_to_str(zval *expr, int indent);
 
 typedef char *va_list;
 
