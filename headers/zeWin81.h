@@ -612,7 +612,7 @@ typedef struct _zend_closure
 	zend_class_entry *called_scope;
 	zif_handler orig_internal_handler;
 } zend_closure;
-;
+
 typedef struct _zend_class_mutable_data
 {
 	zval *default_properties_table;

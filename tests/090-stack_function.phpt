@@ -99,7 +99,7 @@ class Entry
 $test = new Entry();
 $test->run();
 --EXPECTF--
-Deprecated: Function var_dump() is deprecated in %s
+Deprecated: Function var_dump() is deprecated in %S
 bool(true)
 Given function signature: "function ()" should be compatible with original "function (): ?string"
 bool(true)

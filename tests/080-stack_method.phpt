@@ -234,11 +234,11 @@ bool(true)
 bool(true)
 bool(true)
 bool(true)
-Call to private method Tests\Dummy::method() from context 'Entry'
+Call to private method Tests\Dummy::method() from %S
 bool(true)
 bool(true)
 bool(true)
-Call to protected method Tests\Dummy::method() from context 'Entry'
+Call to protected method Tests\Dummy::method() from %S
 bool(true)
 bool(true)
 bool(true)

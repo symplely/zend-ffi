@@ -612,7 +612,7 @@ typedef struct _zend_closure
 	zend_class_entry *called_scope;
 	zif_handler orig_internal_handler;
 } zend_closure;
-;
+
 typedef struct _zend_class_mutable_data
 {
 	zval *default_properties_table;
@@ -1266,9 +1266,9 @@ void ts_free_thread(void);
 void ts_free_id(ts_rsrc_id id);
 
 /* Debug support */
-//#define TSRM_ERROR_LEVEL_ERROR 1
-//#define TSRM_ERROR_LEVEL_CORE 2
-//#define TSRM_ERROR_LEVEL_INFO 3
+// #define TSRM_ERROR_LEVEL_ERROR 1
+// #define TSRM_ERROR_LEVEL_CORE 2
+// #define TSRM_ERROR_LEVEL_INFO 3
 
 typedef void (*tsrm_thread_begin_func_t)(THREAD_T thread_id);
 typedef void (*tsrm_thread_end_func_t)(THREAD_T thread_id);

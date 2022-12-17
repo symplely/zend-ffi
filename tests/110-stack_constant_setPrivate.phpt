@@ -46,4 +46,4 @@ $test->run();
 bool(true)
 bool(true)
 bool(true)
-Cannot access private const Tests\Dummy::SOME_CONST
+Cannot access private const%S

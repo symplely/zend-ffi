@@ -59,4 +59,4 @@ $test->run();
 bool(true)
 bool(true)
 bool(true)
-Cannot access protected const Tests\Dummy::SOME_CONST
+Cannot access protected const%S

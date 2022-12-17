@@ -44,4 +44,4 @@ $test->run();
 --EXPECTF--
 bool(true)
 
-Fatal error: Class class@anonymous may not inherit from final class (Tests\Dummy) in %S
+Fatal error: Class %S
