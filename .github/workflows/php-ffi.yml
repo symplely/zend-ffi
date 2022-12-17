@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer install
-          composer require --dev phpunit/phpunit >8
+          composer require --dev phpunit/phpunit ~8
       - name: Test with phpunit
         run: vendor/bin/phpunit --coverage-clover=coverage/phpunit/clover.xml
       - name: Submit code coverage

@@ -83,7 +83,6 @@ preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
 var_dump(\extension_loaded('simple_counters'));
 var_dump(SimpleCountersModule::get_name());
-var_dump($module->global_type_id());
 var_dump($module->ffi());
 --EXPECTF--
 global_startup
@@ -116,7 +115,6 @@ object(FFI\CData:uint32_t[10])#%d (10) {
 string(34) "simple_counters support => enabled"
 bool(true)
 string(15) "simple_counters"
-int(%d)
 object(FFI)#%d (0) {
 }
 request_shutdown

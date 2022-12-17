@@ -224,7 +224,7 @@ if (!\class_exists('StandardModule')) {
             if (\PHP_ZTS)
                 self::$global_module[\ze_ffi()->tsrm_thread_id()] = $module;
             else
-                self::$global_module[static::get_name()] = $module;
+                self::$global_module = $module;
         }
 
         /**
@@ -237,7 +237,7 @@ if (!\class_exists('StandardModule')) {
             if (\PHP_ZTS)
                 return static::$global_module[\ze_ffi()->tsrm_thread_id()] ?? null;
 
-            return static::$global_module[static::get_name()] ?? null;
+            return self::$global_module;
         }
 
         /**
@@ -605,6 +605,8 @@ if (!\class_exists('StandardModule')) {
                     )[0];
 
                     $cdata = $this->ffi()->cast($this->global_type(), $ptr[($this->global_type_id() - 1)]);
+                } else {
+                    $cdata = $this->ffi()->cast($this->global_type(), $cdata);
                 }
 
                 if ($initialize !== 'empty' && !\is_null($element)) {
