@@ -22,6 +22,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2, cs2pr
+          extensions: ffi
           coverage: xdebug
       - name: Install dependencies
         run: |
