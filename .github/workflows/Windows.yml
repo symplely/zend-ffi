@@ -57,13 +57,13 @@ jobs:
           git pull
           git config user.name github-actions
           git config user.email github-actions@github.com
-          mkdir lib\Windows\
+          mkdir lib\Windows
+          mkdir headers\original
+          copy /Y pthreads4w-code-${{ env.HASH }}\PTHREADS-BUILT\include\*.h headers\original\
+          git add headers
+          git commit -m "Windows pthread *.h headers"
+          git push -q
           copy /Y pthreads4w-code-${{ env.HASH }}\PTHREADS-BUILT\bin\pthreadVC3.dll lib\Windows\
           git add lib
           git commit -m "created pthreadVC3.dll - for Windows x86_64"
-          git push -q
-          mkdir headers\original\pthreads
-          copy /Y pthreads4w-code-${{ env.HASH }}\PTHREADS-BUILT\include\*.* headers\original\pthreads
-          git add headers
-          git commit -m "Windows pthread *.h headers"
           git push -q
