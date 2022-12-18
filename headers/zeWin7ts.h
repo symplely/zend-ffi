@@ -925,33 +925,6 @@ struct _zend_compiler_globals
 	zend_stack short_circuiting_opnums;
 };
 
-typedef struct __pthread_internal_list
-{
-	struct __pthread_internal_list *__prev;
-	struct __pthread_internal_list *__next;
-} __pthread_list_t;
-
-struct __pthread_mutex_s
-{
-	int __lock;
-	unsigned int __count;
-	int __owner;
-	unsigned int __nusers;
-	int __kind;
-	short __spins;
-	short __elision;
-	__pthread_list_t __list;
-};
-
-typedef union
-{
-	struct __pthread_mutex_s __data;
-	char __size[40];
-	long int __align;
-} pthread_mutex_t;
-
-typedef pthread_mutex_t mutex_t;
-
 typedef struct _zend_executor_globals zend_executor_globals;
 
 typedef long int __jmp_buf[8];
@@ -2104,6 +2077,14 @@ void php_module_shutdown(void);
 int php_module_shutdown_wrapper(sapi_module_struct *sapi_globals);
 int zend_ini_global_shutdown(void);
 
+typedef enum __ptw32_robust_state_t_ __ptw32_robust_state_t;
+typedef struct __ptw32_robust_node_t_ __ptw32_robust_node_t;
+typedef struct __ptw32_mcs_node_t_ *__ptw32_mcs_lock_t;
+typedef struct __ptw32_handle_t pthread_t;
+typedef struct pthread_cond_t_ *pthread_cond_t;
+typedef struct pthread_mutex_t_ *pthread_mutex_t;
+typedef struct sem_t_ *sem_t;
+
 struct __ptw32_mcs_node_t_
 {
 	struct __ptw32_mcs_node_t_ **lock; /* ptr to tail of queue */
@@ -2114,15 +2095,56 @@ struct __ptw32_mcs_node_t_
 										  successor */
 };
 
-typedef struct __ptw32_mcs_node_t_ *__ptw32_mcs_lock_t;
-typedef struct pthread_cond_t_ *pthread_cond_t;
-typedef struct sem_t_ *sem_t;
+typedef struct __ptw32_handle_t
+{
+	void *p;
+
+	size_t x;
+};
+
 struct sem_t_
 {
 	int value;
 	__ptw32_mcs_lock_t lock;
 	HANDLE sem;
 	int leftToUnblock;
+};
+
+enum __ptw32_robust_state_t_
+{
+	__PTW32_ROBUST_CONSISTENT,
+	__PTW32_ROBUST_INCONSISTENT,
+	__PTW32_ROBUST_NOTRECOVERABLE
+};
+
+/*
+ * Node used to manage per-thread lists of currently-held robust mutexes.
+ */
+struct __ptw32_robust_node_t_
+{
+	pthread_mutex_t mx;
+	__ptw32_robust_state_t stateInconsistent;
+	__ptw32_robust_node_t *prev;
+	__ptw32_robust_node_t *next;
+};
+
+struct pthread_mutex_t_
+{
+	LONG lock_idx;		 /* Provides exclusive access to mutex state
+					via the Interlocked* mechanism.
+					 0: unlocked/free.
+					 1: locked - no other waiters.
+					-1: locked - with possible other waiters.
+				 */
+	int recursive_count; /* Number of unlocks a thread needs to perform
+				before the lock is released (recursive
+				mutexes only). */
+	int kind;			 /* Mutex type. */
+	pthread_t ownerThread;
+	HANDLE event; /* Mutex release notification to waiting
+			 threads. */
+	__ptw32_robust_node_t *
+		robustNode; /* Extra state for robust mutexes  */
 };
 
 struct pthread_cond_t_
@@ -2142,27 +2164,9 @@ struct pthread_cond_t_
 	pthread_cond_t prev;
 };
 
-typedef HANDLE SEM_T;
-typedef struct _RTL_CONDITION_VARIABLE
-{
-	PVOID Ptr;
-} RTL_CONDITION_VARIABLE, *PRTL_CONDITION_VARIABLE;
-typedef RTL_CONDITION_VARIABLE CONDITION_VARIABLE, *PCONDITION_VARIABLE;
-typedef union
-{
-	CONDITION_VARIABLE cond_var;
-	struct
-	{
-		unsigned int waiters_count;
-		CRITICAL_SECTION waiters_count_lock;
-		HANDLE signal_event;
-		HANDLE broadcast_event;
-	} unused_; /* TODO: retained for ABI compatibility; remove me in v2.x. */
-} COND_T;
-
 typedef struct _zend_threads_t
 {
-	THREAD_T tid;
+	pthread_t tid;
 	struct
 	{
 		zend_bool *interrupt;
@@ -2173,15 +2177,15 @@ typedef struct _zend_threads_t
 	} parent;
 	volatile int num_threads_alive;	  /* threads currently alive   */
 	volatile int num_threads_working; /* threads currently working */
-	MUTEX_T worker_mutex;
-	COND_T worker_all_idle;
+	pthread_mutex_t worker_mutex;
+	pthread_cond_t worker_all_idle;
 	zend_object std;
 	int state;
 } zend_threads_t;
 
 typedef struct _zend_thread_t
 {
-	THREAD_T tid;
+	pthread_t tid;
 	zend_fcall_info fci;
 	zend_fcall_info_cache fcc;
 	zval *args;
@@ -2191,7 +2195,7 @@ typedef struct _zend_thread_t
 typedef struct _zend_server_context
 {
 	bool worker;
-	MUTEX_T server_mutex;
+	pthread_mutex_t server_mutex;
 	uintptr_t current_request;
 	uintptr_t main_request; /* Only available during worker initialization */
 	char *cookie_data;

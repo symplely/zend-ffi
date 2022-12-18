@@ -227,18 +227,18 @@ struct __pthread_rwlock_arch_t
 };
 struct __pthread_cond_s
 {
-     __extension__ union
+     union
      {
-          __extension__ unsigned long long int __wseq;
+          unsigned long long int __wseq;
           struct
           {
                unsigned int __low;
                unsigned int __high;
           } __wseq32;
      };
-     __extension__ union
+     union
      {
-          __extension__ unsigned long long int __g1_start;
+          unsigned long long int __g1_start;
           struct
           {
                unsigned int __low;
@@ -280,7 +280,7 @@ typedef union
 {
      struct __pthread_cond_s __data;
      char __size[48];
-     __extension__ long long int __align;
+     long long int __align;
 } pthread_cond_t;
 typedef union
 {

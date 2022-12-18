@@ -616,15 +616,13 @@ if (!\function_exists('setup_ffi_loader')) {
 
       if (\PHP_ZTS) {
         try {
-          if (\IS_WINDOWS)
-            \Core::set('win', \FFI::scope("__threads__"));
-          // else
-          //  \Core::set('nix', \FFI::scope("__threads__"));
+          \Core::set('ts', \FFI::scope("__threads__"));
         } catch (\Throwable $e) {
+          // \setup_ffi_loader('win', __DIR__ . '\\headers\\windows_native_threads.h');
           if (\IS_WINDOWS)
-            \setup_ffi_loader('win', __DIR__ . '\\headers\\windows_threads.h');
-          // else
-          //  \setup_ffi_loader('nix', __DIR__ . '/headers/linux_threads.h');
+            \setup_ffi_loader('ts', __DIR__ . '\\headers\\windows_pthreads.h');
+          else
+            \setup_ffi_loader('ts', __DIR__ . '/headers/linux_pthreads.h');
         }
       }
     }

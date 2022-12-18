@@ -1,3 +1,5 @@
+#define FFI_SCOPE "__threads__"
+#define FFI_LIB ".\\lib\\Windows\\pthreadVC3.dll"
 
 typedef signed long int __int64;
 typedef unsigned int uintptr_t;
@@ -10,30 +12,13 @@ typedef int errno_t;
 typedef unsigned short wint_t;
 typedef unsigned short wctype_t;
 typedef long __time32_t;
+typedef void *HANDLE;
+typedef HANDLE *PHANDLE;
+typedef long LONG;
+typedef unsigned long DWORD;
+typedef int BOOL;
 typedef __int64 __time64_t;
 
-typedef struct __crt_locale_data_public
-{
-    unsigned short const *_locale_pctype;
-    int _locale_mb_cur_max;
-    unsigned int _locale_lc_codepage;
-} __crt_locale_data_public;
-
-typedef struct __crt_locale_pointers
-{
-    struct __crt_locale_data *locinfo;
-    struct __crt_multibyte_data *mbcinfo;
-} __crt_locale_pointers;
-
-typedef __crt_locale_pointers *_locale_t;
-
-typedef struct _Mbstatet
-{
-    unsigned long _Wchar;
-    unsigned short _Byte, _State;
-} _Mbstatet;
-
-typedef _Mbstatet mbstate_t;
 typedef __time64_t time_t;
 typedef size_t rsize_t;
 typedef signed long long _int64;
@@ -67,12 +52,6 @@ struct _timespec32
 struct _timespec64
 {
     __time64_t tv_sec;
-    long tv_nsec;
-};
-
-struct timespec
-{
-    time_t tv_sec;
     long tv_nsec;
 };
 
@@ -149,6 +128,173 @@ typedef struct pthread_rwlockattr_t_ *pthread_rwlockattr_t;
 typedef struct pthread_spinlock_t_ *pthread_spinlock_t;
 typedef struct pthread_barrier_t_ *pthread_barrier_t;
 typedef struct pthread_barrierattr_t_ *pthread_barrierattr_t;
+typedef struct sem_t_ *sem_t;
+
+typedef struct __ptw32_mcs_node_t_ __ptw32_mcs_local_node_t;
+
+struct pthread_mutexattr_t_
+{
+    int pshared;
+    int kind;
+    int robustness;
+};
+
+typedef struct __ptw32_mcs_node_t_ *__ptw32_mcs_lock_t;
+struct sem_t_
+{
+    int value;
+    __ptw32_mcs_lock_t lock;
+    HANDLE sem;
+    int leftToUnblock;
+};
+enum __ptw32_robust_state_t_
+{
+    __PTW32_ROBUST_CONSISTENT,
+    __PTW32_ROBUST_INCONSISTENT,
+    __PTW32_ROBUST_NOTRECOVERABLE
+};
+
+typedef enum __ptw32_robust_state_t_ __ptw32_robust_state_t;
+typedef struct __ptw32_robust_node_t_ __ptw32_robust_node_t;
+/*
+ * Node used to manage per-thread lists of currently-held robust mutexes.
+ */
+struct __ptw32_robust_node_t_
+{
+    pthread_mutex_t mx;
+    __ptw32_robust_state_t stateInconsistent;
+    __ptw32_robust_node_t *prev;
+    __ptw32_robust_node_t *next;
+};
+
+struct pthread_mutex_t_
+{
+    LONG lock_idx;       /* Provides exclusive access to mutex state
+                    via the Interlocked* mechanism.
+                     0: unlocked/free.
+                     1: locked - no other waiters.
+                    -1: locked - with possible other waiters.
+                 */
+    int recursive_count; /* Number of unlocks a thread needs to perform
+                before the lock is released (recursive
+                mutexes only). */
+    int kind;            /* Mutex type. */
+    pthread_t ownerThread;
+    HANDLE event; /* Mutex release notification to waiting
+             threads. */
+    __ptw32_robust_node_t *
+        robustNode; /* Extra state for robust mutexes  */
+};
+
+struct pthread_attr_t_
+{
+    unsigned long valid;
+    void *stackaddr;
+    size_t stacksize;
+    int detachstate;
+    struct sched_param param;
+    int inheritsched;
+    int contentionscope;
+    size_t cpuset;
+    char *thrname;
+};
+
+struct pthread_spinlock_t_
+{
+    long interlock; /* Locking element for multi-cpus. */
+    union
+    {
+        int cpus;              /* No. of cpus if multi cpus, or   */
+        pthread_mutex_t mutex; /* mutex if single cpu.            */
+    } u;
+};
+
+struct __ptw32_mcs_node_t_
+{
+    struct __ptw32_mcs_node_t_ *lock; /* ptr to tail of queue */
+    struct __ptw32_mcs_node_t_ *next; /* ptr to successor in queue */
+    HANDLE readyFlag;                 /* set after lock is released by
+                                         predecessor */
+    HANDLE nextFlag;                  /* set after 'next' ptr is set by
+                                         successor */
+};
+
+struct pthread_barrier_t_
+{
+    unsigned int nCurrentBarrierHeight;
+    unsigned int nInitialBarrierHeight;
+    int pshared;
+    sem_t semBarrierBreeched;
+    __ptw32_mcs_lock_t lock;
+    __ptw32_mcs_local_node_t proxynode;
+};
+
+struct pthread_barrierattr_t_
+{
+    int pshared;
+};
+
+struct pthread_key_t_
+{
+    DWORD key;
+    void(__cdecl *destructor)(void *);
+    __ptw32_mcs_lock_t keyLock;
+    void *threads;
+};
+
+typedef struct ThreadParms ThreadParms;
+
+struct ThreadParms
+{
+    pthread_t tid;
+    void *(__cdecl *start)(void *);
+    void *arg;
+};
+
+struct pthread_cond_t_
+{
+    long nWaitersBlocked;   /* Number of threads blocked            */
+    long nWaitersGone;      /* Number of threads timed out          */
+    long nWaitersToUnblock; /* Number of threads to unblock         */
+    sem_t semBlockQueue;    /* Queue up threads waiting for the     */
+    /*   condition to become signalled      */
+    sem_t semBlockLock; /* Semaphore that guards access to      */
+    /* | waiters blocked count/block queue  */
+    /* +-> Mandatory Sync.LEVEL-1           */
+    pthread_mutex_t mtxUnblockLock; /* Mutex that guards access to          */
+    /* | waiters (to)unblock(ed) counts     */
+    /* +-> Optional* Sync.LEVEL-2           */
+    pthread_cond_t next; /* Doubly linked list                   */
+    pthread_cond_t prev;
+};
+
+struct pthread_condattr_t_
+{
+    int pshared;
+};
+
+struct pthread_rwlock_t_
+{
+    pthread_mutex_t mtxExclusiveAccess;
+    pthread_mutex_t mtxSharedAccessCompleted;
+    pthread_cond_t cndSharedAccessCompleted;
+    int nSharedAccessCount;
+    int nExclusiveAccessCount;
+    int nCompletedSharedAccessCount;
+    int nMagic;
+};
+
+struct pthread_rwlockattr_t_
+{
+    int pshared;
+};
+
+typedef union
+{
+    char cpuset[(sizeof(size_t) * 8) / 8];
+    size_t _cpuset;
+} _sched_cpu_set_vector_;
+
 enum
 {
     PTHREAD_CREATE_JOINABLE = 0,
@@ -247,11 +393,10 @@ int __cdecl pthread_attr_getinheritsched(const pthread_attr_t *attr,
 int __cdecl pthread_attr_setscope(pthread_attr_t *,
                                   int);
 
-int __cdecl pthread_attr_getscope(const pthread_attr_t *,
-                                  int *);
+int __cdecl pthread_attr_getscope(const pthread_attr_t *, int *);
 int __cdecl pthread_create(pthread_t *tid,
                            const pthread_attr_t *attr,
-                           void *(__cdecl *start)(void *),
+                           void *(*start)(void *),
                            void *arg);
 
 int __cdecl pthread_detach(pthread_t tid);
@@ -277,7 +422,7 @@ int __cdecl pthread_setcanceltype(int type,
 void __cdecl pthread_testcancel(void);
 
 int __cdecl pthread_once(pthread_once_t *once_control,
-                         void(__cdecl *init_routine)(void));
+                         void (*init_routine)(void));
 
 __ptw32_cleanup_t *__cdecl __ptw32_pop_cleanup(int execute);
 
@@ -285,7 +430,7 @@ void __cdecl __ptw32_push_cleanup(__ptw32_cleanup_t *cleanup,
                                   __ptw32_cleanup_callback_t routine,
                                   void *arg);
 int __cdecl pthread_key_create(pthread_key_t *key,
-                               void(__cdecl *destructor)(void *));
+                               void (*destructor)(void *));
 
 int __cdecl pthread_key_delete(pthread_key_t key);
 
@@ -437,7 +582,7 @@ int __cdecl pthread_getaffinity_np(pthread_t thread,
                                    cpu_set_t *cpuset);
 int __cdecl pthread_delay_np(struct timespec *interval);
 int __cdecl pthread_num_processors_np(void);
-unsigned __int64 __cdecl pthread_getunique_np(pthread_t thread);
+uint64_t __cdecl pthread_getunique_np(pthread_t thread);
 int __cdecl pthread_win32_process_attach_np(void);
 int __cdecl pthread_win32_process_detach_np(void);
 int __cdecl pthread_win32_thread_attach_np(void);

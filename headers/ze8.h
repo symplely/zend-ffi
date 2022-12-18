@@ -923,32 +923,6 @@ struct _zend_compiler_globals
 	zend_stack short_circuiting_opnums;
 };
 
-typedef struct __pthread_internal_list
-{
-	struct __pthread_internal_list *__prev;
-	struct __pthread_internal_list *__next;
-} __pthread_list_t;
-
-struct __pthread_mutex_s
-{
-	int __lock;
-	unsigned int __count;
-	int __owner;
-	unsigned int __nusers;
-	int __kind;
-	short __spins;
-	short __elision;
-	__pthread_list_t __list;
-};
-
-typedef union
-{
-	struct __pthread_mutex_s __data;
-	char __size[40];
-	long int __align;
-} pthread_mutex_t;
-
-typedef pthread_mutex_t mutex_t;
 typedef struct _zend_executor_globals zend_executor_globals;
 
 typedef long int __jmp_buf[8];

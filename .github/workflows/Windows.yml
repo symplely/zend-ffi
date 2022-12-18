@@ -43,7 +43,7 @@ jobs:
           cd pthreads4w-code-${{ env.HASH }}
           mkdir build
           cd build
-          cmake .. -D BUILD_TESTING=OFF -G "Visual Studio 16 2019" -A x64 -D CMAKE_BUILD_TYPE=Release
+          cmake .. -D BUILD_TESTING=OFF -G "${{ matrix.config.toolchain }}" -A ${{ matrix.config.arch }} -D CMAKE_BUILD_TYPE=Release
           cmake --build . --config Release --target install
           dir ..\PTHREADS-BUILT\bin
           dir ..\PTHREADS-BUILT\include

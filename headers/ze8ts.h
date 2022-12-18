@@ -925,32 +925,6 @@ struct _zend_compiler_globals
 	zend_stack short_circuiting_opnums;
 };
 
-typedef struct __pthread_internal_list
-{
-	struct __pthread_internal_list *__prev;
-	struct __pthread_internal_list *__next;
-} __pthread_list_t;
-
-struct __pthread_mutex_s
-{
-	int __lock;
-	unsigned int __count;
-	int __owner;
-	unsigned int __nusers;
-	int __kind;
-	short __spins;
-	short __elision;
-	__pthread_list_t __list;
-};
-
-typedef union
-{
-	struct __pthread_mutex_s __data;
-	char __size[40];
-	long int __align;
-} pthread_mutex_t;
-
-typedef pthread_mutex_t mutex_t;
 typedef struct _zend_executor_globals zend_executor_globals;
 
 typedef long int __jmp_buf[8];
@@ -1091,6 +1065,31 @@ extern int executor_globals_id;
 extern size_t compiler_globals_offset;
 extern size_t executor_globals_offset;
 
+typedef struct __pthread_internal_list
+{
+	struct __pthread_internal_list *__prev;
+	struct __pthread_internal_list *__next;
+} __pthread_list_t;
+
+struct __pthread_mutex_s
+{
+	int __lock;
+	unsigned int __count;
+	int __owner;
+	unsigned int __nusers;
+	int __kind;
+	short __spins;
+	short __elision;
+	__pthread_list_t __list;
+};
+
+typedef union
+{
+	struct __pthread_mutex_s __data;
+	char __size[40];
+	long int __align;
+} pthread_mutex_t;
+
 typedef unsigned long int pthread_t;
 typedef pthread_t THREAD_T;
 typedef pthread_mutex_t *MUTEX_T;
@@ -1128,9 +1127,9 @@ void ts_free_thread(void);
 void ts_free_id(ts_rsrc_id id);
 
 /* Debug support */
-//#define TSRM_ERROR_LEVEL_ERROR 1
-//#define TSRM_ERROR_LEVEL_CORE 2
-//#define TSRM_ERROR_LEVEL_INFO 3
+// #define TSRM_ERROR_LEVEL_ERROR 1
+// #define TSRM_ERROR_LEVEL_CORE 2
+// #define TSRM_ERROR_LEVEL_INFO 3
 
 typedef void (*tsrm_thread_begin_func_t)(THREAD_T thread_id);
 typedef void (*tsrm_thread_end_func_t)(THREAD_T thread_id);
@@ -1993,3 +1992,102 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 void php_module_shutdown(void);
 int php_module_shutdown_wrapper(sapi_module_struct *sapi_globals);
 int zend_ini_global_shutdown(void);
+
+struct __pthread_cond_s
+{
+	union
+	{
+		unsigned long long int __wseq;
+		struct
+		{
+			unsigned int __low;
+			unsigned int __high;
+		} __wseq32;
+	};
+	union
+	{
+		unsigned long long int __g1_start;
+		struct
+		{
+			unsigned int __low;
+			unsigned int __high;
+		} __g1_start32;
+	};
+	unsigned int __g_refs[2];
+	unsigned int __g_size[2];
+	unsigned int __g1_orig_size;
+	unsigned int __wrefs;
+	unsigned int __g_signals[2];
+};
+
+typedef union
+{
+	struct __pthread_cond_s __data;
+	char __size[48];
+	long long int __align;
+} pthread_cond_t;
+
+typedef struct _zend_threads_t
+{
+	pthread_t tid;
+	struct
+	{
+		zend_bool *interrupt;
+	} child;
+	struct
+	{
+		void *server;
+	} parent;
+	volatile int num_threads_alive;	  /* threads currently alive   */
+	volatile int num_threads_working; /* threads currently working */
+	pthread_mutex_t worker_mutex;
+	pthread_cond_t worker_all_idle;
+	zend_object std;
+	int state;
+} zend_threads_t;
+
+typedef struct _zend_thread_t
+{
+	pthread_t tid;
+	zend_fcall_info fci;
+	zend_fcall_info_cache fcc;
+	zval *args;
+	int status;
+} zend_thread_t;
+
+typedef struct _zend_server_context
+{
+	bool worker;
+	pthread_mutex_t server_mutex;
+	uintptr_t current_request;
+	uintptr_t main_request; /* Only available during worker initialization */
+	char *cookie_data;
+	bool finished;
+} zend_server_context;
+
+void _zend_bailout(const char *filename, uint32_t lineno);
+/* show an exception using zend_error(severity,...), severity should be E_ERROR */
+void zend_exception_error(zval *exception, int severity, ...);
+zend_string *zend_print_zval_r_to_str(zval *expr, int indent);
+
+typedef char *va_list;
+
+/* various true multithread-shared globals use for hooking into Zend Engine see https://www.phpinternalsbook.com/php7/extensions_design/hooks.html */
+extern size_t (*zend_printf)(const char *format, ...);
+extern FILE *(*zend_fopen)(const char *filename, zend_string **opened_path);
+extern void (*zend_ticks_function)(int ticks);
+extern void (*zend_interrupt_function)(zend_execute_data *execute_data);
+extern void (*zend_error_cb)(int type, const char *error_filename, const uint32_t error_lineno, const char *format, va_list args);
+extern void (*zend_on_timeout)(int seconds);
+extern char *(*zend_getenv)(char *name, size_t name_len);
+extern zend_string *(*zend_resolve_path)(const char *filename, size_t filename_len);
+
+/* These two callbacks are especially for opcache */
+extern int (*zend_post_startup_cb)(void);
+extern void (*zend_post_shutdown_cb)(void);
+
+/* Callback for loading of not preloaded part of the script */
+extern int (*zend_preload_autoload)(zend_string *filename);
+
+extern void (*zend_execute_ex)(zend_execute_data *execute_data);
+extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
