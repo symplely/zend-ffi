@@ -291,6 +291,9 @@ abstract class size_t extends uint32_t
 abstract class size_ptr extends int_ptr
 {
 }
+abstract class timespec extends int_ptr
+{
+}
 abstract class ts_rsrc_id extends int
 {
 }
@@ -301,6 +304,42 @@ abstract class MUTEX_T extends \FFI\CData
 {
 }
 abstract class THREAD_T extends int
+{
+}
+abstract class pthread_attr_t extends \FFI\CData
+{
+}
+abstract class pthread_mutexattr_t extends \FFI\CData
+{
+}
+abstract class pthread_barrier_t extends \FFI\CData
+{
+}
+abstract class pthread_barrierattr_t extends \FFI\CData
+{
+}
+abstract class pthread_spinlock_t extends \FFI\CData
+{
+}
+abstract class pthread_cond_t extends \FFI\CData
+{
+}
+abstract class pthread_condattr_t extends \FFI\CData
+{
+}
+abstract class pthread_rwlock_t extends \FFI\CData
+{
+}
+abstract class pthread_rwlockattr_t extends \FFI\CData
+{
+}
+abstract class pthread_t extends THREAD_T
+{
+}
+abstract class pthread_mutex_t extends MUTEX_T
+{
+}
+abstract class pthread_key_t extends \FFI\CData
 {
 }
 abstract class errno_t extends uint32_t
