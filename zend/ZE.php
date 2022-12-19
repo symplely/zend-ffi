@@ -402,13 +402,13 @@ if (!\class_exists('ZE')) {
 
         public function free(): void
         {
-            if (!$this->isZval) {
+            if (!$this->isZval && !\is_null($this->ze_other_ptr)) {
                 \ffi_free_if($this->ze_other_ptr, $this->ze_other);
 
                 $this->ze_other_ptr = null;
                 $this->ze_other = null;
                 $this->reflection = null;
-            } else {
+            } elseif (!\is_null($this->ze_ptr)) {
                 \ffi_free_if($this->ze_ptr);
 
                 $this->ze_ptr = null;

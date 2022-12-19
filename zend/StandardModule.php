@@ -208,11 +208,10 @@ if (!\class_exists('StandardModule')) {
             if ($this->r_shutdown) {
                 $module = $this->__invoke();
                 if (!\is_null($module)) {
-                    $this->request_shutdown((int)$module->type, $module->module_number);
+                    $this->request_shutdown($module->type, $module->module_number);
                     if ($this->destruct_on_request && !$this->target_persistent) {
                         $this->destruct_on_request = false;
-                        //   @\ze_ffi()->php_module_shutdown();
-                        $this->module_shutdown((int)$module->type, $module->module_number);
+                        $this->module_shutdown($module->type, $module->module_number);
                         $this->global_shutdown($module);
                     }
                 }
@@ -252,7 +251,7 @@ if (!\class_exists('StandardModule')) {
 
         public function __destruct()
         {
-            if (!$this->target_persistent) {
+            if (!$this->target_persistent && !is_null($this->get_module())) {
                 if (\PHP_ZTS) {
                     if (\is_ze_ffi()) {
                         $id = \ze_ffi()->tsrm_thread_id();

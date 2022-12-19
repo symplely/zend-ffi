@@ -1552,8 +1552,6 @@ extern int pselect(int __nfds, fd_set *__restrict __readfds,
 				   const struct timespec *__restrict __timeout,
 				   const __sigset_t *__restrict __sigmask);
 
-int php_select(php_socket_t max_fd, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *tv);
-
 extern php_stream_ops php_stream_stdio_ops;
 extern php_stream_wrapper php_plain_files_wrapper;
 /*

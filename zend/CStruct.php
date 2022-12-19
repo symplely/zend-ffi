@@ -255,12 +255,17 @@ if (!\class_exists('CStruct')) {
          * Returns a cast `void` C _pointer_ of the current array `index` *C data*.
          *
          * @param integer $index
+         * @param string|null $field
          * @return CData
          */
-        public function void_array(int $index): CData
+        public function void_array(int $index, string $field = null): CData
         {
             if ($this->isArray) {
-                $ptr = $this->__invoke()[$index];
+                if (!\is_null($field))
+                    $ptr = $this->__invoke()[$index]->{$field};
+                else
+                    $ptr = $this->__invoke()[$index];
+
                 return \FFI::cast('void*', $ptr);
             }
         }
@@ -372,19 +377,23 @@ if (!\class_exists('CStruct')) {
          */
         public function free(): void
         {
-            \ffi_free_if($this->struct_ptr);
-            if (\is_cdata($this->struct) && !$this->isOwned)
-                \FFI::free($this->struct);
+            if (!\is_null($this->struct_ptr)) {
+                \ffi_free_if($this->struct_ptr);
+                if (\is_cdata($this->struct) && !$this->isOwned)
+                    \FFI::free($this->struct);
 
-            \ffi_free_if(...$this->storage);
-            unset($this->storage);
-            $this->struct_ptr = null;
-            $this->struct = null;
-            $this->struct_casted = null;
-            $this->isOwned = true;
-            $this->isArray = false;
-            $this->isInteger = false;
-            $this->tag = '';
+                if ($this->isArray && \count($this->storage) > 0)
+                    \ffi_free_if(...$this->storage);
+
+                unset($this->storage);
+                $this->struct_ptr = null;
+                $this->struct = null;
+                $this->struct_casted = null;
+                $this->isOwned = true;
+                $this->isArray = false;
+                $this->isInteger = false;
+                $this->tag = '';
+            }
         }
 
         public static function struct_init(string $typedef, string $ffi_tag = 'ze', array $initializer = null, bool $owned = true, bool $persistent = false)
