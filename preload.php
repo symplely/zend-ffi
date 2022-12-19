@@ -228,7 +228,7 @@ if (!\function_exists('setup_ffi_loader')) {
    * @param object|CData ...$ptr
    * @return void
    */
-  function ffi_free_if(object ...$ptr): void
+  function ffi_free_if(...$ptr): void
   {
     foreach ($ptr as $cdata) {
       try {
@@ -238,6 +238,24 @@ if (!\function_exists('setup_ffi_loader')) {
       } catch (\Throwable $e) {
       }
     }
+  }
+
+  /**
+   * Returns size of C data type of `object` or the given FFI\CData or FFI\CType.
+   *
+   * @param mixed $object
+   * @return integer
+   */
+  function ffi_sizeof($object): int
+  {
+    if ($object instanceof \ZE)
+      $object = $object();
+    elseif ($object instanceof \CStruct)
+      return $object->sizeof();
+    elseif (!\is_cdata($object) || !$object instanceof CType)
+      $object = \zval_stack(0)()[0];
+
+    return \FFI::sizeof($object);
   }
 
   /**
@@ -280,14 +298,9 @@ if (!\function_exists('setup_ffi_loader')) {
     return \Core::get('ze');
   }
 
-  function win_ffi(): \FFI
+  function ts_ffi(): \FFI
   {
-    return \Core::get('win');
-  }
-
-  function nix_ffi(): \FFI
-  {
-    return \Core::get('nix');
+    return \Core::get('ts');
   }
 
   /**
@@ -339,23 +352,13 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * Check for _active_ `Windows` _thread_ **ffi** instance
+   * Check for _active_ `pthreads` **ffi** instance
    *
    * @return boolean
    */
-  function is_win_ffi(): bool
+  function is_ts_ffi(): bool
   {
-    return \Core::get('win') instanceof \FFI;
-  }
-
-  /**
-   * Check for _active_ `Linux` _thread_ **ffi** instance
-   *
-   * @return boolean
-   */
-  function is_nix_ffi(): bool
-  {
-    return \Core::get('nix') instanceof \FFI;
+    return \Core::get('ts') instanceof \FFI;
   }
 
   /**
@@ -618,7 +621,6 @@ if (!\function_exists('setup_ffi_loader')) {
         try {
           \Core::set('ts', \FFI::scope("__threads__"));
         } catch (\Throwable $e) {
-          // \setup_ffi_loader('win', __DIR__ . '\\headers\\windows_native_threads.h');
           if (\IS_WINDOWS)
             \setup_ffi_loader('ts', __DIR__ . '\\headers\\windows_pthreads.h');
           else

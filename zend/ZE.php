@@ -403,18 +403,13 @@ if (!\class_exists('ZE')) {
         public function free(): void
         {
             if (!$this->isZval) {
-                if (\is_cdata($this->ze_other_ptr) && !\is_null_ptr($this->ze_other_ptr))
-                    \FFI::free($this->ze_other_ptr);
-
-                if (\is_cdata($this->ze_other) && !\is_null_ptr($this->ze_other))
-                    \FFI::free($this->ze_other);
+                \ffi_free_if($this->ze_other_ptr, $this->ze_other);
 
                 $this->ze_other_ptr = null;
                 $this->ze_other = null;
                 $this->reflection = null;
             } else {
-                if (\is_cdata($this->ze_ptr) && !\is_null_ptr($this->ze_ptr))
-                    \FFI::free($this->ze_ptr);
+                \ffi_free_if($this->ze_ptr);
 
                 $this->ze_ptr = null;
                 // $this->ze = null;

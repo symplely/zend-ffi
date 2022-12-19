@@ -12,7 +12,7 @@ interface FFI
     public function pthread_attr_destroy(pthread_attr_t &$attr);
 
     /** @return int */
-    public function pthread_create(pthread_t &$tid, pthread_attr_t &$attr, callable &$start_args, void_ptr &$arg);
+    public function pthread_create(pthread_t_ptr &$tid, ?pthread_attr_t &$attr, callable &$start_args, void_ptr &$arg);
 
     /** @return int */
     public function pthread_detach(pthread_t $tid);
@@ -24,7 +24,7 @@ interface FFI
     public function pthread_exit(void_ptr &$value_ptr);
 
     /** @return int */
-    public function pthread_join(pthread_t $thread, void_ptr &$value_ptr);
+    public function pthread_join(pthread_t $thread, ?void_ptr &$value_ptr);
 
     /** @return pthread_t */
     public function pthread_self();
@@ -51,10 +51,22 @@ interface FFI
     public function pthread_mutexattr_destroy(pthread_mutexattr_t &$attr);
 
     /** @return int */
-    public function pthread_mutex_init(pthread_mutex_t &$mutex, pthread_mutexattr_t &$attr);
+    public function pthread_mutex_init(pthread_mutex_t &$mutex, ?pthread_mutexattr_t &$attr);
 
     /** @return int */
     public function pthread_mutex_destroy(pthread_mutex_t &$mutex);
+
+    /** @return int */
+    public function pthread_mutexattr_settype(pthread_mutexattr_t &$attr, int $kind);
+
+    /** @return int */
+    public function pthread_mutexattr_gettype(pthread_mutexattr_t &$attr, int &$kind);
+
+    /** @return int */
+    public function pthread_mutexattr_setrobust(pthread_mutexattr_t &$attr, int $robust);
+
+    /** @return int */
+    public function pthread_mutexattr_getrobust(pthread_mutexattr_t &$attr, int &$robust);
 
     /** @return int */
     public function pthread_mutex_lock(pthread_mutex_t &$mutex);

@@ -5,18 +5,13 @@ use ZE\Zval;
 
 require 'vendor/autoload.php';
 
-$module = threads_customize(
+threads_customize(
     function (int $type, int $module_number): int {
         echo 'module_startup' . \PHP_EOL;
-        $module = \threads_get_module();
-        $module->get_globals('server_mutex', \ze_ffi()->tsrm_mutex_alloc());
         return \ZE::SUCCESS;
     },
     function (int $type, int $module_number): int {
         echo 'module_shutdown' . \PHP_EOL;
-        $module = \threads_get_module()->get_globals('server_mutex');
-        \threads_get_module()->get_globals('server_mutex', null);
-        \ze_ffi()->tsrm_mutex_free($module);
         return \ZE::SUCCESS;
     },
     function (...$args): int {
@@ -35,89 +30,54 @@ $module = threads_customize(
     }
 );
 
-$module->destruct_set();
+threads_request_destruct();
 
-// example from https://learn.microsoft.com/en-us/windows/win32/procthread/creating-threads
+// example from http://codingbison.com/c/c-pthreads-basics.html
 
-define('MAX_THREADS', 3);
-define('BUF_SIZE', 255);
+define('MAX_THREADS', 2);
 
-function _tmain(\ThreadsModule $module)
+function main()
 {
-    // Allocate memory for thread data.
-    $pDataArray = c_array_type('MYDATA', 'temp', MAX_THREADS);
-    if (\is_null($pDataArray())) {
-        // If the array allocation fails, the system is out of memory
-        // so there is no point in trying to print an error message.
-        // Just terminate execution.
-        ze_ffi()->_zend_bailout(__FILE__, __LINE__);
-    }
+    $arrPaintings = [
+        "The Last Supper", "Mona Lisa", "Potato Eaters",
+        "Cypresses", "Starry Night", "Water Lilies"
+    ];
 
-    $hThreadArray = c_array_type('HANDLE', 'ze', MAX_THREADS);
+    $t = c_array_type('pthread_t', 'ts', MAX_THREADS);
+    $index = c_array_type('int', 'ts', MAX_THREADS);
+    $status = $arrLen = $i = 0;
 
-    // Create MAX_THREADS worker threads.
+    $arrLen = ffi_sizeof($arrPaintings);
+
+    srand(time());                  /* initialize random seed */
     for ($i = 0; $i < MAX_THREADS; $i++) {
-        $dwThreadIdArray[$i] = c_int_type('DWORD');
-        // Generate unique data for each thread to work with.
+        $index()[$i] = rand() % $arrLen;     /* Generate a random number less than arrLen */
 
-        $pDataArray()[$i]->val1 = $i;
-        $pDataArray()[$i]->val2 = $i + 100;
+        printf("[Array Index: %d] Starting the child thread..\n", $index()[$i]);
 
-        print("Creating thread - ");
-        // Create the thread to begin execution on its own.
-        $hThreadArray()[$i] = win_ffi()->CreateThread(
-            NULL,   // default security attributes
-            0,  // use default stack size
-            function (CData $lpParam) use ($module) {
-                print "     in thread ---------------------";
-                //  $module->thread_startup(null);
-                // Cast the parameter to the correct data type.
-                // The pointer is known to be valid because
-                // it was checked for NULL before the thread was created.
-                $pDataArray = ffi_get('temp')->cast('PMYDATA*', $lpParam);
-
-                // Print the parameter values using thread-safe functions.
-                printf("Parameters = %d, %d\n", $pDataArray->val1, $pDataArray->val2);
-                //  $module->thread_shutdown();
-                return 0;
-            },  // thread function name
-            win_ffi()->cast('LPVOID', $pDataArray()[$i]),   // argument to thread function
-            0,  // use default creation flags
-            $dwThreadIdArray[$i]()  // returns the thread identifier
+        $status = ts_ffi()->pthread_create(
+            $t->addr_array($i),
+            null,
+            function (CData $arg) {
+                return 3;
+            },
+            $index->void_array($i)
         );
 
-        print 'returned id: ' . $dwThreadIdArray[$i]->value() . PHP_EOL;
-        // Check the return value for success.
-        // If CreateThread fails, terminate execution.
-        // This will automatically clean up threads and memory.
-        if (\is_null($hThreadArray()[$i])) {
-            print("CreateThread Failed");
-            win_ffi()->ExitProcess(3);
+        if ($status != 0) {
+            fprintf(STDERR, "pthread_create() failed [status: %d]\n", $status);
+            return 0;
         }
-    } // End of main thread creation loop.
-
-    // Wait until all threads have terminated.
-    $dword = win_ffi()->WaitForMultipleObjects(MAX_THREADS, $hThreadArray(), TRUE, \ZE::INFINITE);
-    // win_ffi()->WaitForSingleObject($hThreadArray()[1], \ZE::INFINITE);
-
-    printf("WaitForMultipleObjects result: %d\n", $dword);
-
-    // Close all thread handles and free memory allocations.
-    for ($i = 0; $i < MAX_THREADS; $i++) {
-        win_ffi()->CloseHandle($hThreadArray()[$i]);
-        ffi_free_if($pDataArray()[$i]); // Ensure address is not reused.
     }
 
-    return 0;
+    for ($i = 0; $i < MAX_THREADS; $i++) {
+        printf("[Array Index: %d] Waiting for the child thread..\n", $index()[$i]);
+        $status = ts_ffi()->pthread_join($t()[$i], NULL);
+        if ($status != 0) {
+            fprintf(STDERR, "pthread_join() failed [status: %d]\n", $status);
+        }
+        printf("[Array Index: %d] Child thread is done\n", $index()[$i]);
+    }
 }
 
-ffi_set(
-    'temp',
-    ffi_cdef('typedef struct MyData
-{
-	int val1;
-	int val2;
-} MYDATA, *PMYDATA;')
-);
-
-_tmain($module);
+main();

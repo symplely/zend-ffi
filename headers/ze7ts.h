@@ -2045,16 +2045,6 @@ typedef struct _zend_thread_t
 	int status;
 } zend_thread_t;
 
-typedef struct _zend_server_context
-{
-	bool worker;
-	pthread_mutex_t server_mutex;
-	uintptr_t current_request;
-	uintptr_t main_request; /* Only available during worker initialization */
-	char *cookie_data;
-	bool finished;
-} zend_server_context;
-
 void _zend_bailout(const char *filename, uint32_t lineno);
 /* show an exception using zend_error(severity,...), severity should be E_ERROR */
 void zend_exception_error(zval *exception, int severity, ...);

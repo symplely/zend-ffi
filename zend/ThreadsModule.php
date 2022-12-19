@@ -12,7 +12,18 @@ use ZE\ZendString;
 if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
     final class ThreadsModule extends \StandardModule
     {
-        protected string $ffi_tag = 'ze';
+        const THREADS_READY     = (1 << 0);
+        const THREADS_EXEC      = (1 << 1);
+        const THREADS_CLOSE     = (1 << 2);
+        const THREADS_CLOSED    = (1 << 3);
+        const THREADS_KILLED    = (1 << 4);
+        const THREADS_ERROR     = (1 << 5);
+        const THREADS_DONE      = (1 << 6);
+        const THREADS_CANCELLED = (1 << 7);
+        const THREADS_RUNNING   = (1 << 8);
+        const THREADS_FAILURE   = (1 << 12);
+
+        protected string $ffi_tag = 'ts';
         protected string $module_version = \PHP_VERSION;
         protected ?string $global_type = 'zend_server_context';
 
@@ -34,41 +45,31 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
         /** @var \Closure */
         protected ?CData $original_sapi_output = null;
 
-        /** @var \MUTEX_T */
+        /** @var \pthread_mutex_t */
         protected ?CData $output_mutex = null;
 
         const MODULES_TO_RELOAD = ['filter', 'session'];
 
         final public function thread_startup($runtime) //: Thread
         {
-            // \ze_ffi()->tsrm_mutex_lock($this->module_mutex);
+            //\ze_ffi()->tsrm_mutex_lock($this->module_mutex);
 
             \ze_ffi()->ts_resource_ex(0, null);
+
             if (\IS_WINDOWS) {
                 \tsrmls_cache_update();
                 \zend_pg('com_initialized', 0);
             }
 
-            try {
-                //code...
-                //  \ze_ffi()->zend_deactivate();
-                \zend_pg('in_error_log', 0);
-                \zend_pg('during_request_startup', 1);
+            \zend_pg('in_error_log', 0);
 
-                \ze_ffi()->php_output_activate();
+            \ze_ffi()->php_output_activate();
 
-                /* initialize global variables */
-                //  \zend_pg('modules_activated', 0);
-                \zend_pg('header_is_being_sent', 0);
-                \zend_pg('connection_status', 0);
-                \zend_pg('in_user_include', 0);
-                //  \ze_ffi()->zend_activate();
-                //\ze_ffi()->sapi_activate();
-            } catch (\Throwable $th) {
-                throw $th;
-            }
+            \zend_pg('modules_activated', 0);
+            \zend_pg('header_is_being_sent', 0);
+            \zend_pg('connection_status', 0);
+            \zend_pg('in_user_include', 0);
 
-            //\ze_ffi()->sapi_startup(\ffi_ptr(\ze_ffi()->sapi_module));
             //\ze_ffi()->php_request_startup();
 
             //    \zend_sg('server_context', $runtime()->parent->server);
@@ -85,30 +86,31 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
             \zend_sg('headers_sent', 1);
             \zend_sg('request_info')->no_headers = 1;
 
+            //  \ze_ffi()->tsrm_mutex_unlock($this->module_mutex);
             // return $runtime;
         }
 
         final public function thread_shutdown()
         {
             /* Flush all output buffers */
-            // \ze_ffi()->php_output_end_all();
-            /*
+            \ze_ffi()->php_output_end_all();
+
             // TODO: store the list of modules to reload in a global module variable
             foreach (self::MODULES_TO_RELOAD as $module_name) {
                 $module = \zend_hash_str_find_ptr(HashTable::module_registry(), $module_name);
                 ($module->request_shutdown_func)($module->type, $module->module_number);
-            }*/
+            }
 
             /* Shutdown output layer (send the set HTTP headers, cleanup output handlers, etc.) */
-            //\ze_ffi()->php_output_deactivate();
+            \ze_ffi()->php_output_deactivate();
 
             /* SAPI related shutdown (free stuff) */
-            // \ze_ffi()->sapi_deactivate();
+            \ze_ffi()->sapi_deactivate();
 
-            \ze_ffi()->php_request_shutdown(null);
+            //  \ze_ffi()->php_request_shutdown(null);
             //\zend_sg('server_context', NULL);
 
-            //   \ze_ffi()->sapi_shutdown();
+            \ze_ffi()->sapi_shutdown();
             \ze_ffi()->ts_free_thread();
         }
 
@@ -194,14 +196,24 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
         public function startup(): void
         {
-            if (\is_null($this->output_mutex))
-                $this->output_mutex = \ze_ffi()->tsrm_mutex_alloc();
+            if (\is_null($this->output_mutex)) {
+                try {
+                    $this->output_mutex = \ffi_ptr($this->get_globals('mutex'));
+                } catch (\Throwable $e) {
+                }
+
+                \bail_if_fail(
+                    \ts_ffi()->pthread_mutex_init($this->output_mutex, null),
+                    __FILE__,
+                    __LINE__
+                );
+            }
 
             $this->original_sapi_output = \ze_ffi()->sapi_module->ub_write;
             \ze_ffi()->sapi_module->ub_write = function (string $str, int $len): int {
-                \ze_ffi()->tsrm_mutex_lock($this->output_mutex);
+                \ts_ffi()->pthread_mutex_lock($this->output_mutex);
                 $result = ($this->original_sapi_output)($str, $len);
-                \ze_ffi()->tsrm_mutex_unlock($this->output_mutex);
+                \ts_ffi()->pthread_mutex_unlock($this->output_mutex);
 
                 return $result;
             };
@@ -227,7 +239,7 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
         public function request_startup(...$args): int
         {
-            // $this->thread_startup(...$args);
+            $this->thread_startup(...$args);
             return !\is_null($this->r_init)
                 ? ($this->r_init)(...$args) : \ZE::SUCCESS;
         }
@@ -257,10 +269,11 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
             if (!$this->target_persistent) {
                 if (\is_ze_ffi()) {
                     \ze_ffi()->sapi_module->ub_write = $this->original_sapi_output;
-                    \ze_ffi()->tsrm_mutex_free($this->output_mutex);
+                    \ts_ffi()->pthread_mutex_destroy($this->output_mutex);
 
                     $this->original_sapi_output = null;
                     $this->output_mutex = null;
+                    $this->get_globals('mutex', null);
                 }
 
                 parent::__destruct();

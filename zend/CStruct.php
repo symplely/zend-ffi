@@ -20,7 +20,7 @@ if (!\class_exists('CStruct')) {
         protected ?CData $struct = null;
         protected ?CData $struct_ptr = null;
         protected ?CData $struct_casted = null;
-        protected $storage = null;
+        protected $storage = [];
 
         public function __destruct()
         {
@@ -118,6 +118,29 @@ if (!\class_exists('CStruct')) {
                 return \FFI::addr($struct->{$field});
 
             return $struct;
+        }
+        /**
+         * Returns C pointer to the current array `index` *C data*.
+         *
+         * @param int $index
+         * @param string|null $field
+         * @return CData
+         */
+        public function addr_array(int $index, string $field = null): CData
+        {
+            if ($this->isArray) {
+                $ptr = $this->get_storage($index);
+                if (!\is_cdata($ptr)) {
+                    if (!\is_null($field))
+                        $ptr = \FFI::addr($this->__invoke()[$index]->{$field});
+                    else
+                        $ptr = \FFI::addr($this->__invoke()[$index]);
+
+                    $this->set_storage($index, $ptr);
+                }
+
+                return $ptr;
+            }
         }
 
         /**
@@ -229,6 +252,20 @@ if (!\class_exists('CStruct')) {
         }
 
         /**
+         * Returns a cast `void` C _pointer_ of the current array `index` *C data*.
+         *
+         * @param integer $index
+         * @return CData
+         */
+        public function void_array(int $index): CData
+        {
+            if ($this->isArray) {
+                $ptr = $this->__invoke()[$index];
+                return \FFI::cast('void*', $ptr);
+            }
+        }
+
+        /**
          * Checks whether the current *C data* is a null _pointer_.
          *
          * @return boolean
@@ -335,12 +372,11 @@ if (!\class_exists('CStruct')) {
          */
         public function free(): void
         {
-            if (\is_cdata($this->struct_ptr) && !$this->isNull())
-                \FFI::free($this->struct_ptr);
-
+            \ffi_free_if($this->struct_ptr);
             if (\is_cdata($this->struct) && !$this->isOwned)
                 \FFI::free($this->struct);
 
+            \ffi_free_if(...$this->storage);
             unset($this->storage);
             $this->struct_ptr = null;
             $this->struct = null;

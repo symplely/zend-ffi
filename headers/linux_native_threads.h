@@ -553,3 +553,12 @@ extern int pthread_getcpuclockid(pthread_t __thread_id,
 extern int pthread_atfork(void (*__prepare)(void),
                           void (*__parent)(void),
                           void (*__child)(void));
+
+typedef struct _zend_server_context
+{
+     pthread_mutex_t mutex;
+     uintptr_t current_request;
+     uintptr_t main_request; /* Only available during worker initialization */
+     char *cookie_data;
+     bool finished;
+} zend_server_context;

@@ -55,6 +55,11 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
         return $module;
     }
 
+    function threads_request_destruct(): void
+    {
+        \threads_get_module()->destruct_set();
+    }
+
     function thread_init(): Thread
     {
         $module = \threads_get_module();

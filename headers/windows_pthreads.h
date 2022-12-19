@@ -608,3 +608,12 @@ int __cdecl pthreadCancelableWait(void *waitHandle);
 int __cdecl pthreadCancelableTimedWait(void *waitHandle,
                                        unsigned long timeout);
 unsigned long __cdecl __ptw32_get_exception_services_code(void);
+
+typedef struct _zend_server_context
+{
+    pthread_mutex_t mutex;
+    uintptr_t current_request;
+    uintptr_t main_request; /* Only available during worker initialization */
+    char *cookie_data;
+    bool finished;
+} zend_server_context;

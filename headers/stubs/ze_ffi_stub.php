@@ -336,6 +336,9 @@ abstract class pthread_rwlockattr_t extends \FFI\CData
 abstract class pthread_t extends THREAD_T
 {
 }
+abstract class pthread_t_ptr extends \FFI\CData
+{
+}
 abstract class pthread_mutex_t extends MUTEX_T
 {
 }
