@@ -44,7 +44,7 @@ function main()
     ];
 
     $t = c_array_type('pthread_t', 'ts', MAX_THREADS);
-    $index = c_array_type('int', 'ts', MAX_THREADS);
+    $index = c_array_type('int', 'ze', MAX_THREADS);
     $status = $arrLen = $i = 0;
 
     $arrLen = ffi_sizeof($arrPaintings);
@@ -59,7 +59,22 @@ function main()
             $t->addr_array($i),
             null,
             function (CData $arg) {
-                return 3;
+                $arrPaintings = [
+                    "The Last Supper", "Mona Lisa", "Potato Eaters",
+                    "Cypresses", "Starry Night", "Water Lilies"
+                ];
+
+                $index = ze_cast('int', $arg);
+
+                printf("\t[Array Index: %d] Going to sleep..\n", $index);
+                sleep(10);
+                printf(
+                    "\t[Array Index: %d] Woke up. Painting: %s\n",
+                    $index,
+                    $arrPaintings[$index]
+                );
+
+                return 0;
             },
             $index->void_array($i)
         );
