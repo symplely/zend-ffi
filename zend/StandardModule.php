@@ -208,11 +208,16 @@ if (!\class_exists('StandardModule')) {
             if ($this->r_shutdown) {
                 $module = $this->__invoke();
                 if (!\is_null($module)) {
-                    $this->request_shutdown($module->type, $module->module_number);
-                    if ($this->destruct_on_request && !$this->target_persistent) {
-                        $this->destruct_on_request = false;
-                        $this->module_shutdown($module->type, $module->module_number);
-                        $this->global_shutdown($module);
+                    try {
+                        //code...
+                        $this->request_shutdown($module->type, $module->module_number);
+                        if ($this->destruct_on_request && !$this->target_persistent) {
+                            $this->destruct_on_request = false;
+                            $this->module_shutdown($module->type, $module->module_number);
+                            $this->global_shutdown($module);
+                        }
+                    } catch (\Throwable $th) {
+                        //throw $th;
                     }
                 }
             }
@@ -251,9 +256,9 @@ if (!\class_exists('StandardModule')) {
 
         public function __destruct()
         {
-            if (!$this->target_persistent && !is_null($this->get_module())) {
-                if (\PHP_ZTS) {
-                    if (\is_ze_ffi()) {
+            if (\is_ze_ffi()) {
+                if (!$this->target_persistent && !is_null($this->get_module())) {
+                    if (\PHP_ZTS) {
                         $id = \ze_ffi()->tsrm_thread_id();
                         if (isset($this->global_id[$id])) {
                             \ze_ffi()->ts_free_id($this->global_id[$id]);
@@ -263,21 +268,25 @@ if (!\class_exists('StandardModule')) {
 
                         \ze_ffi()->tsrm_mutex_free($this->module_mutex);
                         $this->module_mutex = null;
+                    } else {
+                        $this->global_rsrc = null;
                     }
-                } else {
-                    $this->global_rsrc = null;
-                }
 
-                if ($this->r_startup) {
-                    \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
-                    $this->original_sapi_activate = null;
-                }
+                    if ($this->r_startup) {
+                        \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
+                        $this->original_sapi_activate = null;
+                    }
 
-                if ($this->r_shutdown) {
-                    \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
-                    $this->original_sapi_deactivate = null;
-                }
+                    if ($this->r_shutdown) {
+                        \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
+                        $this->original_sapi_deactivate = null;
+                    }
 
+                    static::set_module(null);
+                    $this->free();
+                }
+            } elseif (!\is_null($this->get_module())) {
+                $this->global_rsrc = null;
                 static::set_module(null);
                 $this->free();
             }
