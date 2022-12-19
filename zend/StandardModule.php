@@ -583,7 +583,7 @@ if (!\class_exists('StandardModule')) {
          */
         final public function global_type_id(): ?int
         {
-            return $this->global_id[\ze_ffi()->tsrm_thread_id()] ?? null;
+            return \PHP_ZTS ? ($this->global_id[\ze_ffi()->tsrm_thread_id()] ?? null) : null;
         }
 
         /**
