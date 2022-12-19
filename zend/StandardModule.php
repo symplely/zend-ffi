@@ -209,15 +209,13 @@ if (!\class_exists('StandardModule')) {
                 $module = $this->__invoke();
                 if (!\is_null($module)) {
                     try {
-                        //code...
                         $this->request_shutdown($module->type, $module->module_number);
                         if ($this->destruct_on_request && !$this->target_persistent) {
                             $this->destruct_on_request = false;
                             $this->module_shutdown($module->type, $module->module_number);
                             $this->global_shutdown($module);
                         }
-                    } catch (\Throwable $th) {
-                        //throw $th;
+                    } catch (\Throwable $e) {
                     }
                 }
             }
