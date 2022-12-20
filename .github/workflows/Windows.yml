@@ -60,10 +60,11 @@ jobs:
           mkdir lib\Windows
           mkdir headers\original
           copy /Y pthreads4w-code-${{ env.HASH }}\PTHREADS-BUILT\include\*.h headers\original\
+          copy /Y pthreads4w-code-${{ env.HASH }}\implement.h headers\original\
           git add headers
-          git commit -m "Windows pthread *.h headers"
+          git commit -m "Windows pthreads *.h headers"
           git push -q
-          copy /Y pthreads4w-code-${{ env.HASH }}\PTHREADS-BUILT\bin\pthreadVC3.dll lib\Windows\
+          copy /Y pthreads4w-code-${{ env.HASH }}\PTHREADS-BUILT\bin\pthreadV*.dll lib\Windows\
           git add lib
-          git commit -m "created pthreadVC3.dll - for Windows x86_64"
+          git commit -m "created pthreadVC3.dll, pthreadVCE3.dll, pthreadVSE3.dll - for Windows x86_64"
           git push -q
