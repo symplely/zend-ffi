@@ -680,9 +680,6 @@ interface FFI
     /** @return void */
     public function zend_stream_init_filename(zend_file_handle &$handle, const_char $filename);
 
-    /** @return void */
-    public function zend_file_handle_dtor(zend_file_handle &$fh);
-
     /**
      * Build zend_call_info/cache from a zval*
      *

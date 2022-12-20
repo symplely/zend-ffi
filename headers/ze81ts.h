@@ -1940,7 +1940,6 @@ void sapi_add_request_header(char *var, unsigned int var_len, char *val, unsigne
 void sapi_terminate_process(void);
 
 void zend_stream_init_filename(zend_file_handle *handle, const char *filename);
-void zend_file_handle_dtor(zend_file_handle *fh);
 
 /** Build zend_call_info/cache from a zval*
  *
