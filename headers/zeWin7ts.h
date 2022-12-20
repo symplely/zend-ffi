@@ -2176,7 +2176,7 @@ typedef struct _php_basic_globals
 	zend_long unserialize_max_depth;
 } php_basic_globals;
 
-PHPAPI extern int basic_globals_id;
+extern int basic_globals_id;
 
 typedef enum __ptw32_robust_state_t_ __ptw32_robust_state_t;
 typedef struct __ptw32_robust_node_t_ __ptw32_robust_node_t;

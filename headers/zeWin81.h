@@ -1880,3 +1880,105 @@ int php_module_startup(sapi_module_struct *sf, zend_module_entry *additional_mod
 void php_module_shutdown(void);
 int php_module_shutdown_wrapper(sapi_module_struct *sapi_globals);
 int zend_ini_global_shutdown(void);
+
+typedef __time_t time_t;
+typedef struct
+{
+	zend_string *s;
+	size_t a;
+} smart_str;
+
+typedef struct
+{
+	/* Used by the mainloop of the scanner */
+	smart_str tag; /* read only */
+	smart_str arg; /* read only */
+	smart_str val; /* read only */
+	smart_str buf;
+
+	/* The result buffer */
+	smart_str result;
+
+	/* The data which is appended to each relative URL/FORM */
+	smart_str form_app, url_app;
+
+	int active;
+
+	char *lookup_data;
+	int state;
+
+	int type;
+	smart_str attr_val;
+	int tag_type;
+	int attr_type;
+
+	/* Everything above is zeroed in RINIT */
+	HashTable *tags;
+} url_adapt_state_ex_t;
+
+typedef struct _php_basic_globals
+{
+	HashTable *user_shutdown_function_names;
+	HashTable putenv_ht;
+	zval strtok_zval;
+	char *strtok_string;
+	zend_string *locale_string; /* current LC_CTYPE locale (or NULL for 'C') */
+	zend_bool locale_changed;	/* locale was changed and has to be restored */
+	char *strtok_last;
+	char strtok_table[256];
+	zend_ulong strtok_len;
+	char str_ebuf[40];
+	zend_fcall_info array_walk_fci;
+	zend_fcall_info_cache array_walk_fci_cache;
+	zend_fcall_info user_compare_fci;
+	zend_fcall_info_cache user_compare_fci_cache;
+	zend_llist *user_tick_functions;
+
+	zval active_ini_file_section;
+
+	/* pageinfo.c */
+	zend_long page_uid;
+	zend_long page_gid;
+	zend_long page_inode;
+	time_t page_mtime;
+
+	/* filestat.c && main/streams/streams.c */
+	char *CurrentStatFile, *CurrentLStatFile;
+	php_stream_statbuf ssb, lssb;
+
+	/* mt_rand.c */
+	uint32_t state[625]; /* state vector + 1 extra to not violate ANSI C */
+	uint32_t *next;		 /* next random value is computed from here */
+	int left;			 /* can *next++ this many times before reloading */
+
+	zend_bool mt_rand_is_seeded; /* Whether mt_rand() has been seeded */
+	zend_long mt_rand_mode;
+
+	/* syslog.c */
+	char *syslog_device;
+
+	/* var.c */
+	zend_class_entry *incomplete_class;
+	unsigned serialize_lock; /* whether to use the locally supplied var_hash instead (__sleep/__wakeup) */
+	struct
+	{
+		struct php_serialize_data *data;
+		unsigned level;
+	} serialize;
+	struct
+	{
+		struct php_unserialize_data *data;
+		unsigned level;
+	} unserialize;
+
+	/* url_scanner_ex.re */
+	url_adapt_state_ex_t url_adapt_session_ex;
+	HashTable url_adapt_session_hosts_ht;
+	url_adapt_state_ex_t url_adapt_output_ex;
+	HashTable url_adapt_output_hosts_ht;
+	HashTable *user_filter_map;
+	int umask;
+	zend_long unserialize_max_depth;
+} php_basic_globals;
+
+extern php_basic_globals basic_globals;
