@@ -12,11 +12,20 @@ if (!\class_exists('Core')) {
 		/** @var \FFI[] */
 		private static $ffi = [];
 
+		/** @var \MUTEX_T */
+		private ?CData $global_mutex = null;
+
 		private static ?PhpStream $stream_stdout = null;
 		private static ?PhpStream $stream_stderr = null;
 		private static ?PhpStream $stream_stdin = null;
 
 		private static bool $is_scoped = false;
+
+		public function __destruct()
+		{
+			static::clear_mutex();
+			static::clear_ffi();
+		}
 
 		private function __construct()
 		{
@@ -58,6 +67,33 @@ if (!\class_exists('Core')) {
 			}
 
 			return null;
+		}
+
+		/**
+		 * @return \MUTEX_T|null
+		 */
+		public static function get_mutex(): ?CData
+		{
+			return \PHP_ZTS ? self::$global_mutex : null;
+		}
+
+		/**
+		 * @return \MUTEX_T
+		 */
+		public static function reset_mutex(): CData
+		{
+			if (\PHP_ZTS && \is_null(self::$global_mutex))
+				self::$global_mutex = \ze_ffi()->tsrm_mutex_alloc();
+
+			return self::$global_mutex;
+		}
+
+		public static function clear_mutex(): void
+		{
+			if (\PHP_ZTS && !\is_null(self::$global_mutex)) {
+				\ze_ffi()->tsrm_mutex_free(self::$global_mutex);
+				self::$global_mutex = null;
+			}
 		}
 
 		public static function get(string $tag): ?\FFI

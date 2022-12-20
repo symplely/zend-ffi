@@ -579,7 +579,7 @@ if (!\function_exists('zval_stack')) {
     {
         $pg = (\PHP_ZTS) ? Zval::tsrmg_fast_static('core_globals_offset', 'php_core_globals*') : \ze_ffi()->core_globals;
         if ($initialize !== 'empty')
-            $pg->{$element} = $initialize;
+            \zend_set_global($pg, $element, $initialize);
 
         return \is_null($element) ? $pg : $pg->{$element};
     }
@@ -667,7 +667,7 @@ if (!\function_exists('zval_stack')) {
     {
         $eg = (\PHP_ZTS) ? Zval::tsrmg_fast('executor_globals_offset', 'zend_executor_globals*') : \ze_ffi()->executor_globals;
         if ($initialize !== 'empty')
-            $eg->{$element} = $initialize;
+            \zend_set_global($eg, $element, $initialize);
 
         return \is_null($element) ? $eg : $eg->{$element};
     }
@@ -729,7 +729,7 @@ if (!\function_exists('zval_stack')) {
     {
         $cg = (\PHP_ZTS) ? Zval::tsrmg_fast('compiler_globals_offset', 'zend_compiler_globals*') : \ze_ffi()->compiler_globals;
         if ($initialize !== 'empty')
-            $cg->{$element} = $initialize;
+            \zend_set_global($cg, $element, $initialize);
 
         return \is_null($element) ? $cg : $cg->{$element};
     }
@@ -767,9 +767,120 @@ if (!\function_exists('zval_stack')) {
     {
         $sg = (\PHP_ZTS) ? Zval::tsrmg_fast('sapi_globals_offset', 'sapi_globals_struct*') : \ze_ffi()->sapi_globals;
         if ($initialize !== 'empty')
-            $sg->{$element} = $initialize;
+            \zend_set_global($sg, $element, $initialize);
 
         return \is_null($element) ? $sg : $sg->{$element};
+    }
+
+    /**
+     * Represents `BG()` macro.
+     *
+     *```cpp
+     * typedef struct _php_basic_globals
+     *{
+     *	HashTable *user_shutdown_function_names;
+     *	HashTable putenv_ht;
+     *	zval  strtok_zval;
+     *	char *strtok_string;
+     *	zend_string *locale_string; // current LC_CTYPE locale (or NULL for 'C')
+     *	zend_bool locale_changed;   // locale was changed and has to be restored
+     *	char *strtok_last;
+     *	char strtok_table[256];
+     *	zend_ulong strtok_len;
+     *	char str_ebuf[40];
+     *	zend_fcall_info array_walk_fci;
+     *	zend_fcall_info_cache array_walk_fci_cache;
+     *	zend_fcall_info user_compare_fci;
+     *	zend_fcall_info_cache user_compare_fci_cache;
+     *	zend_llist *user_tick_functions;
+     *
+     *	zval active_ini_file_section;
+     *
+     *	// pageinfo.c
+     *	zend_long page_uid;
+     *	zend_long page_gid;
+     *	zend_long page_inode;
+     *	time_t page_mtime;
+
+     *	// filestat.c && main/streams/streams.c
+     *	char *CurrentStatFile, *CurrentLStatFile;
+     *	php_stream_statbuf ssb, lssb;
+     *
+     *	// mt_rand.c
+     *	uint32_t state[MT_N+1];  // state vector + 1 extra to not violate ANSI C
+     *	uint32_t *next;       // next random value is computed from here
+     *	int      left;        // can *next++ this many times before reloading
+     *
+     *	zend_bool mt_rand_is_seeded; // Whether mt_rand() has been seeded
+     *	zend_long mt_rand_mode;
+
+     *	// syslog.c
+     *	char *syslog_device;
+     *
+     *	// var.c
+     *	zend_class_entry *incomplete_class;
+     *	unsigned serialize_lock; // whether to use the locally supplied var_hash instead (__sleep/__wakeup)
+     *	struct {
+     *		struct php_serialize_data *data;
+     *		unsigned level;
+     *	} serialize;
+     *	struct {
+     *		struct php_unserialize_data *data;
+     *		unsigned level;
+     *	} unserialize;
+     *
+     *	// url_scanner_ex.re
+     *	url_adapt_state_ex_t url_adapt_session_ex;
+     *	HashTable url_adapt_session_hosts_ht;
+     *	url_adapt_state_ex_t url_adapt_output_ex;
+     *	HashTable url_adapt_output_hosts_ht;
+     *
+     *	#ifdef HAVE_MMAP
+     *	void *mmap_file;
+     *	size_t mmap_len;
+     *	#endif
+     *
+     *	HashTable *user_filter_map;
+     *
+     *	// file.c
+     *	#if defined(_REENTRANT) && defined(HAVE_MBRLEN) && defined(HAVE_MBSTATE_T)
+     *	mbstate_t mblen_state;
+     *	#endif
+     *
+     *	int umask;
+     *	zend_long unserialize_max_depth;
+     *} php_basic_globals;
+     *```
+     *
+     * @param string|null $element $field
+     * @param string $initialize set element value
+     * @return CData|mixed
+     */
+    function zend_bg(string $element = null, $initialize = 'empty')
+    {
+        $bg = (\PHP_ZTS) ? Zval::tsrmg(\ze_ffi()->basic_globals_id, 'php_basic_globals*') : \ze_ffi()->basic_globals;
+        if ($initialize !== 'empty')
+            \zend_set_global($bg, $element, $initialize);
+
+        return \is_null($element) ? $bg : $bg->{$element};
+    }
+
+    function zend_set_global(CData $ptr, string $element, $value): void
+    {
+        if (\PHP_ZTS) {
+            $mutex = \Core::get_mutex();
+            if (!\is_cdata($mutex)) {
+                $mutex =  \Core::reset_mutex();
+            }
+        }
+
+        if (\PHP_ZTS)
+            \ze_ffi()->tsrm_mutex_lock($mutex);
+
+        $ptr->{$element} = $value;
+
+        if (\PHP_ZTS)
+            \ze_ffi()->tsrm_mutex_unlock($mutex);
     }
 
     /**

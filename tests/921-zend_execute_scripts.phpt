@@ -6,7 +6,7 @@ Check/Test zend_execute_scripts
 <?php
 require 'vendor/autoload.php';
 
-var_dump(zend_execute_scripts('tests\DummyRequest.php'));
+var_dump(zend_execute_scripts(__DIR__ . \DS . 'tests' . \DS . 'DummyRequest.php'));
 
 --EXPECTF--
 string(%d) "ok 1 - hello"

@@ -621,10 +621,61 @@ if (!\function_exists('setup_ffi_loader')) {
         try {
           \Core::set('ts', \FFI::scope("__threads__"));
         } catch (\Throwable $e) {
+          $dir = __DIR__;
           if (\IS_WINDOWS)
-            \setup_ffi_loader('ts', __DIR__ . '\\headers\\windows_pthreads.h');
-          else
-            \setup_ffi_loader('ts', __DIR__ . '/headers/linux_pthreads.h');
+            $header =  $dir . '\\headers\\windows_pthreads.h';
+          elseif (\file_exists($dir . '/headers/linux_pthreads.h'))
+            $header = $dir . '/headers/linux_pthreads.h';
+          else {
+            $platform = null;
+            if (\PHP_OS == 'Darwin')
+              $platform .= '/usr/lib/libpthread.dylib';
+            elseif (\php_uname('m') == 'aarch64')
+              $platform .= '/usr/lib/aarch64-linux-gnu/libpthread.so';
+            else {
+              $header = null;
+              $os = [];
+              $files = \glob('/etc/*-release');
+              foreach ($files as $file) {
+                $lines = \array_filter(\array_map(function ($line) {
+                  // split value from key
+                  $parts = \explode('=', $line);
+                  // makes sure that "useless" lines are ignored (together with array_filter)
+                  if (\count($parts) !== 2)
+                    return false;
+
+                  // remove quotes, if the value is quoted
+                  $parts[1] = \str_replace(['"', "'"], '', $parts[1]);
+                  return $parts;
+                }, \file($file)));
+
+                foreach ($lines as $line)
+                  $os[$line[0]] = $line[1];
+              }
+
+              $like = \trim((string) $os['ID_LIKE']);
+              if ($like == 'debian')
+                $platform = '/usr/lib/x86_64-linux-gnu/libpthread.so';
+              elseif ($like == 'redhat')
+                $platform = '/usr/lib64/libpthread.so';
+            }
+
+            if (!\is_null($platform)) {
+              \file_put_contents(
+                $dir . '/headers/linux_pthreads.h',
+                \str_replace(
+                  '__platforms_pthread_library_location__',
+                  $platform,
+                  \file_get_contents($dir . '/headers/linux_native_threads.h')
+                ),
+                \LOCK_EX
+              );
+
+              $header = $dir . '/headers/linux_pthreads.h';
+            }
+          }
+
+          \setup_ffi_loader('ts', $header);
         }
       }
     }
@@ -673,25 +724,6 @@ if (!\function_exists('setup_ffi_loader')) {
       \ze_ffi()->ts_free_id(0);
       \tsrmls_cache_define();
     }
-  }
-
-  function tsrmls_set_ctx(&$tsrm_ls)
-  {
-    global $ctx_tsrm_ls;
-    if (\PHP_ZTS) {
-      $tsrm_ls = \ze_ffi()->cast('void ***', \ze_ffi()->tsrm_get_ls_cache());
-      $ctx_tsrm_ls = $tsrm_ls;
-    }
-  }
-
-  function tsrmls_fetch_from_ctx(): ?CData
-  {
-    global $ctx_tsrm_ls;
-    if (\PHP_ZTS) {
-      return $ctx_tsrm_ls;
-    }
-
-    return null;
   }
 
   \ze_init();
