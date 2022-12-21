@@ -581,7 +581,7 @@ if (!\function_exists('zval_stack')) {
         if ($initialize !== 'empty')
             \zend_set_global($pg, $element, $initialize);
 
-        return \is_null($element) ? $pg : $pg->{$element};
+        return \is_null($element) ? $pg : \zend_get_global($pg, $element);
     }
 
     /**
@@ -669,7 +669,7 @@ if (!\function_exists('zval_stack')) {
         if ($initialize !== 'empty')
             \zend_set_global($eg, $element, $initialize);
 
-        return \is_null($element) ? $eg : $eg->{$element};
+        return \is_null($element) ? $eg : \zend_get_global($eg, $element);
     }
 
     /**
@@ -731,7 +731,7 @@ if (!\function_exists('zval_stack')) {
         if ($initialize !== 'empty')
             \zend_set_global($cg, $element, $initialize);
 
-        return \is_null($element) ? $cg : $cg->{$element};
+        return \is_null($element) ? $cg : \zend_get_global($cg, $element);
     }
 
     /**
@@ -769,7 +769,7 @@ if (!\function_exists('zval_stack')) {
         if ($initialize !== 'empty')
             \zend_set_global($sg, $element, $initialize);
 
-        return \is_null($element) ? $sg : $sg->{$element};
+        return \is_null($element) ? $sg : \zend_get_global($sg, $element);
     }
 
     /**
@@ -862,12 +862,30 @@ if (!\function_exists('zval_stack')) {
         if ($initialize !== 'empty')
             \zend_set_global($bg, $element, $initialize);
 
-        return \is_null($element) ? $bg : $bg->{$element};
+        return \is_null($element) ? $bg : \zend_get_global($bg, $element);
     }
 
-    function zend_set_global(CData $ptr, string $element, $value): void
+    function zend_get_global(CData $ptr, string $element)
     {
-        if (\PHP_ZTS) {
+        if ((\strpos($element, '[', 0) === 0) || \is_numeric($element)) {
+            $index = (int)(\is_numeric($element) ? $element : \str_replace(['[', ']'], '', $element));
+            $elements = $ptr[$index];
+        } elseif (\strpos($element, '->') !== false) {
+            $fields = \explode('->', $element);
+            if (\count($fields) == 3)
+                $elements = $ptr->{$fields[0]}->{$fields[1]}->{$fields[2]};
+            elseif (\count($fields) == 2)
+                $elements = $ptr->{$fields[0]}->{$fields[1]};
+        } else {
+            $elements = $ptr->{$element};
+        }
+
+        return $elements;
+    }
+
+    function zend_set_global(CData $ptr, string $element, $value, CData $mutex = null): void
+    {
+        if (\PHP_ZTS && \is_null($mutex)) {
             $mutex = \Core::get_mutex();
             if (!\is_cdata($mutex)) {
                 $mutex =  \Core::reset_mutex();
@@ -877,7 +895,18 @@ if (!\function_exists('zval_stack')) {
         if (\PHP_ZTS)
             \ze_ffi()->tsrm_mutex_lock($mutex);
 
-        $ptr->{$element} = $value;
+        if (\strpos($element, '[', 0) === 0 || \is_numeric($element)) {
+            $index = (int)(\is_numeric($element) ? $element : \str_replace(['[', ']'], '', $element));
+            $ptr[$index] = $value;
+        } elseif (\strpos($element, '->') !== false) {
+            $fields = \explode('->', $element);
+            if (\count($fields) == 3)
+                $ptr->{$fields[0]}->{$fields[1]}->{$fields[2]} = $value;
+            elseif (\count($fields) == 2)
+                $ptr->{$fields[0]}->{$fields[1]} = $value;
+        } else {
+            $ptr->{$element} = $value;
+        }
 
         if (\PHP_ZTS)
             \ze_ffi()->tsrm_mutex_unlock($mutex);

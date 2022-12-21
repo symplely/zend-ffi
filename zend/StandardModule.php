@@ -616,39 +616,9 @@ if (!\class_exists('StandardModule')) {
                 }
 
                 if ($initialize !== 'empty' && !\is_null($element)) {
-                    if (\PHP_ZTS)
-                        \ze_ffi()->tsrm_mutex_lock($this->module_mutex);
-
-                    if (\strpos($element, '[', 0) === 0 || \is_numeric($element)) {
-                        $index = (int)(\is_numeric($element) ? $element : \str_replace(['[', ']'], '', $element));
-                        $cdata[$index] = $initialize;
-                    } elseif (\strpos($element, '->') !== false) {
-                        $fields = \explode('->', $element);
-                        if (\count($fields) == 3)
-                            $cdata->{$fields[0]}->{$fields[1]}->{$fields[2]} = $initialize;
-                        elseif (\count($fields) == 2)
-                            $cdata->{$fields[0]}->{$fields[1]} = $initialize;
-                    } else {
-                        $cdata->{$element} = $initialize;
-                    }
-
-                    if (\PHP_ZTS)
-                        \ze_ffi()->tsrm_mutex_unlock($this->module_mutex);
+                    \zend_set_global($cdata, $element, $initialize, $this->module_mutex);
                 } elseif (!\is_null($element)) {
-                    if ((\strpos($element, '[', 0) === 0) || \is_numeric($element)) {
-                        $index = (int)(\is_numeric($element) ? $element : \str_replace(['[', ']'], '', $element));
-                        $elements = $cdata[$index];
-                    } elseif (\strpos($element, '->') !== false) {
-                        $fields = \explode('->', $element);
-                        if (\count($fields) == 3)
-                            $elements = $cdata->{$fields[0]}->{$fields[1]}->{$fields[2]};
-                        elseif (\count($fields) == 2)
-                            $elements = $cdata->{$fields[0]}->{$fields[1]};
-                    } else {
-                        $elements = $cdata->{$element};
-                    }
-
-                    $cdata = $elements;
+                    $cdata = \zend_get_global($cdata, $element);
                 }
             }
 
