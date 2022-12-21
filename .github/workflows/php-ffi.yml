@@ -23,7 +23,6 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2, cs2pr
           extensions: ffi
-          ini-values: opcache.enable_cli=1
           coverage: xdebug
       - name: Install dependencies
         run: |
