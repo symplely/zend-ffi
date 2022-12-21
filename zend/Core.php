@@ -13,7 +13,7 @@ if (!\class_exists('Core')) {
 		private static $ffi = [];
 
 		/** @var \MUTEX_T */
-		private ?CData $global_mutex = null;
+		private static ?CData $global_mutex = null;
 
 		private static ?PhpStream $stream_stdout = null;
 		private static ?PhpStream $stream_stderr = null;
