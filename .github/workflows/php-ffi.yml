@@ -22,7 +22,7 @@ jobs:
           - php-versions: '8.1'
             php-coverage: none
           - operating-system: ubuntu-latest
-            php-ini: opcache.enable_cli=1
+            php-ini: opcache.enable_cli=0
           - operating-system: [windows-latest, macos-latest]
             php-ini: none
     steps:
@@ -38,6 +38,7 @@ jobs:
           coverage: ${{ matrix.php-coverage }}
       - name: Install dependencies
         run: |
+          php -m
           composer install
           composer require --dev phpunit/phpunit ~8
       - name: Test with phpunit
