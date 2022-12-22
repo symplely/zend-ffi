@@ -17,9 +17,7 @@ jobs:
         include:
           - php-versions: '7.4'
             php-coverage: xdebug
-          - php-versions: '8.0'
-            php-coverage: none
-          - php-versions: '8.1'
+          - php-versions: ['8.0', '8.1']
             php-coverage: none
           - operating-system: ubuntu-latest
             php-ini: opcache.enable_cli=1
@@ -33,7 +31,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2, cs2pr
-          extensions: ffi
+          extensions: ffi, opcache
           ini-values: ${{ matrix.php-ini }}
           coverage: ${{ matrix.php-coverage }}
       - name: Install dependencies
