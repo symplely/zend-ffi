@@ -388,19 +388,6 @@ if (!\class_exists('StandardModule')) {
          */
         public function global_startup(CData $memory): void
         {
-            if (\PHP_ZTS) {
-                \tsrmls_activate();
-                $id = \ze_ffi()->tsrm_thread_id();
-                if (!isset($this->global_id[$id])) {
-                    $this->global_rsrc[$id] = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
-                    $this->global_id[$id] = \ze_ffi()->ts_allocate_id(
-                        $this->global_rsrc[$id]->addr(),
-                        $this->globals_size(),
-                        null,
-                        null
-                    );
-                }
-            }
         }
 
         /**
@@ -471,6 +458,7 @@ if (!\class_exists('StandardModule')) {
             if (!\is_null($globalType)) {
                 $module->globals_size = \FFI::sizeof($this->ffi()->type($globalType));
                 if (\PHP_ZTS) {
+                    \tsrmls_activate();
                     $id = \ze_ffi()->tsrm_thread_id();
                     $this->global_rsrc[$id] = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
                     $module->globals_id_ptr = $this->global_rsrc[$id]->addr();
