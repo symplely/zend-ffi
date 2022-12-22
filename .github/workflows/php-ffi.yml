@@ -17,7 +17,9 @@ jobs:
         include:
           - php-versions: '7.4'
             php-coverage: xdebug
-          - php-versions: ['8.0', '8.1']
+          - php-versions: '8.0'
+            php-coverage: none
+          - php-versions: '8.1'
             php-coverage: none
           - operating-system: ubuntu-latest
             php-ini: opcache.enable_cli=1
