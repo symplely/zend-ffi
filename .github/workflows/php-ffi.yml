@@ -22,7 +22,7 @@ jobs:
           - php-versions: '8.1'
             php-coverage: none
           - operating-system: ubuntu-latest
-            php-ini: opcache.enable_cli=0
+            php-ini: opcache.enable_cli=1
           - operating-system: [windows-latest, macos-latest]
             php-ini: none
     steps:
@@ -33,12 +33,11 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2, cs2pr
-          extensions: ffi, opcache
+          extensions: none, mbstring, ffi, opcache, bcmath, calendar, Core, ctype, date, dom, filter, hash, iconv, json, libxml, mysqlnd, openssl, pcre, PDO, Phar, readline, Reflection, session, SimpleXML, sockets, SPL, standard, tokenizer, xml, xmlreader, xmlwriter, zip, zlib
           ini-values: ${{ matrix.php-ini }}
           coverage: ${{ matrix.php-coverage }}
       - name: Install dependencies
         run: |
-          php -m
           composer install
           composer require --dev phpunit/phpunit ~8
       - name: Test with phpunit
