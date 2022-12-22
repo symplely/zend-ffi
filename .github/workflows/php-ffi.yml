@@ -15,12 +15,15 @@ jobs:
         operating-system: [ubuntu-latest, windows-latest, macos-latest]
         php-versions: ['7.4', '8.0', '8.1']
         include:
+            php-ini: none
           - php-versions: '7.4'
             php-coverage: xdebug
           - php-versions: '8.0'
             php-coverage: none
           - php-versions: '8.1'
             php-coverage: none
+          - operating-system: ubuntu-latest
+            php-ini: opcache.enable_cli=1
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -30,6 +33,7 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2, cs2pr
           extensions: ffi
+          ini-values: ${{ matrix.php-ini }}
           coverage: ${{ matrix.php-coverage }}
       - name: Install dependencies
         run: |
