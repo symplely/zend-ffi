@@ -1990,6 +1990,7 @@ void php_module_shutdown(void);
 int php_module_shutdown_wrapper(sapi_module_struct *sapi_globals);
 int zend_ini_global_shutdown(void);
 
+typedef __time_t time_t;
 typedef struct
 {
 	zend_string *s;

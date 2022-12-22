@@ -1982,3 +1982,27 @@ typedef struct _php_basic_globals
 } php_basic_globals;
 
 extern php_basic_globals basic_globals;
+
+void _zend_bailout(const char *filename, uint32_t lineno);
+/* show an exception using zend_error(severity,...), severity should be E_ERROR */
+void zend_exception_error(zval *exception, int severity, ...);
+zend_string *zend_print_zval_r_to_str(zval *expr, int indent);
+
+typedef char *va_list;
+
+/* various true multithread-shared globals use for hooking into Zend Engine see https://www.phpinternalsbook.com/php7/extensions_design/hooks.html */
+extern size_t (*zend_printf)(const char *format, ...);
+extern FILE *(*zend_fopen)(const char *filename, zend_string **opened_path);
+extern void (*zend_ticks_function)(int ticks);
+extern void (*zend_interrupt_function)(zend_execute_data *execute_data);
+extern void (*zend_error_cb)(int type, const char *error_filename, const uint32_t error_lineno, const char *format, va_list args);
+extern void (*zend_on_timeout)(int seconds);
+extern char *(*zend_getenv)(char *name, size_t name_len);
+extern zend_string *(*zend_resolve_path)(const char *filename, size_t filename_len);
+
+/* These two callbacks are especially for opcache */
+extern int (*zend_post_startup_cb)(void);
+extern void (*zend_post_shutdown_cb)(void);
+
+extern void (*zend_execute_ex)(zend_execute_data *execute_data);
+extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);

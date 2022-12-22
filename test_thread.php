@@ -56,7 +56,7 @@ function main()
         printf("[Array Index: %d] Starting the child thread..\n", $index()[$i]);
 
         $status = ts_ffi()->pthread_create(
-            $t->addr_array($i),
+            $t->addr_of($i),
             null,
             function (CData $arg) {
                 $arrPaintings = [
@@ -76,7 +76,7 @@ function main()
 
                 return 0;
             },
-            $index->void_array($i)
+            $index->void_of($i)
         );
 
         if ($status != 0) {

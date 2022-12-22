@@ -1981,6 +1981,7 @@ void php_module_shutdown(void);
 int php_module_shutdown_wrapper(sapi_module_struct *sapi_globals);
 int zend_ini_global_shutdown(void);
 
+typedef __time_t time_t;
 typedef struct
 {
 	zend_string *s;
@@ -2164,9 +2165,6 @@ extern zend_string *(*zend_resolve_path)(const char *filename, size_t filename_l
 /* These two callbacks are especially for opcache */
 extern int (*zend_post_startup_cb)(void);
 extern void (*zend_post_shutdown_cb)(void);
-
-/* Callback for loading of not preloaded part of the script */
-extern int (*zend_preload_autoload)(zend_string *filename);
 
 extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);

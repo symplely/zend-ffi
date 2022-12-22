@@ -126,7 +126,7 @@ if (!\class_exists('CStruct')) {
          * @param string|null $field
          * @return CData
          */
-        public function addr_array(int $index, string $field = null): CData
+        public function addr_of(int $index, string $field = null): CData
         {
             if ($this->isArray) {
                 $ptr = $this->get_storage($index);
@@ -258,7 +258,7 @@ if (!\class_exists('CStruct')) {
          * @param string|null $field
          * @return CData
          */
-        public function void_array(int $index, string $field = null): CData
+        public function void_of(int $index, string $field = null): CData
         {
             if ($this->isArray) {
                 if (!\is_null($field))

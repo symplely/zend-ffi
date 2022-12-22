@@ -179,15 +179,6 @@ extern int clock_nanosleep(clockid_t __clock_id, int __flags,
                            const struct timespec *__req,
                            struct timespec *__rem);
 extern int clock_getcpuclockid(pid_t __pid, clockid_t *__clock_id);
-extern int timer_create(clockid_t __clock_id,
-                        struct sigevent *__restrict __evp,
-                        timer_t *__restrict __timerid);
-extern int timer_delete(timer_t __timerid);
-extern int timer_settime(timer_t __timerid, int __flags,
-                         const struct itimerspec *__restrict __value,
-                         struct itimerspec *__restrict __ovalue);
-extern int timer_gettime(timer_t __timerid, struct itimerspec *__value);
-extern int timer_getoverrun(timer_t __timerid);
 extern int timespec_get(struct timespec *__ts, int __base);
 
 typedef struct __pthread_internal_list
@@ -550,9 +541,6 @@ extern int pthread_setspecific(pthread_key_t __key,
                                const void *__pointer);
 extern int pthread_getcpuclockid(pthread_t __thread_id,
                                  __clockid_t *__clock_id);
-extern int pthread_atfork(void (*__prepare)(void),
-                          void (*__parent)(void),
-                          void (*__child)(void));
 
 typedef struct _zend_server_context
 {
