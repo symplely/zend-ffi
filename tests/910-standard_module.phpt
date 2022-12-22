@@ -46,10 +46,6 @@ final class SimpleCountersModule extends \StandardModule
 
     public function global_startup(\FFI\CData $memory): void
     {
-        if (\PHP_ZTS) {
-            \tsrmls_activate();
-        }
-
         echo 'global_startup' . \PHP_EOL;
         \FFI::memset($this->get_globals(), 0, $this->globals_size());
     }
