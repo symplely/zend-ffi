@@ -14,7 +14,13 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest, windows-latest, macos-latest]
         php-versions: ['7.4', '8.0', '8.1']
-        php-coverage: [7.4: xdebug, 8.0: none, 8.1: none]
+        include:
+          - php-versions: '7.4'
+            php-coverage: xdebug
+          - php-versions: '8.0'
+            php-coverage: none
+          - php-versions: '8.1'
+            php-coverage: none
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,7 +30,7 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2, cs2pr
           extensions: ffi
-          coverage: ${{ matrix.php-coverage.${{ matrix.php-versions }} }}
+          coverage: ${{ matrix.php-coverage }}
       - name: Install dependencies
         run: |
           composer install
