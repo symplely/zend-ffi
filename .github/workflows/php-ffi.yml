@@ -6,13 +6,13 @@ on:
 
 jobs:
   multi:
-    name: ${{ matrix.operating-system }} CI
+    name: ${{ matrix.operating-system }} CI - PHP ${{ matrix.php-versions }}
     runs-on: ${{ matrix.operating-system }}
     continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ubuntu-latest, windows-latest, macos-latest]
+        operating-system: [ubuntu-20.04, windows-latest, macos-latest]
         php-versions: ['7.4', '8.0', '8.1']
         include:
           - php-versions: '7.4'
@@ -21,7 +21,7 @@ jobs:
             php-coverage: none
           - php-versions: '8.1'
             php-coverage: none
-          - operating-system: ubuntu-latest
+          - operating-system: ubuntu-20.04
             php-ini: opcache.enable_cli=1
           - operating-system: [windows-latest, macos-latest]
             php-ini: none
