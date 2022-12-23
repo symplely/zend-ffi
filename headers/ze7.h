@@ -409,6 +409,12 @@ typedef struct _zend_internal_function_info
 	const char *default_value;
 } zend_internal_function_info;
 
+typedef struct _zend_label
+{
+	int brk_cont;
+	uint32_t opline_num;
+} zend_label;
+
 typedef struct _zend_live_range
 {
 	uint32_t var;
@@ -440,8 +446,8 @@ struct _zend_op_array
 	uint32_t T;
 	uint32_t last;
 	zend_op *opcodes;
-	void ***run_time_cache__ptr;
-	HashTable **static_variables_ptr__ptr;
+	void ***run_time_cache;
+	HashTable **static_variables_ptr;
 	HashTable *static_variables;
 	zend_string **vars;
 	uint32_t *refcount;
@@ -632,7 +638,7 @@ struct _zend_class_entry
 	int default_static_members_count;
 	zval *default_properties_table;
 	zval *default_static_members_table;
-	zval **static_members_table__ptr;
+	zval **static_members_table;
 	HashTable function_table;
 	HashTable properties_info;
 	HashTable constants_table;
@@ -839,6 +845,10 @@ typedef uint16_t zend_ast_attr;
 typedef struct _zend_ast zend_ast;
 typedef struct _zend_compiler_globals zend_compiler_globals;
 
+typedef int (*compare_func_t)(const void *, const void *);
+typedef void (*swap_func_t)(void *, void *);
+typedef void (*sort_func_t)(void *, size_t, size_t, compare_func_t, swap_func_t);
+
 struct _zend_ast
 {
 	zend_ast_kind kind;
@@ -846,6 +856,152 @@ struct _zend_ast
 	uint32_t lineno;
 	zend_ast *child[1];
 };
+
+/* Same as zend_ast, but with children count, which is updated dynamically */
+typedef struct _zend_ast_list
+{
+	zend_ast_kind kind;
+	zend_ast_attr attr;
+	uint32_t lineno;
+	uint32_t children;
+	zend_ast *child[1];
+} zend_ast_list;
+
+/* Lineno is stored in val.u2.lineno */
+typedef struct _zend_ast_zval
+{
+	zend_ast_kind kind;
+	zend_ast_attr attr;
+	zval val;
+} zend_ast_zval;
+
+/* Separate structure for function and class declaration, as they need extra information. */
+typedef struct _zend_ast_decl
+{
+	zend_ast_kind kind;
+	zend_ast_attr attr; /* Unused - for structure compatibility */
+	uint32_t start_lineno;
+	uint32_t end_lineno;
+	uint32_t flags;
+	unsigned char *lex_pos;
+	zend_string *doc_comment;
+	zend_string *name;
+	zend_ast *child[5];
+} zend_ast_decl;
+
+typedef struct _zend_ast_znode
+{
+	zend_ast_kind kind;
+	zend_ast_attr attr;
+	uint32_t lineno;
+	znode node;
+} zend_ast_znode;
+
+typedef union _zend_parser_stack_elem
+{
+	zend_ast *ast;
+	zend_string *str;
+	zend_ulong num;
+	unsigned char *ptr;
+	unsigned char *ident;
+} zend_parser_stack_elem;
+
+/* zend_ptr_stack.h */
+typedef struct _zend_ptr_stack
+{
+	int top, max;
+	void **elements;
+	void **top_element;
+	bool persistent;
+} zend_ptr_stack;
+
+/* zend_multibyte.h */
+typedef size_t (*zend_encoding_filter)(unsigned char **str, size_t *str_length, const unsigned char *buf, size_t length);
+
+typedef struct _zend_encoding
+{
+	zend_encoding_filter input_filter;	/* escape input filter */
+	zend_encoding_filter output_filter; /* escape output filter */
+	const char *name;					/* encoding name */
+	const char *(*aliases)[];			/* encoding name aliases */
+	zend_bool compatible;				/* flex compatible or not */
+} zend_encoding;
+
+typedef enum
+{
+	ON_TOKEN,
+	ON_FEEDBACK,
+	ON_STOP
+} zend_php_scanner_event;
+
+/* zend_language_scanner.h */
+typedef struct _zend_lex_state
+{
+	unsigned int yy_leng;
+	unsigned char *yy_start;
+	unsigned char *yy_text;
+	unsigned char *yy_cursor;
+	unsigned char *yy_marker;
+	unsigned char *yy_limit;
+	int yy_state;
+	zend_stack state_stack;
+	zend_ptr_stack heredoc_label_stack;
+	zend_stack nest_location_stack; /* for syntax error reporting */
+
+	zend_file_handle *in;
+	uint32_t lineno;
+	zend_string *filename;
+
+	/* original (unfiltered) script */
+	unsigned char *script_org;
+	size_t script_org_size;
+
+	/* filtered script */
+	unsigned char *script_filtered;
+	size_t script_filtered_size;
+
+	/* input/output filters */
+	zend_encoding_filter input_filter;
+	zend_encoding_filter output_filter;
+	const zend_encoding *script_encoding;
+
+	/* hooks */
+	void (*on_event)(
+		zend_php_scanner_event event, int token, int line,
+		const char *text, size_t length, void *context);
+	void *on_event_context;
+
+	zend_ast *ast;
+	zend_arena *ast_arena;
+} zend_lex_state;
+
+/**
+ * Language scanner API
+ */
+void zend_save_lexical_state(zend_lex_state *lex_state);
+void zend_restore_lexical_state(zend_lex_state *lex_state);
+void zend_prepare_string_for_scanning(zval *str, zend_string *filename);
+zend_result zend_lex_tstring(zval *zv, unsigned char *ident);
+
+/**
+ * Abstract Syntax Tree (AST) API
+ */
+int zendparse(void);
+void zend_ast_destroy(zend_ast *ast);
+zend_ast *zend_ast_create_list_0(zend_ast_kind kind);
+zend_ast *zend_ast_list_add(zend_ast *list, zend_ast *op);
+zend_ast *zend_ast_create_zval_ex(zval *zv, zend_ast_attr attr);
+zend_ast *zend_ast_create_0(zend_ast_kind kind);
+zend_ast *zend_ast_create_1(zend_ast_kind kind, zend_ast *child);
+zend_ast *zend_ast_create_2(zend_ast_kind kind, zend_ast *child1, zend_ast *child2);
+zend_ast *zend_ast_create_3(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3);
+zend_ast *zend_ast_create_4(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4);
+zend_ast *zend_ast_create_decl(
+	zend_ast_kind kind, uint32_t flags, uint32_t start_lineno, zend_string *doc_comment,
+	zend_string *name, zend_ast *child0, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4);
+
+typedef void (*zend_ast_process_t)(zend_ast *ast);
+extern zend_ast_process_t zend_ast_process;
 
 struct _zend_compiler_globals
 {
