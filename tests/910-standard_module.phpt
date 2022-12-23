@@ -34,7 +34,6 @@ final class SimpleCountersModule extends \StandardModule
         echo 'request_startup' . \PHP_EOL;
         $data = $this->get_globals();
         $data[5] = 25;
-        var_dump(zend_pg('modules_activated'));
         return \ZE::SUCCESS;
     }
 
@@ -84,7 +83,6 @@ var_dump($module->ffi());
 global_startup
 module_startup
 request_startup
-bool(true)
 bool(true)
 object(FFI\CData:uint32_t[10])#%d (10) {
   [0]=>

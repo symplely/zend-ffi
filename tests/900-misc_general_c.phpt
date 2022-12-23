@@ -80,9 +80,9 @@ object(FFI\CData:struct _zend_resource*)#%d (1) {
       }
     }
     ["handle"]=>
-    int(0)
+    int(%d)
     ["type"]=>
-    int(1)
+    int(%d)
     ["ptr"]=>
     object(FFI\CData:void*)#%d (1) {
       [0]=>
