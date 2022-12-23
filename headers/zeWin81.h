@@ -1051,6 +1051,14 @@ typedef struct _zend_fcall_info
 	HashTable *named_params;
 } zend_fcall_info;
 
+typedef struct _zend_fcall_info_cache
+{
+	zend_function *function_handler;
+	zend_class_entry *calling_scope;
+	zend_class_entry *called_scope;
+	zend_object *object;
+} zend_fcall_info_cache;
+
 typedef struct _zend_fiber_context zend_fiber_context;
 
 /* Encapsulates data needed for a context switch. */
@@ -1728,14 +1736,6 @@ struct _sapi_module_struct
 	const zend_function_entry *additional_functions;
 	unsigned int (*input_filter_init)(void);
 };
-
-typedef struct _zend_fcall_info_cache
-{
-	zend_function *function_handler;
-	zend_class_entry *calling_scope;
-	zend_class_entry *called_scope;
-	zend_object *object;
-} zend_fcall_info_cache;
 
 typedef struct _sapi_post_entry sapi_post_entry;
 struct _sapi_post_entry
