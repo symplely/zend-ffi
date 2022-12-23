@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ubuntu-20.04, windows-latest, macos-latest]
+        operating-system: [ubuntu-latest, windows-latest, macos-latest]
         php-versions: ['7.4', '8.0', '8.1']
         include:
           - php-versions: '7.4'
@@ -21,10 +21,6 @@ jobs:
             php-coverage: none
           - php-versions: '8.1'
             php-coverage: none
-          - operating-system: ubuntu-20.04
-            php-ini: opcache.enable_cli=1
-          - operating-system: [windows-latest, macos-latest]
-            php-ini: none
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -33,8 +29,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           tools: composer:v2, cs2pr
-          extensions: none, mbstring, ffi, opcache, bcmath, calendar, Core, ctype, date, dom, filter, hash, iconv, json, libxml, mysqlnd, openssl, pcre, PDO, Phar, readline, Reflection, session, SimpleXML, sockets, SPL, standard, tokenizer, xml, xmlreader, xmlwriter, zip, zlib
-          ini-values: ${{ matrix.php-ini }}
+          extensions: ffi, opcache
           coverage: ${{ matrix.php-coverage }}
       - name: Install dependencies
         run: |
