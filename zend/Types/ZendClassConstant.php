@@ -17,7 +17,7 @@ if (!\class_exists('ZendClassConstant')) {
      *
      *```c++
      * typedef struct _zend_class_constant {
-     *     zval value; // access flags are stored in reserved: zval.u2.access_flags
+     *     zval value; // access flags are stored in reserved: zval.u2.access_flags PHP 8.1+ zval.u2.constant_flags
      *     zend_string *doc_comment;
      *     HashTable *attributes; // Only PHP 8 or higher
      *     zend_class_entry *ce;
@@ -26,6 +26,7 @@ if (!\class_exists('ZendClassConstant')) {
      */
     final class ZendClassConstant extends \ZE
     {
+        const FLAGS = \IS_PHP81 ? 'constant_flags' : 'access_flags';
         protected $isZval = false;
 
         /**
@@ -78,8 +79,8 @@ if (!\class_exists('ZendClassConstant')) {
          */
         public function public(): void
         {
-            $this->ze_other_ptr->value->u2->access_flags &= (~\ZE::ZEND_ACC_PPP_MASK);
-            $this->ze_other_ptr->value->u2->access_flags |= \ZE::ZEND_ACC_PUBLIC;
+            $this->ze_other_ptr->value->u2->{self::FLAGS} &= (~\ZE::ZEND_ACC_PPP_MASK);
+            $this->ze_other_ptr->value->u2->{self::FLAGS} |= \ZE::ZEND_ACC_PUBLIC;
         }
 
         /**
@@ -87,8 +88,8 @@ if (!\class_exists('ZendClassConstant')) {
          */
         public function protected(): void
         {
-            $this->ze_other_ptr->value->u2->access_flags &= (~\ZE::ZEND_ACC_PPP_MASK);
-            $this->ze_other_ptr->value->u2->access_flags |= \ZE::ZEND_ACC_PROTECTED;
+            $this->ze_other_ptr->value->u2->{self::FLAGS} &= (~\ZE::ZEND_ACC_PPP_MASK);
+            $this->ze_other_ptr->value->u2->{self::FLAGS} |= \ZE::ZEND_ACC_PROTECTED;
         }
 
         /**
@@ -96,8 +97,8 @@ if (!\class_exists('ZendClassConstant')) {
          */
         public function private(): void
         {
-            $this->ze_other_ptr->value->u2->access_flags &= (~\ZE::ZEND_ACC_PPP_MASK);
-            $this->ze_other_ptr->value->u2->access_flags |= \ZE::ZEND_ACC_PRIVATE;
+            $this->ze_other_ptr->value->u2->{self::FLAGS} &= (~\ZE::ZEND_ACC_PPP_MASK);
+            $this->ze_other_ptr->value->u2->{self::FLAGS} |= \ZE::ZEND_ACC_PRIVATE;
         }
 
         /**

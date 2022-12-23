@@ -24,6 +24,11 @@ if (!\class_exists('ZendCompiler')) {
             return HashTable::init_value(static::compiler_globals()->class_table);
         }
 
+        public static function auto_globals(): HashTable
+        {
+            return HashTable::init_value(static::compiler_globals()->auto_globals);
+        }
+
         /**
          * Returns a `HashTable` with all registered functions
          *
