@@ -82,7 +82,7 @@ object(FFI\CData:struct _zend_resource*)#%d (1) {
     ["handle"]=>
     int(%d)
     ["type"]=>
-    int(%d)
+    int(%S
     ["ptr"]=>
     object(FFI\CData:void*)#%d (1) {
       [0]=>

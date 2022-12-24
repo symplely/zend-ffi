@@ -273,6 +273,24 @@ abstract class zend_uchar extends string
 abstract class uint32_t extends int
 {
 }
+abstract class uint16_t extends int
+{
+}
+abstract class zend_ast_kind extends uint16_t
+{
+}
+abstract class zend_ast_attr extends uint16_t
+{
+}
+abstract class zend_lex_state extends \FFI\CData
+{
+}
+abstract class _zend_ast extends \FFI\CData
+{
+}
+abstract class zend_ast extends _zend_ast
+{
+}
 abstract class long extends int
 {
 }
@@ -750,4 +768,66 @@ interface FFI
 
     /** @return zend_string */
     public function zend_print_zval_r_to_str(zval &$expr, int $indent);
+
+    /**
+     * Language scanner API
+     */
+    /** @return void */
+    public function zend_save_lexical_state(zend_lex_state &$lex_state);
+    /** @return void */
+    public function zend_restore_lexical_state(zend_lex_state &$lex_state);
+    /** @return void */
+    public function zend_prepare_string_for_scanning(zval &$str, zend_string &$filename);
+
+    /** @return zend_result */
+    public function zend_lex_tstring(zval &$zv, char &$ident);
+
+    /**
+     * Abstract Syntax Tree (AST) API
+     */
+
+    /** @return int */
+    public function zendparse();
+    /** @return void */
+    public function zend_ast_destroy(zend_ast &$ast);
+
+
+
+    /** @return zend_ast */
+    public function zend_ast_create_list_0(zend_ast_kind $kind);
+
+    /** @return zend_ast */
+    public function zend_ast_list_add(zend_ast &$list, zend_ast &$op);
+
+    /** @return zend_ast */
+    public function zend_ast_create_zval_ex(zval &$zv, zend_ast_attr $attr);
+
+    /** @return zend_ast */
+    public function zend_ast_create_0(zend_ast_kind $kind);
+
+    /** @return zend_ast */
+    public function zend_ast_create_1(zend_ast_kind $kind, zend_ast &$child);
+
+    /** @return zend_ast */
+    public function zend_ast_create_2(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2);
+
+    /** @return zend_ast */
+    public function zend_ast_create_3(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2, zend_ast &$child3);
+
+    /** @return zend_ast */
+    public function zend_ast_create_4(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2, zend_ast &$child3, zend_ast &$child4);
+
+    /** @return zend_ast */
+    public function zend_ast_create_decl(
+        zend_ast_kind $kind,
+        uint32_t $flags,
+        uint32_t $start_lineno,
+        zend_string &$doc_comment,
+        zend_string &$name,
+        zend_ast &$child0,
+        zend_ast &$child1,
+        zend_ast &$child2,
+        zend_ast &$child3,
+        zend_ast &$child4
+    );
 }
