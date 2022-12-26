@@ -443,62 +443,63 @@ if (!\class_exists('StandardModule')) {
             $this->target_persistent = \Core::is_scoped(); // \ini_get('opcache.enable_cli') === '1';
 
             // We don't need persistent memory here, as PHP copies structures into persistent memory itself
-            $module = \ze_ffi()->new('zend_module_entry');
+            $this->ze_other = \ze_ffi()->new('zend_module_entry');
             $moduleName = $this->module_name;
-            $module->size = \FFI::sizeof($module);
-            $module->type = $this->target_persistent ? self::MODULE_PERSISTENT : self::MODULE_TEMPORARY;
-            $module->name = \ffi_char($moduleName, false, $this->target_persistent);
-            $module->zend_api = $this->target_version;
-            $module->zend_debug = (int)$this->target_debug;
-            $module->zts = (int)$this->target_threads;
+            $this->ze_other->size = \FFI::sizeof($this->ze_other);
+            $this->ze_other->type = $this->target_persistent ? self::MODULE_PERSISTENT : self::MODULE_TEMPORARY;
+            $this->ze_other->name = \ffi_char($moduleName, false, $this->target_persistent);
+            $this->ze_other->zend_api = $this->target_version;
+            $this->ze_other->zend_debug = (int)$this->target_debug;
+            $this->ze_other->zts = (int)$this->target_threads;
             if (isset($this->module_version))
-                $module->version = \ffi_char($this->module_version, false, $this->target_persistent);
+                $this->ze_other->version = \ffi_char($this->module_version, false, $this->target_persistent);
 
             $globalType = $this->global_type();
             if (!\is_null($globalType)) {
-                $module->globals_size = \FFI::sizeof($this->ffi()->type($globalType));
+                $this->ze_other->globals_size = \FFI::sizeof($this->ffi()->type($globalType));
                 if (\PHP_ZTS) {
                     \tsrmls_activate();
                     $id = \ze_ffi()->tsrm_thread_id();
                     $this->global_rsrc[$id] = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
-                    $module->globals_id_ptr = $this->global_rsrc[$id]->addr();
+                    $this->ze_other->globals_id_ptr = $this->global_rsrc[$id]->addr();
                     $this->global_id[$id] = \ze_ffi()->ts_allocate_id(
                         $this->global_rsrc[$id]->addr(),
-                        $module->globals_size,
+                        $this->ze_other->globals_size,
                         null,
                         null
                     );
                 } else {
                     $this->global_rsrc = \c_typedef($globalType, $this->ffi_tag, false, $this->target_persistent);
-                    $module->globals_ptr = $this->global_rsrc->addr();
+                    $this->ze_other->globals_ptr = $this->global_rsrc->addr();
                 }
             }
 
-            $module->info_func = \closure_from($this, 'module_info');
+            $this->ze_other->info_func = \closure_from($this, 'module_info');
             if ($this->m_startup)
-                $module->module_startup_func = \closure_from($this, 'module_startup');
+                $this->ze_other->module_startup_func = \closure_from($this, 'module_startup');
 
             if ($this->m_shutdown)
-                $module->module_shutdown_func = \closure_from($this, 'module_shutdown');
+                $this->ze_other->module_shutdown_func = \closure_from($this, 'module_shutdown');
 
             if ($this->r_startup) {
                 $this->original_sapi_activate = \ze_ffi()->sapi_module->activate;
-                $module->request_startup_func = \closure_from($this, 'request_startup');
+                $this->ze_other->request_startup_func = \closure_from($this, 'request_startup');
             }
 
             if ($this->r_shutdown) {
                 $this->original_sapi_deactivate = \ze_ffi()->sapi_module->deactivate;
-                $module->request_shutdown_func = \closure_from($this, 'request_shutdown');
+                $this->ze_other->request_shutdown_func = \closure_from($this, 'request_shutdown');
             }
 
             if ($this->g_startup || !\is_null($globalType))
-                $module->globals_ctor = \closure_from($this, 'global_startup');
+                $this->ze_other->globals_ctor = \closure_from($this, 'global_startup');
 
             if ($this->g_shutdown || !\is_null($globalType))
-                $module->globals_dtor = \closure_from($this, 'global_shutdown');
+                $this->ze_other->globals_dtor = \closure_from($this, 'global_shutdown');
 
             // $module pointer will be updated, as registration method returns a copy of memory
-            $realModulePointer = \ze_ffi()->zend_register_module_ex(\FFI::addr($module));
+            $module_ptr = \FFI::addr($this->ze_other);
+            $realModulePointer = \ze_ffi()->zend_register_module_ex($module_ptr);
 
             $this->update($realModulePointer);
             $this->addReflection($moduleName);

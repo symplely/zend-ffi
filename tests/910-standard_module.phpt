@@ -46,12 +46,10 @@ final class SimpleCountersModule extends \StandardModule
     public function global_startup(\FFI\CData $memory): void
     {
         echo 'global_startup' . \PHP_EOL;
-        \FFI::memset($this->get_globals(), 0, $this->globals_size());
     }
 
     public function global_shutdown(\FFI\CData $memory): void
     {
-        parent::global_shutdown($memory);
         echo 'global_shutdown' . \PHP_EOL;
     }
 }

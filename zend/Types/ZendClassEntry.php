@@ -692,7 +692,9 @@ if (!\class_exists('ZendClassEntry')) {
                 \FFI::free($this->ze_other_ptr->trait_names);
             }
 
-            $this->ze_other_ptr->trait_names = \ze_ffi()->cast('zend_class_name *', \ffi_ptr($memory));
+            $addr = \ffi_ptr($memory);
+            $tmp = \ze_ffi()->cast('zend_class_name *', $addr);
+            $this->ze_other_ptr->trait_names = $tmp;
             $this->ze_other_ptr->num_traits = $numResultTraits;
         }
 

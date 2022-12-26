@@ -905,13 +905,19 @@ typedef struct _zend_ast_znode
 	znode node;
 } zend_ast_znode;
 
+typedef struct
+{
+	uint32_t offset;
+	uint32_t len;
+} zend_lexer_ident_ref;
+
 typedef union _zend_parser_stack_elem
 {
 	zend_ast *ast;
 	zend_string *str;
 	zend_ulong num;
 	unsigned char *ptr;
-	unsigned char *ident;
+	zend_lexer_ident_ref *ident;
 } zend_parser_stack_elem;
 
 /* zend_ptr_stack.h */
@@ -1649,7 +1655,7 @@ void zend_error(int type, const char *format, ...);
 void zend_save_lexical_state(zend_lex_state *lex_state);
 void zend_restore_lexical_state(zend_lex_state *lex_state);
 void zend_prepare_string_for_scanning(zval *str, zend_string *filename);
-zend_result zend_lex_tstring(zval *zv, unsigned char *ident);
+zend_result zend_lex_tstring(zval *zv, zend_lexer_ident_ref ident_ref);
 
 /**
  * Abstract Syntax Tree (AST) API
