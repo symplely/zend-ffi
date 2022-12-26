@@ -34,7 +34,14 @@
             "zend/Threading.php"
         ],
         "psr-4": {
-            "ZE\\": "zend/Types/",
+            "ZE\\": [
+                "zend/Types/",
+                "zend/Types/Ast/"
+            ],
+            "ZE\\Hook\\": [
+                "zend/Types/Handlers/",
+                "zend/Types/Interfaces/"
+            ],
             "": "zend/"
         }
     },

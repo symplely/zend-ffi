@@ -788,10 +788,15 @@ interface FFI
 
     /** @return int */
     public function zendparse();
+
     /** @return void */
     public function zend_ast_destroy(zend_ast &$ast);
 
+    /** @return zend_object */
+    public function zend_objects_new(zend_class_entry &$ce);
 
+    /** @return void */
+    public function object_properties_init(zend_object &$object, zend_class_entry &$class_type);
 
     /** @return zend_ast */
     public function zend_ast_create_list_0(zend_ast_kind $kind);

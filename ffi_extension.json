@@ -12,6 +12,7 @@
             "zend/ZE.php",
             "zend/ZETrait.php",
             "zend/Types/HashTable.php",
+            "zend/Types/ObjectHandler.php",
             "zend/Types/OpCode.php",
             "zend/Types/PhpStream.php",
             "zend/Types/PThread.php",

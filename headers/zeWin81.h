@@ -1693,6 +1693,7 @@ __declspec(dllimport) void __vectorcall zend_object_std_init(zend_object *object
 __declspec(dllimport) zend_object *__vectorcall zend_objects_new(zend_class_entry *ce);
 __declspec(dllimport) void __vectorcall zend_objects_clone_members(zend_object *new_object, zend_object *old_object);
 
+__declspec(dllimport) void object_properties_init(zend_object *object, zend_class_entry *class_type);
 __declspec(dllimport) void zend_object_std_dtor(zend_object *object);
 __declspec(dllimport) void zend_objects_destroy_object(zend_object *object);
 __declspec(dllimport) zend_object *zend_objects_clone_obj(zval *object);
