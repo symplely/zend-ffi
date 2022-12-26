@@ -499,9 +499,8 @@ if (!\class_exists('StandardModule')) {
 
             // $module pointer will be updated, as registration method returns a copy of memory
             $module_ptr = \FFI::addr($this->ze_other);
-            $realModulePointer = \ze_ffi()->zend_register_module_ex($module_ptr);
+            $this->update(\ze_ffi()->zend_register_module_ex($module_ptr));
 
-            $this->update($realModulePointer);
             $this->addReflection($moduleName);
             static::set_module($this);
         }
