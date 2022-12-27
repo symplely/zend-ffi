@@ -18,7 +18,7 @@ if (!\class_exists('ObjectHandler')) {
          *
          * @var CData|FFI Either raw C structure or global FFI object itself
          */
-        private $cdata;
+        private $c_struct;
 
         /**
          * Interface type that is implemented
@@ -102,14 +102,14 @@ if (!\class_exists('ObjectHandler')) {
         {
         }
 
-        public function __construct(\Closure $userHandler, $cdata)
+        public function __construct(\Closure $userHandler, $c_struct)
         {
-            if (!$cdata instanceof FFI || !$cdata instanceof CData)
+            if (!($c_struct instanceof FFI || $c_struct instanceof CData))
                 return \ze_ffi()->zend_error(\E_WARNING, 'Invalid container');
 
             $this->userHandler = $userHandler;
-            $this->cdata = $cdata;
-            $this->originalHandler = $cdata->{static::HOOK_FIELD};
+            $this->c_struct = $c_struct;
+            $this->originalHandler = $c_struct->{static::HOOK_FIELD};
         }
 
         /**
@@ -129,7 +129,7 @@ if (!\class_exists('ObjectHandler')) {
          */
         final public function install(): void
         {
-            $this->cdata->{static::HOOK_FIELD} = \closure_from($this, 'handle');
+            $this->c_struct->{static::HOOK_FIELD} = \closure_from($this, 'handle');
         }
 
         /**
@@ -193,7 +193,7 @@ if (!\class_exists('ObjectHandler')) {
          */
         final public function __destruct()
         {
-            $this->cdata->{static::HOOK_FIELD} = $this->originalHandler;
+            $this->c_struct->{static::HOOK_FIELD} = $this->originalHandler;
         }
 
         /**

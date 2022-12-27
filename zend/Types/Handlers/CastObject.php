@@ -23,7 +23,7 @@ class CastObject extends ObjectHandler
     {
         [$this->object, $this->returnValue, $this->type] = $c_args;
 
-        $result = ($this->userHandler)($this->object, $this->returnValue, $this->type);
+        $result = ($this->userHandler)($this);
         Zval::init_value($this->returnValue)->change_value($result);
 
         return \ZE::SUCCESS;

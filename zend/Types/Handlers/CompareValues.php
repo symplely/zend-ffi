@@ -22,7 +22,7 @@ class CompareValues extends ObjectHandler
     {
         [$this->op1, $this->op2] = $c_args;
 
-        $result = ($this->userHandler)($this->op1, $this->op2);
+        $result = ($this->userHandler)($this);
 
         return $result;
     }

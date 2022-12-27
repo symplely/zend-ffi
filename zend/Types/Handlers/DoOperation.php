@@ -23,7 +23,7 @@ class DoOperation extends ObjectHandler
     {
         [$this->opCode, $this->returnValue, $this->op1, $this->op2] = $c_args;
 
-        $result = ($this->userHandler)($this->opCode, $this->returnValue, $this->op1, $this->op2);
+        $result = ($this->userHandler)($this);
         Zval::init_value($this->returnValue)->native_value($result);
 
         return \ZE::SUCCESS;

@@ -23,7 +23,7 @@ class InterfaceGetsImplemented extends ObjectHandler
     {
         [$this->interfaceType, $this->classType] = $c_args;
 
-        $result = ($this->userHandler)($this->interfaceType, $this->classType);
+        $result = ($this->userHandler)($this);
 
         return $result;
     }

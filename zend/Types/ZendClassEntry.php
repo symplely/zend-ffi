@@ -194,12 +194,12 @@ if (!\class_exists('ZendClassEntry')) {
         public function createObject(\Closure $handler): void
         {
             // User handlers are only allowed with std_object_handler (when create_object handler is empty)
-            if ($this->pointer->create_object !== null) {
+            if ($this->ze_other_ptr->create_object !== null) {
                 throw new \LogicException("Create object handler is available for user-defined classes only");
             }
             self::allocate_object_handlers($this->getName());
 
-            $hook = new CreateObject($handler, $this->pointer);
+            $hook = new CreateObject($handler, $this->ze_other_ptr);
             $hook->install();
         }
 
