@@ -15,13 +15,15 @@ jobs:
       fail-fast: false
       matrix:
         operating-system: [ubuntu-latest, windows-latest, macos-latest]
-        php-versions: ['7.4', '8.0', '8.1']
+        php-versions: ['7.4', '8.0', '8.1', '8.2']
         include:
           - php-versions: '7.4'
             php-coverage: xdebug
           - php-versions: '8.0'
             php-coverage: none
           - php-versions: '8.1'
+            php-coverage: none
+          - php-versions: '8.2'
             php-coverage: none
     steps:
       - name: Checkout

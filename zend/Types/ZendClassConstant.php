@@ -26,7 +26,7 @@ if (!\class_exists('ZendClassConstant')) {
      */
     final class ZendClassConstant extends \ZE
     {
-        const FLAGS = \IS_PHP81 ? 'constant_flags' : 'access_flags';
+        const FLAGS = (\IS_PHP81 || \IS_PHP82) ? 'constant_flags' : 'access_flags';
         protected $isZval = false;
 
         /**
