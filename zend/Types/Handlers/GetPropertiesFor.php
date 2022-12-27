@@ -34,7 +34,7 @@ class GetPropertiesFor extends AbstractProperty
     {
         [$this->object, $this->purpose] = $c_args;
 
-        $result = ($this->userHandler)($this->object, $this->purpose);
+        $result = ($this->userHandler)($this);
         $refValue = Zval::init_value($result);
 
         return $refValue->arr();

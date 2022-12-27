@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
+require 'vendor/autoload.php';
+
 use Closure;
 use ZE\Hook\CastObject;
 use ZE\Hook\CompareValues;
@@ -52,7 +54,7 @@ class Entry
 
         $instance = new Dummy();
         // We should get instance of our original object, because we are calling default handler
-        var_dump(Dummy::class instanceof $instance);
+        var_dump($instance instanceof Dummy);
         var_dump($log);
     }
 
@@ -74,8 +76,8 @@ class Entry
         {
         };
 
-        // Of course, we should get an instance of our TestInterface
-        var_dump(DummyInterface::class instanceof $anonymousInterfaceImplementation);
+        // Of course, we should get an instance of our DummyInterface
+        var_dump($anonymousInterfaceImplementation instanceof DummyInterface);
 
         // ... and log entry will contain a record about anonymous class that implements interface
         //'@anonymous'
@@ -108,10 +110,13 @@ class Entry
         $testClass = new Dummy();
         $long = (int)$testClass;
         var_dump(1 === $long);
+
         $double = (float)$testClass;
         var_dump(2.0 === $double);
+
         $string = (string)$testClass;
         var_dump('test' === $string);
+
         $bool = (bool)$testClass;
         var_dump(false === $bool);
     }
@@ -132,7 +137,6 @@ class Entry
         var_dump(42 != $value);
         var_dump(42 * 2 === $value);
 
-        // This check address https://github.com/lisachenko/z-engine/issues/32
         $secret = $instance->tellSecret();
         var_dump(100500 * 2 === $secret);
     }
@@ -334,6 +338,7 @@ class Entry
 
     public function run()
     {
+        $this->getCreateObject();
     }
 }
 

@@ -25,7 +25,7 @@ class ReadProperty extends AbstractProperty
     {
         [$this->object, $this->member, $this->type, $this->cacheSlot, $this->rv] = $c_args;
 
-        $result = ($this->userHandler)($this->object, $this->member, $this->type, $this->cacheSlot, $this->rv);
+        $result = ($this->userHandler)($this);
         $refValue = Zval::init_value($result);
 
         return $refValue();

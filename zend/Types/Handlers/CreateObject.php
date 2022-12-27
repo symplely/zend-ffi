@@ -24,7 +24,7 @@ class CreateObject extends ObjectHandler
     {
         [$this->classType] = $c_args;
 
-        return ($this->userHandler)($this->class_type);
+        return ($this->userHandler)($this);
     }
 
     /**

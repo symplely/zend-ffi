@@ -25,7 +25,7 @@ class WriteProperty extends AbstractProperty
     {
         [$this->object, $this->member, $this->value, $this->cacheSlot] = $c_args;
 
-        $result = ($this->userHandler)($this->object, $this->member, $this->value, $this->cacheSlot);
+        $result = ($this->userHandler)($this);
         Zval::init_value($this->value)->native_value($result);
 
         return $this->continue();

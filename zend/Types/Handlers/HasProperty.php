@@ -23,7 +23,7 @@ class HasProperty extends AbstractProperty
     {
         [$this->object, $this->member, $this->type, $this->cacheSlot] = $c_args;
 
-        $result = ($this->userHandler)($this->object, $this->member, $this->type, $this->cacheSlot);
+        $result = ($this->userHandler)($this);
 
         return $result;
     }

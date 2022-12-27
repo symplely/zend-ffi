@@ -22,7 +22,7 @@ class UnsetProperty extends AbstractProperty
     {
         [$this->object, $this->member, $this->cacheSlot] = $c_args;
 
-        ($this->userHandler)($this->object, $this->member, $this->cacheSlot);
+        ($this->userHandler)($this);
     }
 
     /**
