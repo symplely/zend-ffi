@@ -29,7 +29,7 @@ class AstProcess extends ObjectHandler
     {
         [$this->ast] = $c_args;
 
-        ($this->userHandler)($this->ast);
+        ($this->userHandler)($this);
     }
 
     /**
