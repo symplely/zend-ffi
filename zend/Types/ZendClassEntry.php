@@ -151,36 +151,36 @@ if (!\class_exists('ZendClassEntry')) {
             }
 
             $handler = $this->reflection->getMethod('__init')->getClosure();
-            $this->createObjectHandler($handler);
+            $this->createObject($handler);
 
             if ($this->reflection->implementsInterface(CastInterface::class)) {
                 $handler = $this->reflection->getMethod('__cast')->getClosure();
-                $this->castObjectHandler($handler);
+                $this->castObject($handler);
             }
 
             if ($this->reflection->implementsInterface(DoOperationInterface::class)) {
                 $handler = $this->reflection->getMethod('__math')->getClosure();
-                $this->doOperationHandler($handler);
+                $this->doOperation($handler);
             }
 
             if ($this->reflection->implementsInterface(CompareValuesInterface::class)) {
                 $handler = $this->reflection->getMethod('__compare')->getClosure();
-                $this->compareValuesHandler($handler);
+                $this->compareValues($handler);
             }
 
             if ($this->reflection->implementsInterface(ReadPropertyInterface::class)) {
                 $handler = $this->reflection->getMethod('__reader')->getClosure();
-                $this->readPropertyHandler($handler);
+                $this->readProperty($handler);
             }
 
             if ($this->reflection->implementsInterface(WritePropertyInterface::class)) {
                 $handler = $this->reflection->getMethod('__writer')->getClosure();
-                $this->writePropertyHandler($handler);
+                $this->writeProperty($handler);
             }
 
             if ($this->reflection->implementsInterface(GetPropertyPointerInterface::class)) {
                 $handler = $this->reflection->getMethod('__fieldPointer')->getClosure();
-                $this->getPropertyPointerHandler($handler);
+                $this->getPropertyPointer($handler);
             }
         }
 
@@ -191,7 +191,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see CreateInterface
          */
-        public function createObjectHandler(\Closure $handler): void
+        public function createObject(\Closure $handler): void
         {
             // User handlers are only allowed with std_object_handler (when create_object handler is empty)
             if ($this->pointer->create_object !== null) {
@@ -210,7 +210,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see CastInterface
          */
-        public function castObjectHandler(\Closure $handler): void
+        public function castObject(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -225,7 +225,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see CompareValuesInterface
          */
-        public function compareValuesHandler(\Closure $handler): void
+        public function compareValues(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -240,7 +240,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see ReadPropertyInterface
          */
-        public function readPropertyHandler(\Closure $handler): void
+        public function readProperty(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -255,7 +255,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see WritePropertyInterface
          */
-        public function writePropertyHandler(\Closure $handler): void
+        public function writeProperty(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -270,7 +270,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see UnsetPropertyInterface
          */
-        public function unsetPropertyHandler(\Closure $handler): void
+        public function unsetProperty(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -285,7 +285,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see HasPropertyInterface
          */
-        public function hasPropertyHandler(\Closure $handler): void
+        public function hasProperty(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -300,7 +300,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see GetPropertyPointerInterface
          */
-        public function getPropertyPointerHandler(\Closure $handler): void
+        public function getPropertyPointer(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -315,7 +315,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see ObjectGetPropertiesForInterface
          */
-        public function getPropertiesForHandler(\Closure $handler): void
+        public function getPropertiesFor(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -330,7 +330,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @see DoOperationInterface
          */
-        public function doOperationHandler(\Closure $handler): void
+        public function doOperation(\Closure $handler): void
         {
             $handlers = self::object_handlers($this->ze_other_ptr);
 
@@ -339,30 +339,11 @@ if (!\class_exists('ZendClassEntry')) {
         }
 
         /**
-         * Installs the create_object handler, this handler is required for all other handlers
-         *
-         * @param \Closure $handler Callback function (CData $classType, Closure $initializer): CData
-         *
-         * @see CreateInterface
-         */
-        public function create_object(\Closure $handler): void
-        {
-            // User handlers are only allowed with std_object_handler (when create_object handler is empty)
-            if ($this->ze_other_ptr->create_object !== null) {
-                throw new \LogicException("Create object handler is available for user-defined classes only");
-            }
-            self::allocate_object_handlers($this->getName());
-
-            $hook = new CreateObject($handler, $this->ze_other_ptr);
-            $hook->install();
-        }
-
-        /**
          * Installs the handler when another class implements current interface
          *
          * @param \Closure $handler Callback function (ReflectionClass $reflectionClass)
          */
-        public function interfaceGetsImplementedHandler(\Closure $handler): void
+        public function interfaceGetsImplemented(\Closure $handler): void
         {
             if (!$this->isInterface()) {
                 throw new \LogicException("Interface implemented handler can be installed only for interfaces");

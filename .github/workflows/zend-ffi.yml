@@ -1,8 +1,10 @@
-name: "php-ffi tests"
+name: "zend-ffi tests"
 
 on:
   push:
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   multi:

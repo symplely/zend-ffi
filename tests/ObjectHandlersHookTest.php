@@ -42,7 +42,7 @@ class Entry
     public function getCreateObject(): void
     {
         $log = '';
-        $this->refClass->createObjectHandler(function (CreateObject $hook) use (&$log) {
+        $this->refClass->createObject(function (CreateObject $hook) use (&$log) {
             $log    .= 'Before initialization.' . PHP_EOL;
             $object = $hook->continue();
             $log    .= 'After initialization.';
@@ -60,7 +60,7 @@ class Entry
     {
         $log = '';
         $refInterface = new ZendClassEntry(DummyInterface::class);
-        $refInterface->interfaceGetsImplementedHandler(function (InterfaceGetsImplemented $hook) use (&$log) {
+        $refInterface->interfaceGetsImplemented(function (InterfaceGetsImplemented $hook) use (&$log) {
             $log = 'Class ' . $hook->get_class()->getName() . ' implements interface';
 
             return \ZE::SUCCESS;
@@ -88,8 +88,8 @@ class Entry
     public function getCastObject(): void
     {
         $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
-        $this->refClass->createObjectHandler($handler);
-        $this->refClass->castObjectHandler(function (CastObject $hook) {
+        $this->refClass->createObject($handler);
+        $this->refClass->castObject(function (CastObject $hook) {
             $castType = $hook->cast_type();
             switch ($castType) {
                 case \ZE::IS_LONG:
@@ -122,8 +122,8 @@ class Entry
     public function getReadProperty(): void
     {
         $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
-        $this->refClass->createObjectHandler($handler);
-        $this->refClass->readPropertyHandler(function (ReadProperty $hook) {
+        $this->refClass->createObject($handler);
+        $this->refClass->readProperty(function (ReadProperty $hook) {
             $value = $hook->continue();
             return $value * 2;
         });
@@ -143,8 +143,8 @@ class Entry
     public function getWriteProperty(): void
     {
         $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
-        $this->refClass->createObjectHandler($handler);
-        $this->refClass->writePropertyHandler(function (WriteProperty $hook) {
+        $this->refClass->createObject($handler);
+        $this->refClass->writeProperty(function (WriteProperty $hook) {
             // We can change value, for example by multiply it
             return $hook->value() * 2;
         });
@@ -163,8 +163,8 @@ class Entry
     {
         $logEntry = '';
         $handler  = Closure::fromCallable([ObjectHandler::class, '__init']);
-        $this->refClass->createObjectHandler($handler);
-        $this->refClass->unsetPropertyHandler(function (UnsetProperty $hook) use (&$logEntry) {
+        $this->refClass->createObject($handler);
+        $this->refClass->unsetProperty(function (UnsetProperty $hook) use (&$logEntry) {
             // do nothing, so property will exist
             $logEntry = $hook->member_name();
         });
@@ -185,8 +185,8 @@ class Entry
     {
         $logEntry = '';
         $handler  = Closure::fromCallable([ObjectHandler::class, '__init']);
-        $this->refClass->createObjectHandler($handler);
-        $this->refClass->hasPropertyHandler(function (HasProperty $hook) use (&$logEntry) {
+        $this->refClass->createObject($handler);
+        $this->refClass->hasProperty(function (HasProperty $hook) use (&$logEntry) {
             $logEntry = $hook->member_name();
             // Let's inverse presence of field :)
             return (int)(!$hook->continue());
@@ -205,8 +205,8 @@ class Entry
     public function getGetPropertiesFor(): void
     {
         $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
-        $this->refClass->createObjectHandler($handler);
-        $this->refClass->getPropertiesForHandler(function (GetPropertiesFor $hook) {
+        $this->refClass->createObject($handler);
+        $this->refClass->getPropertiesFor(function (GetPropertiesFor $hook) {
             var_dump(is_object($hook->object()));
             return ['a' => 1, 'b' => true, 'c' => 42.0];
         });
@@ -228,8 +228,8 @@ class Entry
     public function getCompareValues(): void
     {
         $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
-        $this->refClass->createObjectHandler($handler);
-        $this->refClass->compareValuesHandler(function (CompareValues $hook) {
+        $this->refClass->createObject($handler);
+        $this->refClass->compareValues(function (CompareValues $hook) {
             $left  = $hook->op1();
             $right = $hook->op2();
             if (is_object($left)) {
@@ -264,8 +264,8 @@ class Entry
     public function getDoOperation(): void
     {
         $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
-        $this->refClass->createObjectHandler($handler);
-        $this->refClass->doOperationHandler(function (DoOperation $hook) {
+        $this->refClass->createObject($handler);
+        $this->refClass->doOperation(function (DoOperation $hook) {
             $opCode = $hook->opcode();
             $left   = $hook->op1();
             $right  = $hook->op2();
