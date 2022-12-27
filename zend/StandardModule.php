@@ -552,10 +552,10 @@ if (!\class_exists('StandardModule')) {
                 );
 
             \ze_ffi()->php_output_activate();
-            if (
-                \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0)
-                !== \ZE::SUCCESS
-            ) {
+            $result = \IS_PHP82
+                ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
+                : \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
+            if ($result !== \ZE::SUCCESS) {
                 throw new \RuntimeException(
                     'Can not restart SAPI module ' . \ffi_string(\ze_ffi()->sapi_module->name)
                 );

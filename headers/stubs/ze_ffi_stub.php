@@ -746,7 +746,7 @@ interface FFI
     public function php_output_shutdown();
 
     /** @return int */
-    public function php_module_startup(sapi_module_struct &$sf, ?zend_module_entry &$additional_modules, uint32_t $num_additional_modules);
+    public function php_module_startup(sapi_module_struct &$sf, ?zend_module_entry &$additional_modules, uint32_t ...$num_additional_modules);
 
     /** @return void */
     public function php_module_shutdown();
