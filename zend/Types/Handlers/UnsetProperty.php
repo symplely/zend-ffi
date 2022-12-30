@@ -41,8 +41,8 @@ class UnsetProperty extends AbstractProperty
         $member = $this->member;
         $cacheSlot = $this->cacheSlot;
 
-        $previousScope = ZendExecutor::init()->fake_scope(ZendExecutor::init()->This()->ce());
+        $previousScope = ZendExecutor::fake_scope(ZendExecutor::init()->This()->ce());
         ($originalHandler)($object, $member, $cacheSlot);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
     }
 }

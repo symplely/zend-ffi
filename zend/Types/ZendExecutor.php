@@ -225,10 +225,11 @@ if (!\class_exists('ZendExecutor')) {
          *
          * @return CData|null
          */
-        public function fake_scope(?CData $newScope): ?CData
+        public static function fake_scope(?CData $newScope): ?CData
         {
-            $oldScope = $this->ze_other_ptr->fake_scope;
-            $this->ze_other_ptr->fake_scope = $newScope;
+            $globals = static::executor_globals();
+            $oldScope = $globals->fake_scope;
+            $globals->fake_scope = $newScope;
 
             return $oldScope;
         }

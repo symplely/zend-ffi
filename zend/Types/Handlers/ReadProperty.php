@@ -8,6 +8,7 @@ use FFI\CData;
 use ZE\Zval;
 use ZE\ZendExecutor;
 use ZE\Hook\AbstractProperty;
+use ZE\ZendString;
 
 /**
  * Receiving hook for object field read operation
@@ -26,7 +27,7 @@ class ReadProperty extends AbstractProperty
         [$this->object, $this->member, $this->type, $this->cacheSlot, $this->rv] = $c_args;
 
         $result = ($this->userHandler)($this);
-        $refValue = Zval::init_value($result);
+        $refValue = Zval::constructor($result);
 
         return $refValue();
     }
@@ -57,9 +58,9 @@ class ReadProperty extends AbstractProperty
         $cacheSlot = $this->cacheSlot;
         $rv = $this->rv;
 
-        $previousScope = ZendExecutor::init()->fake_scope($object->ce);
+        $previousScope = ZendExecutor::fake_scope($object->ce);
         $result = ($originalHandler)($object, $member, $type, $cacheSlot, $rv);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
 
         Zval::init_value($result)->native_value($phpResult);
 

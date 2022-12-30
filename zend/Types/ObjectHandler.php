@@ -6,9 +6,45 @@ namespace ZE;
 
 use FFI;
 use FFI\CData;
-use ZE\Hook\CreateObject;
 
 if (!\class_exists('ObjectHandler')) {
+    /**
+     *```cpp
+     * typedef struct _zend_object_handlers
+     *{
+     * int offset; // offset of real object header (usually zero)
+     * // object handlers
+     * zend_object_free_obj_t free_obj; // required
+     * zend_object_dtor_obj_t dtor_obj; // required
+     * zend_object_clone_obj_t clone_obj; // optional
+     * zend_object_read_property_t read_property; // required
+     * zend_object_write_property_t write_property; // required
+     * zend_object_read_dimension_t read_dimension; // required
+     * zend_object_write_dimension_t write_dimension; // required
+     * zend_object_get_property_ptr_ptr_t get_property_ptr_ptr; // required
+     * zend_object_get_t get; // optional
+     * zend_object_set_t set; // optional
+     * zend_object_has_property_t has_property; // required
+     * zend_object_unset_property_t unset_property; // required
+     * zend_object_has_dimension_t has_dimension; // required
+     * zend_object_unset_dimension_t unset_dimension; // required
+     * zend_object_get_properties_t get_properties; // required
+     * zend_object_get_method_t get_method; // required
+     * zend_object_call_method_t call_method; // optional
+     * zend_object_get_constructor_t get_constructor; // required
+     * zend_object_get_class_name_t get_class_name; // required
+     * zend_object_compare_t compare_objects; // optional
+     * zend_object_cast_t cast_object; // optional
+     * zend_object_count_elements_t count_elements; // optional
+     * zend_object_get_debug_info_t get_debug_info; // optional
+     * zend_object_get_closure_t get_closure; // optional
+     * zend_object_get_gc_t get_gc; // required
+     * zend_object_do_operation_t do_operation; // optional
+     * zend_object_compare_zvals_t compare; // optional
+     * zend_object_get_properties_for_t get_properties_for; // optional
+     *} zend_object_handlers;
+     *```
+     */
     abstract class ObjectHandler
     {
         protected const HOOK_FIELD = 'unknown';
@@ -53,7 +89,7 @@ if (!\class_exists('ObjectHandler')) {
         /**
          * Value to write
          */
-        protected CData $value;
+        protected CData $writeValue;
 
         /**
          * Calling reason
@@ -85,7 +121,7 @@ if (!\class_exists('ObjectHandler')) {
         /**
          * Internal pointer of retval (for native callback only)
          */
-        protected ?CData $rv;
+        private ?CData $rv;
 
         /**
          * @param CData|mixed ...$c_args
@@ -110,18 +146,6 @@ if (!\class_exists('ObjectHandler')) {
             $this->userHandler = $userHandler;
             $this->c_struct = $c_struct;
             $this->originalHandler = $c_struct->{static::HOOK_FIELD};
-        }
-
-        /**
-         * Performs low-level initialization of object during new instances creation
-         *
-         * @param CreateObject $hook Hook instance that provides proceed() and class_type() method
-         *
-         * @return CData Pointer to the zend_object instance
-         */
-        public static function __init(CreateObject $hook): CData
-        {
-            return $hook->continue();
         }
 
         /**

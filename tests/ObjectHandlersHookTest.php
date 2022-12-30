@@ -80,7 +80,6 @@ class Entry
         var_dump($anonymousInterfaceImplementation instanceof DummyInterface);
 
         // ... and log entry will contain a record about anonymous class that implements interface
-        //'@anonymous'
         var_dump($log);
     }
 
@@ -89,7 +88,7 @@ class Entry
      */
     public function getCastObject(): void
     {
-        $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
+        $handler = Closure::fromCallable([DummyNumber::class, '__init']);
         $this->refClass->createObject($handler);
         $this->refClass->castObject(function (CastObject $hook) {
             $castType = $hook->cast_type();
@@ -126,7 +125,7 @@ class Entry
      */
     public function getReadProperty(): void
     {
-        $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
+        $handler = Closure::fromCallable([DummyNumber::class, '__init']);
         $this->refClass->createObject($handler);
         $this->refClass->readProperty(function (ReadProperty $hook) {
             $value = $hook->continue();
@@ -146,7 +145,7 @@ class Entry
      */
     public function getWriteProperty(): void
     {
-        $handler = Closure::fromCallable([ObjectHandler::class, '__init']);
+        $handler = Closure::fromCallable([DummyNumber::class, '__init']);
         $this->refClass->createObject($handler);
         $this->refClass->writeProperty(function (WriteProperty $hook) {
             // We can change value, for example by multiply it
@@ -166,7 +165,7 @@ class Entry
     public function getUnsetProperty(): void
     {
         $logEntry = '';
-        $handler  = Closure::fromCallable([ObjectHandler::class, '__init']);
+        $handler  = Closure::fromCallable([DummyNumber::class, '__init']);
         $this->refClass->createObject($handler);
         $this->refClass->unsetProperty(function (UnsetProperty $hook) use (&$logEntry) {
             // do nothing, so property will exist
@@ -188,7 +187,7 @@ class Entry
     public function getHasProperty(): void
     {
         $logEntry = '';
-        $handler  = Closure::fromCallable([ObjectHandler::class, '__init']);
+        $handler  = Closure::fromCallable([DummyNumber::class, '__init']);
         $this->refClass->createObject($handler);
         $this->refClass->hasProperty(function (HasProperty $hook) use (&$logEntry) {
             $logEntry = $hook->member_name();
@@ -338,7 +337,10 @@ class Entry
 
     public function run()
     {
-        $this->getCreateObject();
+        //  $this->getCreateObject();
+        //  $this->getInterfaceGetsImplemented();
+        // $this->getCastObject();
+        $this->getReadProperty();
     }
 }
 

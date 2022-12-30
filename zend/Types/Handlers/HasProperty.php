@@ -56,9 +56,9 @@ class HasProperty extends AbstractProperty
         $type = $this->type;
         $cacheSlot = $this->cacheSlot;
 
-        $previousScope = ZendExecutor::init()->fake_scope($object->ce);
+        $previousScope = ZendExecutor::fake_scope($object->ce);
         $result = ($originalHandler)($object, $member, $type, $cacheSlot);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
 
         return $result;
     }

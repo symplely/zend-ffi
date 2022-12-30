@@ -96,8 +96,9 @@ if (!\class_exists('Zval')) {
 
         public function func(): CData
         {
-            if ($this->ze_ptr->u1->v->type !== \ZE::IS_PTR) {
-                return \ze_ffi()->zend_error(\E_WARNING, 'Function creation available only for the type IS_PTR');
+            $type = $this->ze_ptr->u1->v->type;
+            if ($type !== \ZE::IS_PTR && $type !== \ZE::IS_INDIRECT) {
+                return \ze_ffi()->zend_error(\E_WARNING, 'Function creation available only for the type IS_PTR or IS_INDIRECT');
             }
 
             $function = $this->ze_ptr->value->func;
@@ -111,8 +112,9 @@ if (!\class_exists('Zval')) {
 
         public function ce(): CData
         {
-            if ($this->ze_ptr->u1->v->type !== \ZE::IS_PTR) {
-                return \ze_ffi()->zend_error(\E_WARNING, 'Class creation available only for the type IS_PTR');
+            $type = $this->ze_ptr->u1->v->type;
+            if ($type !== \ZE::IS_PTR && $type !== \ZE::IS_INDIRECT) {
+                return \ze_ffi()->zend_error(\E_WARNING, 'Class creation available only for the type IS_PTR or IS_INDIRECT');
             }
 
             return $this->ze_ptr->value->ce;

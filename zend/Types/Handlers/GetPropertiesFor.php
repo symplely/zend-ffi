@@ -63,9 +63,9 @@ class GetPropertiesFor extends AbstractProperty
         $object = $this->object;
         $purpose = $this->purpose;
 
-        $previousScope = ZendExecutor::init()->fake_scope($object->ce);
+        $previousScope = ZendExecutor::fake_scope($object->ce);
         $result = ($originalHandler)($object, $purpose);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
 
         return $result;
     }

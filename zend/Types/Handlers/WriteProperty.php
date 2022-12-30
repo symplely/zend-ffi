@@ -23,10 +23,10 @@ class WriteProperty extends AbstractProperty
      */
     public function handle(...$c_args): CData
     {
-        [$this->object, $this->member, $this->value, $this->cacheSlot] = $c_args;
+        [$this->object, $this->member, $this->writeValue, $this->cacheSlot] = $c_args;
 
         $result = ($this->userHandler)($this);
-        Zval::init_value($this->value)->native_value($result);
+        Zval::init_value($this->writeValue)->native_value($result);
 
         return $this->continue();
     }
@@ -40,12 +40,12 @@ class WriteProperty extends AbstractProperty
     public function value($newValue = null)
     {
         if (\is_null($newValue)) {
-            Zval::init_value($this->value)->native_value($value);
+            Zval::init_value($this->writeValue)->native_value($value);
 
             return $value;
         }
 
-        Zval::init_value($this->value)->change_value($newValue);
+        Zval::init_value($this->writeValue)->change_value($newValue);
     }
 
     /**
@@ -62,12 +62,12 @@ class WriteProperty extends AbstractProperty
 
         $object = $this->object;
         $member = $this->member;
-        $value = $this->value;
+        $value = $this->writeValue;
         $cacheSlot = $this->cacheSlot;
 
-        $previousScope = ZendExecutor::init()->fake_scope($object->ce);
+        $previousScope = ZendExecutor::fake_scope($object->ce);
         $result = ($originalHandler)($object, $member, $value, $cacheSlot);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
 
         return $result;
     }
