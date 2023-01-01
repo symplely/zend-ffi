@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use FFI\CData;
 use ZE\Zval;
 use ZE\OpCode;
-use ZE\ObjectHandler;
 use ZE\Hook\CastObject;
+use ZE\Hook\CreateObject;
 use ZE\Hook\CompareValues;
 use ZE\Hook\DoOperation;
 use ZE\Hook\CastInterface;
@@ -15,7 +16,7 @@ use ZE\Hook\CompareValuesInterface;
 use ZE\Hook\CreateInterface;
 use ZE\Hook\DoOperationInterface;
 
-class DummyNumber extends ObjectHandler implements
+class DummyNumber implements
     CreateInterface,
     CompareValuesInterface,
     DoOperationInterface,
@@ -29,6 +30,11 @@ class DummyNumber extends ObjectHandler implements
             throw new \InvalidArgumentException('Only numeric values are allowed');
         }
         $this->value = $value;
+    }
+
+    public static function __init(CreateObject $hook): CData
+    {
+        return $hook->continue();
     }
 
     /**

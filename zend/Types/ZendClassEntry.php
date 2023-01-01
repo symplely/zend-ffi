@@ -78,15 +78,19 @@ if (!\class_exists('ZendClassEntry')) {
          */
         public function __construct($nameOrObject)
         {
+            try {
+                $this->addReflection($nameOrObject);
+            } catch (\ReflectionException $e) {
+            }
+
             $className = \is_string($nameOrObject) ? $nameOrObject : \get_class($nameOrObject);
             $zvalClassEntry = ZendExecutor::class_table()->find(\strtolower($className));
             if ($zvalClassEntry === null) {
-                return \ze_ffi()->zend_error(\E_WARNING, 'Class %s should be in the engine.', $className);
+                return \ze_ffi()->zend_error(\E_ERROR, 'Class %s should be in the engine.', $className);
             }
 
             $this->ze_other_ptr = $zvalClassEntry->ce();
             $this->initLowLevel($this->ze_other_ptr);
-            $this->addReflection($nameOrObject);
         }
 
         /**
@@ -116,9 +120,51 @@ if (!\class_exists('ZendClassEntry')) {
             $class = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();
             $classNameValue = ZendString::init_value($ptr->name);
             $class->initLowLevel($ptr);
+            try {
+                $class->addReflection($classNameValue->value());
+            } catch (\ReflectionException $e) {
+            }
 
-            return $class->addReflection($classNameValue->value());
+            return $class;
         }
+
+        /*
+        /**
+         * Defines a method as machine bytecode
+         *
+         * @param string $methodName Method to add
+         * @param string $code Platform dependent source-code with relative addressing
+         *
+         * @return ZendMethod|\ReflectionMethod
+         *
+        public function addInternalMethod(string $methodName, string $code)
+        {
+            $pageSize = \ze_ffi()->getpagesize();
+            $rawCode = \ze_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0);
+            \FFI::memcpy($rawCode, $code, \strlen($code));
+
+            $rawFunction = \ze_ffi()->new('zend_internal_function', false);
+            $rawFunction->type = \ZE::ZEND_INTERNAL_FUNCTION;
+            $rawFunction->num_args = 0;
+            $rawFunction->required_num_args = 0;
+            $rawFunction->arg_info = null;
+            $rawFunction->fn_flags |= \ZE::ZEND_ACC_PUBLIC;
+            $rawFunction->handler = \ffi_void($rawCode);
+
+            $funcName = ZendString::init($methodName)();
+            $rawFunction->function_name = $funcName;
+
+            // Adjust the scope of our function to our class
+            $classScopeValue = ZendExecutor::class_table()->find(\strtolower($this->reflection->name));
+            $rawFunction->scope = $classScopeValue->ce();
+
+            $valueEntry = Zval::new(\ZE::IS_PTR, $rawFunction);
+            $this->methodTable->add(\strtolower($methodName), $valueEntry);
+
+            $refMethod = ZendMethod::init_value($rawFunction);
+
+            return $refMethod;
+        }*/
 
         /**
          * Creates a new instance of zend_object.
@@ -146,7 +192,7 @@ if (!\class_exists('ZendClassEntry')) {
         public function install_handlers(): void
         {
             if (!$this->reflection->implementsInterface(CreateInterface::class)) {
-                $str = 'Class ' . $this->name . ' should implement at least CreateInterface to setup user handlers';
+                $str = 'Class ' . $this->reflection->name . ' should implement at least CreateInterface to setup user handlers';
                 throw new \ReflectionException($str);
             }
 
@@ -194,9 +240,10 @@ if (!\class_exists('ZendClassEntry')) {
         public function createObject(\Closure $handler): void
         {
             // User handlers are only allowed with std_object_handler (when create_object handler is empty)
-            if ($this->ze_other_ptr->create_object !== null) {
+            if ($this->isInternal()) {
                 throw new \LogicException("Create object handler is available for user-defined classes only");
             }
+
             self::allocate_object_handlers($this->getName());
 
             $hook = new CreateObject($handler, $this->ze_other_ptr);
@@ -377,7 +424,7 @@ if (!\class_exists('ZendClassEntry')) {
          */
         private static function object_handlers(CData $classType): CData
         {
-            $className = (ZendString::init_value($classType->name)->value());
+            $className = ZendString::init_value($classType->name)->value();
             if (!isset(self::$objectHandlers[$className])) {
                 self::allocate_object_handlers($className);
             }
@@ -430,7 +477,7 @@ if (!\class_exists('ZendClassEntry')) {
                 }
             };
 
-            return iterator_to_array($iterator());
+            return \iterator_to_array($iterator());
         }
 
         public function getParentClass(): ?ZendClassEntry

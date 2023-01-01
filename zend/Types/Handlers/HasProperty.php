@@ -15,9 +15,14 @@ class HasProperty extends AbstractProperty
     protected const HOOK_FIELD = 'has_property';
 
     /**
-     * typedef `int` (*zend_object_has_property_t)(zend_object *object, zend_string *member, int has_set_exists, void **cache_slot);
+     * Invoke user handler.
+     * For PHP 7.4:
      *
-     * @inheritDoc
+     * typedef `int` (*zend_object_has_property_t)(zval *object, zval *member, int has_set_exists, void **cache_slot);
+     *
+     * For PHP 8+:
+     *
+     * typedef `int` (*zend_object_has_property_t)(zend_object *object, zend_string *member, int has_set_exists, void **cache_slot);
      */
     public function handle(...$c_args): int
     {
@@ -56,9 +61,13 @@ class HasProperty extends AbstractProperty
         $type = $this->type;
         $cacheSlot = $this->cacheSlot;
 
-        $previousScope = ZendExecutor::init()->fake_scope($object->ce);
+        if (\IS_PHP74)
+            $previousScope = ZendExecutor::fake_scope($object->value->obj->ce);
+        else
+            $previousScope = ZendExecutor::fake_scope($object->ce);
+
         $result = ($originalHandler)($object, $member, $type, $cacheSlot);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
 
         return $result;
     }

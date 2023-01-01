@@ -17,16 +17,21 @@ class ReadProperty extends AbstractProperty
     protected const HOOK_FIELD = 'read_property';
 
     /**
-     * typedef `zval` *(*zend_object_read_property_t)(zend_object *object, zend_string *member, int type, void **cache_slot, zval *rv);
+     * Invoke user handler.
+     * For PHP 7.4:
      *
-     * @inheritDoc
+     * typedef `zval` *(*zend_object_read_property_t)(zval *object, zval *member, int type, void **cache_slot, zval *rv);
+     *
+     * For PHP 8+:
+     *
+     * typedef `zval` *(*zend_object_read_property_t)(zend_object *object, zend_string *member, int type, void **cache_slot, zval *rv);
      */
     public function handle(...$c_args): CData
     {
         [$this->object, $this->member, $this->type, $this->cacheSlot, $this->rv] = $c_args;
 
         $result = ($this->userHandler)($this);
-        $refValue = Zval::init_value($result);
+        $refValue = Zval::constructor($result);
 
         return $refValue();
     }
@@ -57,9 +62,13 @@ class ReadProperty extends AbstractProperty
         $cacheSlot = $this->cacheSlot;
         $rv = $this->rv;
 
-        $previousScope = ZendExecutor::init()->fake_scope($object->ce);
+        if (\IS_PHP74)
+            $previousScope = ZendExecutor::fake_scope($object->value->obj->ce);
+        else
+            $previousScope = ZendExecutor::fake_scope($object->ce);
+
         $result = ($originalHandler)($object, $member, $type, $cacheSlot, $rv);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
 
         Zval::init_value($result)->native_value($phpResult);
 

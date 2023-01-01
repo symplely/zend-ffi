@@ -15,6 +15,13 @@ class CastObject extends ObjectHandler
     protected const HOOK_FIELD = 'cast_object';
 
     /**
+     * Invoke user handler.
+     * For PHP 7.4:
+     *
+     * typedef `int` (*zend_object_cast_t)(zval *readobj, zval *retval, int type);
+     *
+     * For PHP 8+:
+     *
      * typedef `int` (*zend_object_cast_t)(zend_object *readobj, zval *retval, int type);
      *
      * @inheritDoc

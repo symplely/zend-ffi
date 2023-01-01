@@ -170,6 +170,10 @@ abstract class zend_bool extends int
 {
 }
 
+abstract class off_t extends long
+{
+}
+
 abstract class HashTable extends _zend_array
 {
 }
@@ -835,4 +839,17 @@ interface FFI
         zend_ast &$child3,
         zend_ast &$child4
     );
+
+    /** @return void_ptr */
+    public function mmap(?void_ptr &$addr, size_t $length, int $prot, int $flags, int $fd, off_t $offset);
+
+    /** @return int */
+    public function munmap(void_ptr &$addr, size_t $length);
+
+    /** @return int */
+    public function mprotect(void_ptr &$addr, size_t $len, int $prot);
+
+    // from <unistd.h>
+    /** @return int */
+    public function getpagesize();
 }

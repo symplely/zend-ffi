@@ -355,7 +355,7 @@ if (!\class_exists('ZE')) {
         protected ?CData $ze_other_ptr = null;
 
         /**
-         * @var \Reflector|\ReflectionClass|\ReflectionFunction|\ReflectionExtension|\ReflectionClassConstant|null
+         * @var \Reflector|\ReflectionClass|\ReflectionFunction|\ReflectionExtension|\ReflectionClassConstant|\ReflectionProperty|null
          */
         protected ?\Reflector $reflection;
 

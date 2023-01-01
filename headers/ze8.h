@@ -2143,3 +2143,10 @@ extern void (*zend_post_shutdown_cb)(void);
 
 extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
+
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
+int munmap(void *addr, size_t length);
+int mprotect(void *addr, size_t len, int prot);
+
+// from <unistd.h>
+int getpagesize(void);

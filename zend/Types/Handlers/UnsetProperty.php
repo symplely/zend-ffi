@@ -14,9 +14,14 @@ class UnsetProperty extends AbstractProperty
     protected const HOOK_FIELD = 'unset_property';
 
     /**
-     * typedef `void` (*zend_object_unset_property_t)(zend_object *object, zend_string *member, void **cache_slot);
+     * Invoke user handler.
+     * For PHP 7.4:
      *
-     * @inheritDoc
+     * typedef `void` (*zend_object_unset_property_t)(zval *object, zval *member, void **cache_slot);
+     *
+     * For PHP 8+:
+     *
+     * typedef `void` (*zend_object_unset_property_t)(zend_object *object, zend_string *member, void **cache_slot);
      */
     public function handle(...$c_args): void
     {
@@ -41,8 +46,12 @@ class UnsetProperty extends AbstractProperty
         $member = $this->member;
         $cacheSlot = $this->cacheSlot;
 
-        $previousScope = ZendExecutor::init()->fake_scope(ZendExecutor::init()->This()->ce());
+        if (\IS_PHP74)
+            $previousScope = ZendExecutor::fake_scope(ZendExecutor::init()->This()->obj()->ce);
+        else
+            $previousScope = ZendExecutor::fake_scope(ZendExecutor::init()->This()->ce());
+
         ($originalHandler)($object, $member, $cacheSlot);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
     }
 }

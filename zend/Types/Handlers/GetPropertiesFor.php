@@ -26,16 +26,21 @@ class GetPropertiesFor extends AbstractProperty
     protected const HOOK_FIELD = 'get_properties_for';
 
     /**
-     * typedef `zend_array` *(*zend_object_get_properties_for_t)(zend_object *object, zend_prop_purpose purpose);
+     * Invoke user handler.
+     * For PHP 7.4:
      *
-     * @inheritDoc
+     * typedef `zend_array` *(*zend_object_get_properties_for_t)(zval *object, zend_prop_purpose purpose);
+     *
+     * For PHP 8+:
+     *
+     * typedef `zend_array` *(*zend_object_get_properties_for_t)(zend_object *object, zend_prop_purpose purpose);
      */
     public function handle(...$c_args)
     {
         [$this->object, $this->purpose] = $c_args;
 
         $result = ($this->userHandler)($this);
-        $refValue = Zval::init_value($result);
+        $refValue = Zval::constructor($result);
 
         return $refValue->arr();
     }
@@ -63,9 +68,13 @@ class GetPropertiesFor extends AbstractProperty
         $object = $this->object;
         $purpose = $this->purpose;
 
-        $previousScope = ZendExecutor::init()->fake_scope($object->ce);
+        if (\IS_PHP74)
+            $previousScope = ZendExecutor::fake_scope($object->value->obj->ce);
+        else
+            $previousScope = ZendExecutor::fake_scope($object->ce);
+
         $result = ($originalHandler)($object, $purpose);
-        ZendExecutor::init()->fake_scope($previousScope);
+        ZendExecutor::fake_scope($previousScope);
 
         return $result;
     }
