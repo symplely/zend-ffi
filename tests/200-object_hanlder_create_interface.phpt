@@ -96,4 +96,4 @@ string(%d) "Before initialization.
 After initialization."
 bool(true)
 bool(true)
-string(%d) "Class class@anonymous%S
+string(%d) "Class %S
