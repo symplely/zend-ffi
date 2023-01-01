@@ -8,7 +8,6 @@ use FFI\CData;
 use ZE\Zval;
 use ZE\ZendExecutor;
 use ZE\Hook\AbstractProperty;
-use ZE\ZendString;
 
 /**
  * Receiving hook for object field read operation
@@ -18,9 +17,14 @@ class ReadProperty extends AbstractProperty
     protected const HOOK_FIELD = 'read_property';
 
     /**
-     * typedef `zval` *(*zend_object_read_property_t)(zend_object *object, zend_string *member, int type, void **cache_slot, zval *rv);
+     * Invoke user handler.
+     * For PHP 7.4:
      *
-     * @inheritDoc
+     * typedef `zval` *(*zend_object_read_property_t)(zval *object, zval *member, int type, void **cache_slot, zval *rv);
+     *
+     * For PHP 8+:
+     *
+     * typedef `zval` *(*zend_object_read_property_t)(zend_object *object, zend_string *member, int type, void **cache_slot, zval *rv);
      */
     public function handle(...$c_args): CData
     {
@@ -58,7 +62,11 @@ class ReadProperty extends AbstractProperty
         $cacheSlot = $this->cacheSlot;
         $rv = $this->rv;
 
-        $previousScope = ZendExecutor::fake_scope($object->ce);
+        if (\IS_PHP74)
+            $previousScope = ZendExecutor::fake_scope($object->value->obj->ce);
+        else
+            $previousScope = ZendExecutor::fake_scope($object->ce);
+
         $result = ($originalHandler)($object, $member, $type, $cacheSlot, $rv);
         ZendExecutor::fake_scope($previousScope);
 

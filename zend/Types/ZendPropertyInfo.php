@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ZE;
 
 use FFI\CData;
-use ZE\Zval;
 use ZE\HashTable;
 use ZE\ZendString;
 use ZE\ZendExecutor;
@@ -27,28 +26,36 @@ if (!\class_exists('ZendPropertyInfo')) {
      * } zend_property_info;
      *```
      */
-    class ZendPropertyInfo extends \ZE
+    final class ZendPropertyInfo extends \ZE
     {
         protected $isZval = false;
 
-        public function __construct(string $className, string $propertyName)
+        /**
+         * @return ZendPropertyInfo|\ReflectionProperty
+         */
+        public static function init(string $className, string $propertyName)
         {
-            //     parent::__construct($className, $propertyName);
+            /** @var ZendPropertyInfo */
+            $property = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();
+            $classEntryValue = ZendExecutor::class_table()->find(\strtolower($className));
+            if ($classEntryValue === null) {
+                return \ze_ffi()->zend_error(\E_WARNING, "Class %s should be in the engine.", $className);
+            }
 
-            //      $normalizedName  = strtolower($className);
-            //    $classEntryValue = Core::$executor->classTable->find($normalizedName);
-            //      if ($classEntryValue === null) {
-            //            throw new \ReflectionException("Class {$className} should be in the engine.");
-            //         }
-            //         $classEntry      = $classEntryValue->getRawClass();
-            //      $propertiesTable = new HashTable(Core::addr($classEntry->properties_info));
+            $classEntry = $classEntryValue->ce();
+            $propertiesTable = HashTable::init_value(\FFI::addr($classEntry->properties_info));
 
-            //    $propertyEntry = $propertiesTable->find(strtolower($propertyName));
-            //    if ($propertyEntry === null) {
-            //           throw new \ReflectionException("Property {$propertyName} was not found in the class.");
-            //       }
-            //        $propertyPointer = $propertyEntry->getRawPointer();
-            //     $this->pointer   = Core::cast('zend_property_info *', $propertyPointer);
+            $propertyEntry = $propertiesTable->find(\strtolower($propertyName));
+            if ($propertyEntry === null) {
+                return \ze_ffi()->zend_error(\E_WARNING, "Property %s was not found in the class.", $propertyName);
+            }
+
+
+            $propertyPointer = $propertyEntry();
+            $property->addReflection($className, $propertyName);
+            $property->update(\ze_ffi()->cast('zend_property_info *', $propertyPointer));
+
+            return $property;
         }
 
         /**
@@ -61,13 +68,14 @@ if (!\class_exists('ZendPropertyInfo')) {
 
             $propertyName = ZendString::init_value($ptr->name);
             $property->update($ptr);
+
             return $property->addReflection($propertyName->value());
         }
 
         /**
          * Returns an offset of this property
          */
-        public function getOffset(): int
+        public function offset(): int
         {
             return $this->ze_other_ptr->offset;
         }
@@ -75,7 +83,7 @@ if (!\class_exists('ZendPropertyInfo')) {
         /**
          * Declares property as public
          */
-        public function setPublic(): void
+        public function public(): void
         {
             $this->ze_other_ptr->flags &= (~\ZE::ZEND_ACC_PPP_MASK);
             $this->ze_other_ptr->flags |= \ZE::ZEND_ACC_PUBLIC;
@@ -84,7 +92,7 @@ if (!\class_exists('ZendPropertyInfo')) {
         /**
          * Declares property as protected
          */
-        public function setProtected(): void
+        public function protected(): void
         {
             $this->ze_other_ptr->flags &= (~\ZE::ZEND_ACC_PPP_MASK);
             $this->ze_other_ptr->flags |= \ZE::ZEND_ACC_PROTECTED;
@@ -93,7 +101,7 @@ if (!\class_exists('ZendPropertyInfo')) {
         /**
          * Declares property as private
          */
-        public function setPrivate(): void
+        public function private(): void
         {
             $this->ze_other_ptr->flags &= (~\ZE::ZEND_ACC_PPP_MASK);
             $this->ze_other_ptr->flags |= \ZE::ZEND_ACC_PRIVATE;
@@ -102,7 +110,7 @@ if (!\class_exists('ZendPropertyInfo')) {
         /**
          * Declares property as static/non-static
          */
-        public function setStatic(bool $isStatic = true): void
+        public function static(bool $isStatic = true): void
         {
             if ($isStatic) {
                 $this->ze_other_ptr->flags |= \ZE::ZEND_ACC_STATIC;
@@ -127,13 +135,13 @@ if (!\class_exists('ZendPropertyInfo')) {
          */
         public function declaringClass(string $className): void
         {
-            $lcName = strtolower($className);
+            $classEntryValue = ZendExecutor::class_table()->find(\strtolower($className));
+            if ($classEntryValue === null) {
+                \ze_ffi()->zend_error(\E_WARNING, "Class %s was not found", $className);
+                return;
+            }
 
-            //  $classEntryValue = Core::$executor->classTable->find($lcName);
-            //    if ($classEntryValue === null) {
-            //      throw new \ReflectionException("Class {$className} was not found");
-            //  }
-            //   $this->ze_other_ptr->ce = $classEntryValue->getRawClass();
+            $this->ze_other_ptr->ce = $classEntryValue->ce();
         }
 
         /**
@@ -142,9 +150,9 @@ if (!\class_exists('ZendPropertyInfo')) {
         public function __debugInfo(): array
         {
             return [
-                'name'   => $this->getName(),
-                'offset' => $this->getOffset(),
-                'type'   => $this->getType(),
+                'name'   => $this->reflection->getName(),
+                'offset' => $this->offset(),
+                'type'   => $this->reflection->getType(),
                 'class'  => $this->getDeclaringClass()->getName()
             ];
         }

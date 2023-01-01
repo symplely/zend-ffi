@@ -16,8 +16,6 @@ class InterfaceGetsImplemented extends ObjectHandler
 
     /**
      * typedef `int` (*interface_gets_implemented)(zend_class_entry *iface, zend_class_entry *class_type);
-     *
-     * @inheritDoc
      */
     public function handle(...$c_args): int
     {

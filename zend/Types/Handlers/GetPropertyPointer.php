@@ -15,9 +15,14 @@ class GetPropertyPointer extends AbstractProperty
     protected const HOOK_FIELD = 'get_property_ptr_ptr';
 
     /**
-     * typedef `zval` *(*zend_object_get_property_ptr_ptr_t)(zend_object *object, zend_string *member, int type, void **cache_slot)
+     * Invoke user handler.
+     * For PHP 7.4:
      *
-     * @inheritDoc
+     * typedef `zval` *(*zend_object_get_property_ptr_ptr_t)(zval *object, zval *member, int type, void **cache_slot)
+     *
+     * For PHP 8+:
+     *
+     * typedef `zval` *(*zend_object_get_property_ptr_ptr_t)(zend_object *object, zend_string *member, int type, void **cache_slot);
      */
     public function handle(...$c_args)
     {
@@ -53,7 +58,11 @@ class GetPropertyPointer extends AbstractProperty
         $type = $this->type;
         $cacheSlot = $this->cacheSlot;
 
-        $previousScope = ZendExecutor::fake_scope($object->ce);
+        if (\IS_PHP74)
+            $previousScope = ZendExecutor::fake_scope($object->value->obj->ce);
+        else
+            $previousScope = ZendExecutor::fake_scope($object->ce);
+
         $result = ($originalHandler)($object, $member, $type, $cacheSlot);
         ZendExecutor::fake_scope($previousScope);
 

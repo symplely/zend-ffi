@@ -298,17 +298,61 @@ struct _zend_object
 	zval properties_table[1];
 };
 
-typedef zval *(*zend_object_read_property_t)(zend_object *object, zend_string *member, int type, void **cache_slot, zval *rv);
-typedef zval *(*zend_object_read_dimension_t)(zend_object *object, zval *offset, int type, zval *rv);
-typedef zval *(*zend_object_write_property_t)(zend_object *object, zend_string *member, zval *value, void **cache_slot);
-typedef void (*zend_object_write_dimension_t)(zend_object *object, zval *offset, zval *value);
-typedef zval *(*zend_object_get_property_ptr_ptr_t)(zend_object *object, zend_string *member, int type, void **cache_slot);
-typedef int (*zend_object_has_property_t)(zend_object *object, zend_string *member, int has_set_exists, void **cache_slot);
-typedef int (*zend_object_has_dimension_t)(zend_object *object, zval *member, int check_empty);
-typedef void (*zend_object_unset_property_t)(zend_object *object, zend_string *member, void **cache_slot);
-typedef void (*zend_object_unset_dimension_t)(zend_object *object, zval *offset);
-typedef HashTable *(*zend_object_get_properties_t)(zend_object *object);
-typedef HashTable *(*zend_object_get_debug_info_t)(zend_object *object, int *is_temp);
+/* The following rule applies to read_property() and read_dimension() implementations:
+   If you return a zval which is not otherwise referenced by the extension or the engine's
+   symbol table, its reference count should be 0.
+*/
+/* Used to fetch property from the object, read-only */
+typedef zval *(*zend_object_read_property_t)(zval *object, zval *member, int type, void **cache_slot, zval *rv);
+
+/* Used to fetch dimension from the object, read-only */
+typedef zval *(*zend_object_read_dimension_t)(zval *object, zval *offset, int type, zval *rv);
+
+/* The following rule applies to write_property() and write_dimension() implementations:
+   If you receive a value zval in write_property/write_dimension, you may only modify it if
+   its reference count is 1.  Otherwise, you must create a copy of that zval before making
+   any changes.  You should NOT modify the reference count of the value passed to you.
+   You must return the final value of the assigned property.
+*/
+/* Used to set property of the object */
+typedef zval *(*zend_object_write_property_t)(zval *object, zval *member, zval *value, void **cache_slot);
+
+/* Used to set dimension of the object */
+typedef void (*zend_object_write_dimension_t)(zval *object, zval *offset, zval *value);
+
+/* Used to create pointer to the property of the object, for future direct r/w access */
+typedef zval *(*zend_object_get_property_ptr_ptr_t)(zval *object, zval *member, int type, void **cache_slot);
+
+/* Used to set object value. Can be used to override assignments and scalar
+   write ops (like ++, +=) on the object */
+typedef void (*zend_object_set_t)(zval *object, zval *value);
+
+/* Used to get object value. Can be used when converting object value to
+ * one of the basic types and when using scalar ops (like ++, +=) on the object
+ */
+typedef zval *(*zend_object_get_t)(zval *object, zval *rv);
+
+/* Used to check if a property of the object exists */
+/* param has_set_exists:
+ * 0 (has) whether property exists and is not NULL
+ * 1 (set) whether property exists and is true
+ * 2 (exists) whether property exists
+ */
+typedef int (*zend_object_has_property_t)(zval *object, zval *member, int has_set_exists, void **cache_slot);
+
+/* Used to check if a dimension of the object exists */
+typedef int (*zend_object_has_dimension_t)(zval *object, zval *member, int check_empty);
+
+/* Used to remove a property of the object */
+typedef void (*zend_object_unset_property_t)(zval *object, zval *member, void **cache_slot);
+
+/* Used to remove a dimension of the object */
+typedef void (*zend_object_unset_dimension_t)(zval *object, zval *offset);
+
+/* Used to get hash of the properties of the object, as hash of zval's */
+typedef HashTable *(*zend_object_get_properties_t)(zval *object);
+
+typedef HashTable *(*zend_object_get_debug_info_t)(zval *object, int *is_temp);
 
 typedef enum _zend_prop_purpose
 {
@@ -333,8 +377,6 @@ typedef int (*zend_object_count_elements_t)(zval *object, zend_long *count);
 typedef int (*zend_object_get_closure_t)(zval *obj, zend_class_entry **ce_ptr, zend_function **fptr_ptr, zend_object **obj_ptr);
 typedef HashTable *(*zend_object_get_gc_t)(zval *object, zval **table, int *n);
 typedef int (*zend_object_do_operation_t)(zend_uchar opcode, zval *result, zval *op1, zval *op2);
-typedef zval *(*zend_object_get_t)(zval *object, zval *rv);
-typedef void (*zend_object_set_t)(zval *object, zval *value);
 typedef int (*zend_object_call_method_t)(zend_string *method, zend_object *object, zend_execute_data *execute_data, zval *return_value);
 typedef int (*zend_object_compare_zvals_t)(zval *result, zval *op1, zval *op2);
 
@@ -628,6 +670,7 @@ typedef struct _zend_class_constant
 	zend_class_entry *ce;
 } zend_class_constant;
 
+HashTable *zend_std_get_properties(zval *object);
 struct _zend_class_entry
 {
 	char type;

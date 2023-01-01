@@ -17,8 +17,6 @@ class CreateObject extends ObjectHandler
 
     /**
      * typedef `zend_object` *(*create_object)(zend_class_entry *class_type);
-     *
-     * @inheritDoc
      */
     public function handle(...$c_args): CData
     {

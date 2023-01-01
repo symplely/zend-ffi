@@ -6,6 +6,7 @@ namespace ZE;
 
 use FFI;
 use FFI\CData;
+use ZE\Zval;
 
 if (!\class_exists('ObjectHandler')) {
     /**
@@ -161,7 +162,10 @@ if (!\class_exists('ObjectHandler')) {
          */
         public function object(): object
         {
-            $objectInstance = ZendObject::init_value($this->object)->native_value();
+            if (\IS_PHP74)
+                Zval::init_value($this->object)->native_value($objectInstance);
+            else
+                $objectInstance = ZendObject::init_value($this->object)->native_value();
 
             return $objectInstance;
         }
