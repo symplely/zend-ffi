@@ -6,7 +6,6 @@ Check for object handler compare values
 <?php
 require 'vendor/autoload.php';
 
-use Closure;
 use ZE\Hook\CastObject;
 use ZE\Hook\CompareValues;
 use ZE\Hook\CreateObject;
@@ -42,7 +41,7 @@ class Entry
      */
     public function getCompareValues(): void
     {
-        $handler = Closure::fromCallable([DummyNumber::class, '__init']);
+        $handler = \Closure::fromCallable([DummyNumber::class, '__init']);
         $this->refClass->createObject($handler);
         $this->refClass->compareValues(function (CompareValues $hook) {
             $left  = $hook->op1();

@@ -6,7 +6,6 @@ Check for object handler has property
 <?php
 require 'vendor/autoload.php';
 
-use Closure;
 use ZE\Hook\CastObject;
 use ZE\Hook\CompareValues;
 use ZE\Hook\CreateObject;
@@ -43,7 +42,7 @@ class Entry
     public function getHasProperty(): void
     {
         $logEntry = '';
-        $handler  = Closure::fromCallable([DummyNumber::class, '__init']);
+        $handler  = \Closure::fromCallable([DummyNumber::class, '__init']);
         $this->refClass->createObject($handler);
         $this->refClass->hasProperty(function (HasProperty $hook) use (&$logEntry) {
             $logEntry = $hook->member_name();
@@ -53,7 +52,7 @@ class Entry
 
         $instance = new Dummy();
         var_dump(isset($instance->property) === false);
-        var_dump('property', $logEntry);
+        var_dump('property' === $logEntry);
         var_dump(isset($instance->unknown) === true);
         var_dump('unknown' === $logEntry);
     }

@@ -1,12 +1,11 @@
 --TEST--
-Check for object handler create
+Check for object handler install handlers
 --SKIPIF--
 <?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
 <?php
 require 'vendor/autoload.php';
 
-use Closure;
 use ZE\Hook\CastObject;
 use ZE\Hook\CompareValues;
 use ZE\Hook\CreateObject;

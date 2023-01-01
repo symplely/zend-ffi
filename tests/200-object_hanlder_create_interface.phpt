@@ -6,7 +6,6 @@ Check for object handler create & interface gets implemented
 <?php
 require 'vendor/autoload.php';
 
-use Closure;
 use ZE\Hook\CastObject;
 use ZE\Hook\CompareValues;
 use ZE\Hook\CreateObject;
@@ -93,8 +92,8 @@ $Test = new Entry();
 $Test->run();
 --EXPECTF--
 bool(true)
-string(45) "Before initialization.
+string(%d) "Before initialization.
 After initialization."
 bool(true)
 bool(true)
-string(124) "Class class@anonymous%S
+string(%d) "Class class@anonymous%S
