@@ -6,7 +6,6 @@ Check for object handler get properties for
 <?php
 require 'vendor/autoload.php';
 
-use Closure;
 use ZE\Hook\CastObject;
 use ZE\Hook\CompareValues;
 use ZE\Hook\CreateObject;
@@ -42,7 +41,7 @@ class Entry
      */
     public function getGetPropertiesFor(): void
     {
-        $handler = Closure::fromCallable([DummyNumber::class, '__init']);
+        $handler = \Closure::fromCallable([DummyNumber::class, '__init']);
         $this->refClass->createObject($handler);
         $this->refClass->getPropertiesFor(function (GetPropertiesFor $hook) {
             var_dump(is_object($hook->object()));

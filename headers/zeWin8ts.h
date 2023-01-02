@@ -2,9 +2,21 @@
 #define FFI_LIB "php8ts.dll"
 
 typedef struct _IO_FILE __FILE;
-typedef struct _IO_FILE FILE;
 typedef long int __off_t;
 typedef long int __off64_t;
+
+typedef struct
+{
+	int level;			   /* fill/empty level of buffer */
+	unsigned flags;		   /* File status flags */
+	char fd;			   /* File descriptor */
+	unsigned char hold;	   /* Ungetc char if no buffer */
+	int bsize;			   /* Buffer size */
+	unsigned char *buffer; /* Data transfer buffer */
+	unsigned char *curp;   /* Current active pointer */
+	unsigned istemp;	   /* Temporary file indicator */
+	short token;		   /* Used for validity checking */
+} FILE;
 
 typedef enum
 {

@@ -2,22 +2,28 @@
 #define FFI_LIB "php7.dll"
 
 typedef struct _IO_FILE __FILE;
-typedef struct _IO_FILE FILE;
 typedef long int __off_t;
 typedef long int __off64_t;
+typedef uintptr_t zend_type;
+
+typedef struct
+{
+	int level;			   /* fill/empty level of buffer */
+	unsigned flags;		   /* File status flags */
+	char fd;			   /* File descriptor */
+	unsigned char hold;	   /* Ungetc char if no buffer */
+	int bsize;			   /* Buffer size */
+	unsigned char *buffer; /* Data transfer buffer */
+	unsigned char *curp;   /* Current active pointer */
+	unsigned istemp;	   /* Temporary file indicator */
+	short token;		   /* Used for validity checking */
+} FILE;
 
 typedef enum
 {
 	SUCCESS = 0,
 	FAILURE = -1,
 } ZEND_RESULT_CODE;
-
-typedef struct
-{
-	void *ptr;
-	uint32_t type_mask;
-
-} zend_type;
 
 typedef ZEND_RESULT_CODE zend_result;
 typedef intptr_t zend_intptr_t;
@@ -356,11 +362,21 @@ typedef HashTable *(*zend_object_get_debug_info_t)(zval *object, int *is_temp);
 
 typedef enum _zend_prop_purpose
 {
+	/* Used for debugging. Supersedes get_debug_info handler. */
 	ZEND_PROP_PURPOSE_DEBUG,
+	/* Used for (array) casts. */
 	ZEND_PROP_PURPOSE_ARRAY_CAST,
+	/* Used for serialization using the "O" scheme.
+	 * Unserialization will use __wakeup(). */
 	ZEND_PROP_PURPOSE_SERIALIZE,
+	/* Used for var_export().
+	 * The data will be passed to __set_state() when evaluated. */
 	ZEND_PROP_PURPOSE_VAR_EXPORT,
+	/* Used for json_encode(). */
 	ZEND_PROP_PURPOSE_JSON,
+	/* array_key_exists(). Not intended for general use! */
+	_ZEND_PROP_PURPOSE_ARRAY_KEY_EXISTS,
+	/* Dummy member to ensure that "default" is specified. */
 	_ZEND_PROP_PURPOSE_NON_EXHAUSTIVE_ENUM
 } zend_prop_purpose;
 
@@ -456,7 +472,8 @@ typedef struct _zend_internal_function_info
 {
 	zend_uintptr_t required_num_args;
 	zend_type type;
-	const char *default_value;
+	zend_bool return_reference;
+	zend_bool _is_variadic;
 } zend_internal_function_info;
 
 typedef struct _zend_label
@@ -514,17 +531,16 @@ struct _zend_op_array
 	void *reserved[6];
 };
 
-struct _zend_execute_data
+typedef struct _zend_execute_data
 {
-	const zend_op *opline;
-	zend_execute_data *call;
+	const zend_op *opline;	 /* executed opline */
+	zend_execute_data *call; /* current call */
 	zval *return_value;
-	zend_function *func;
-	zval This;
+	zend_function *func; /* executed function */
+	zval This;			 /* this + call_info + num_args */
 	zend_execute_data *prev_execute_data;
 	zend_array *symbol_table;
-	void **run_time_cache;
-	zend_array *extra_named_params;
+	void **run_time_cache; /* cache op_array->run_time_cache */
 };
 
 typedef union _znode_op
@@ -779,17 +795,17 @@ struct _zend_module_entry
 	const struct _zend_module_dep *deps;
 	const char *name;
 	const struct _zend_function_entry *functions;
-	zend_result (*module_startup_func)(int type, int module_number);
-	zend_result (*module_shutdown_func)(int type, int module_number);
-	zend_result (*request_startup_func)(int type, int module_number);
-	zend_result (*request_shutdown_func)(int type, int module_number);
+	int (*module_startup_func)(int type, int module_number);
+	int (*module_shutdown_func)(int type, int module_number);
+	int (*request_startup_func)(int type, int module_number);
+	int (*request_shutdown_func)(int type, int module_number);
 	void (*info_func)(zend_module_entry *zend_module);
 	const char *version;
 	size_t globals_size;
 	void *globals_ptr;
 	void (*globals_ctor)(void *global);
 	void (*globals_dtor)(void *global);
-	zend_result (*post_deactivate_func)(void);
+	int (*post_deactivate_func)(void);
 	int module_started;
 	unsigned char type;
 	void *handle;
@@ -1043,10 +1059,11 @@ struct _zend_compiler_globals
 	HashTable *function_table; /* function symbol table */
 	HashTable *class_table;	   /* class table */
 
-	HashTable *auto_globals;
+	HashTable filenames_table; /* List of loaded files */
 
-	/* Refer to zend_yytnamerr() in zend_language_parser.y for meaning of values */
-	zend_uchar parse_error;
+	HashTable *auto_globals; /* List of superglobal variables */
+
+	zend_bool parse_error;
 	zend_bool in_compilation;
 	zend_bool short_tags;
 
@@ -1071,7 +1088,7 @@ struct _zend_compiler_globals
 
 	zend_arena *arena;
 
-	HashTable interned_strings;
+	HashTable interned_strings; /* Cache of all interned string */
 
 	const zend_encoding **script_encoding_list;
 	size_t script_encoding_list_size;
@@ -1094,8 +1111,6 @@ struct _zend_compiler_globals
 	HashTable *delayed_autoloads;
 
 	uint32_t rtd_key_counter;
-
-	zend_stack short_circuiting_opnums;
 };
 
 typedef struct _zend_executor_globals zend_executor_globals;

@@ -225,7 +225,7 @@ if (!\class_exists('ZendClassEntry')) {
             }
 
             if ($this->reflection->implementsInterface(GetPropertyPointerInterface::class)) {
-                $handler = $this->reflection->getMethod('__fieldPointer')->getClosure();
+                $handler = $this->reflection->getMethod('__pointer')->getClosure();
                 $this->getPropertyPointer($handler);
             }
         }

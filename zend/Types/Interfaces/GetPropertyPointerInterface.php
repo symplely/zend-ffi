@@ -18,5 +18,5 @@ interface GetPropertyPointerInterface
      *
      * @return mixed Value to return
      */
-    public static function __fieldPointer(GetPropertyPointer $hook);
+    public static function __pointer(GetPropertyPointer $hook);
 }
