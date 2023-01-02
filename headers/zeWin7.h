@@ -4,6 +4,7 @@
 typedef struct _IO_FILE __FILE;
 typedef long int __off_t;
 typedef long int __off64_t;
+typedef uintptr_t zend_type;
 
 typedef struct
 {
@@ -23,13 +24,6 @@ typedef enum
 	SUCCESS = 0,
 	FAILURE = -1,
 } ZEND_RESULT_CODE;
-
-typedef struct
-{
-	void *ptr;
-	uint32_t type_mask;
-
-} zend_type;
 
 typedef ZEND_RESULT_CODE zend_result;
 typedef intptr_t zend_intptr_t;
@@ -478,7 +472,8 @@ typedef struct _zend_internal_function_info
 {
 	zend_uintptr_t required_num_args;
 	zend_type type;
-	const char *default_value;
+	zend_bool return_reference;
+	zend_bool _is_variadic;
 } zend_internal_function_info;
 
 typedef struct _zend_label

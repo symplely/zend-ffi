@@ -23,8 +23,6 @@ class CastObject extends ObjectHandler
      * For PHP 8+:
      *
      * typedef `int` (*zend_object_cast_t)(zend_object *readobj, zval *retval, int type);
-     *
-     * @inheritDoc
      */
     public function handle(...$c_args): int
     {
