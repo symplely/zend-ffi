@@ -55,7 +55,7 @@ if (!\class_exists('ObjectHandler')) {
          *
          * @var CData|FFI Either raw C structure or global FFI object itself
          */
-        private $c_struct;
+        protected $c_struct;
 
         /**
          * Interface type that is implemented
@@ -122,7 +122,7 @@ if (!\class_exists('ObjectHandler')) {
         /**
          * Internal pointer of retval (for native callback only)
          */
-        private ?CData $rv;
+        protected ?CData $rv;
 
         /**
          * @param CData|mixed ...$c_args
