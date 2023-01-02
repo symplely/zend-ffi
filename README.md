@@ -91,6 +91,8 @@ For a simple FFI integration process **create/edit**:
 
 The functions in [preload.php](https://github.com/symplely/zend-ffi/blob/main/preload.php) and [Functions.php](https://github.com/symplely/zend-ffi/blob/main/zend/Functions.php) should be used or expanded upon.
 
+See [tests](https://github.com/symplely/zend-ffi/tree/main/tests) folder for examples. Copy/paste the code between `--FILE--` and `--EXPECT--` blocks in the **.phpt** files.
+
 For general FFI `C data` handling see **CStruct** [_class_](https://github.com/symplely/zend-ffi/blob/main/zend/CStruct.php).
 
 Functions `c_int_type()`, `c_struct_type()`, `c_array_type()` and `c_typedef()` are wrappers for any _C data typedef_ turning it into PHP **CStruct** class instance, with all **FFI** functions as methods with additional features.
