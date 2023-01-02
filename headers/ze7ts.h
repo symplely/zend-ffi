@@ -379,18 +379,18 @@ typedef enum _zend_prop_purpose
 	_ZEND_PROP_PURPOSE_NON_EXHAUSTIVE_ENUM
 } zend_prop_purpose;
 
-typedef zend_array *(*zend_object_get_properties_for_t)(zend_object *object, zend_prop_purpose purpose);
+typedef zend_array *(*zend_object_get_properties_for_t)(zval *object, zend_prop_purpose purpose);
 typedef zend_function *(*zend_object_get_method_t)(zend_object **object, zend_string *method, const zval *key);
 typedef zend_function *(*zend_object_get_constructor_t)(zend_object *object);
 typedef void (*zend_object_dtor_obj_t)(zend_object *object);
 typedef void (*zend_object_free_obj_t)(zend_object *object);
-typedef zend_object *(*zend_object_clone_obj_t)(zend_object *object);
+typedef zend_object *(*zend_object_clone_obj_t)(zval *object);
 typedef zend_string *(*zend_object_get_class_name_t)(const zend_object *object);
 typedef int (*zend_object_compare_t)(zval *object1, zval *object2);
-typedef int (*zend_object_cast_t)(zend_object *readobj, zval *retval, int type);
-typedef int (*zend_object_count_elements_t)(zend_object *object, zend_long *count);
-typedef int (*zend_object_get_closure_t)(zend_object *obj, zend_class_entry **ce_ptr, zend_function **fptr_ptr, zend_object **obj_ptr, zend_bool check_only);
-typedef HashTable *(*zend_object_get_gc_t)(zend_object *object, zval **table, int *n);
+typedef int (*zend_object_cast_t)(zval *readobj, zval *retval, int type);
+typedef int (*zend_object_count_elements_t)(zval *object, zend_long *count);
+typedef int (*zend_object_get_closure_t)(zval *obj, zend_class_entry **ce_ptr, zend_function **fptr_ptr, zend_object **obj_ptr);
+typedef HashTable *(*zend_object_get_gc_t)(zval *object, zval **table, int *n);
 typedef int (*zend_object_do_operation_t)(zend_uchar opcode, zval *result, zval *op1, zval *op2);
 
 typedef int (*zend_object_call_method_t)(zend_string *method, zend_object *object, zend_execute_data *execute_data, zval *return_value);
