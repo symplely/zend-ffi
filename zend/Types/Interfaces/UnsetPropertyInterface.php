@@ -16,5 +16,5 @@ interface UnsetPropertyInterface
      *
      * @param UnsetProperty $hook Instance of current hook
      */
-    public static function __fieldUnset(UnsetProperty $hook): void;
+    public static function __unset_var(UnsetProperty $hook): void;
 }

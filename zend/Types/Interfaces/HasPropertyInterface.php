@@ -18,5 +18,5 @@ interface ObjectHasPropertyInterface
      *
      * @return int Value to return
      */
-    public static function __fieldIsset(HasProperty $hook);
+    public static function __isset_var(HasProperty $hook);
 }
