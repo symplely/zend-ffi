@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ZE;
+namespace ZE\Ast;
 
 use ZE\Zval;
-use ZE\ZendAst;
+use ZE\ZendExecutor;
+use ZE\Ast\ZendAst;
 
 /**
  * `ZendAstZval` stores a zval
@@ -42,7 +43,7 @@ class ZendAstZval extends ZendAst
     /**
      * Returns current value
      */
-    public function value(): Zval
+    public function get_value(): Zval
     {
         return Zval::init_value($this->ze_other_ptr->val);
     }
@@ -54,7 +55,7 @@ class ZendAstZval extends ZendAst
      */
     public function lineno(int $newLine = null): int
     {
-        return $this->value()->extra();
+        return $this->get_value()->extra();
     }
 
     /**
@@ -74,7 +75,7 @@ class ZendAstZval extends ZendAst
         $line = parent::dumpThis($indent);
 
         $line .= ' ';
-        $this->value()->native_value($value);
+        $this->get_value()->native_value($value);
         if (\is_scalar($value)) {
             $line .= \gettype($value) . '(' . \var_export($value, true) . ')';
         } else {

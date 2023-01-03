@@ -16,6 +16,7 @@ use ZE\ZendReference;
 use ZE\ZendString;
 use ZE\ZendMethod;
 use ZE\ZendObjectsStore;
+use ZE\AstProcess;
 
 if (!\function_exists('zval_stack')) {
     /**
@@ -1004,5 +1005,16 @@ if (!\function_exists('zval_stack')) {
         return ZendString::init_value(
             \ze_ffi()->zend_print_zval_r_to_str(\zval_stack(0)(), $indent)
         )->value();
+    }
+
+    /**
+     * Installs a global `zend_ast_process` callback hook
+     *
+     * @param \Closure $handler function(ZendAst $node): void
+     */
+    function zend_ast_process(\Closure $handler): void
+    {
+        $hook = new AstProcess($handler, \ze_ffi());
+        $hook->install();
     }
 }

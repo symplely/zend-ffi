@@ -9,7 +9,7 @@ use ZE\Hook\HasProperty;
 /**
  * Allows to intercept property isset/has checks
  */
-interface ObjectHasPropertyInterface
+interface HasPropertyInterface
 {
     /**
      * Performs checking of object's field

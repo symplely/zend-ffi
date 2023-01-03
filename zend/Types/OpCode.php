@@ -8,10 +8,8 @@ use FFI\CData;
 use ZE\ZendExecutor;
 
 if (!\class_exists('Opcode')) {
-    class OpCode extends \ZE
+    final class OpCode
     {
-        protected $isZval = false;
-
         const NOP                        = 0;
         const ADD                        = 1;
         const SUB                        = 2;

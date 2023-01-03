@@ -1012,7 +1012,6 @@ typedef struct _zend_lex_state
 	int yy_state;
 	zend_stack state_stack;
 	zend_ptr_stack heredoc_label_stack;
-	zend_stack nest_location_stack; /* for syntax error reporting */
 
 	zend_file_handle *in;
 	uint32_t lineno;
@@ -1032,9 +1031,7 @@ typedef struct _zend_lex_state
 	const zend_encoding *script_encoding;
 
 	/* hooks */
-	void (*on_event)(
-		zend_php_scanner_event event, int token, int line,
-		const char *text, size_t length, void *context);
+	void (*on_event)(zend_php_scanner_event event, int token, int line, void *context);
 	void *on_event_context;
 
 	zend_ast *ast;
@@ -1625,8 +1622,8 @@ __declspec(dllimport) void zend_error(int type, const char *format, ...);
  */
 void zend_save_lexical_state(zend_lex_state *lex_state);
 void zend_restore_lexical_state(zend_lex_state *lex_state);
-void zend_prepare_string_for_scanning(zval *str, zend_string *filename);
-zend_result zend_lex_tstring(zval *zv, unsigned char *ident);
+int zend_prepare_string_for_scanning(zval *str, char *filename);
+void zend_lex_tstring(zval *zv);
 
 /**
  * Abstract Syntax Tree (AST) API

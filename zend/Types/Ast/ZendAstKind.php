@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace ZE;
+namespace ZE\Ast;
 
 /**
  * Declares possible AST nodes kind
  */
-class ZendAstKind
+final class ZendAstKind
 {
     private const AST_SPECIAL_SHIFT      = 6;
     private const AST_IS_LIST_SHIFT      = 7;

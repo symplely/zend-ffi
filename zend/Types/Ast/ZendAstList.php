@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace ZE;
+namespace ZE\Ast;
 
-use ZE\ZendAst;
+use ZE\Ast\ZendAst;
+use ZE\Ast\ZendAstKind;
 
 /**
  * `ZendAstList` is used where the number of children is determined dynamically.

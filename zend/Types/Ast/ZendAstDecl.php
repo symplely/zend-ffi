@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace ZE;
+namespace ZE\Ast;
 
-use ZE\ZendAst;
-use ZE\ZendAstKind;
 use ZE\ZendString;
+use ZE\Ast\ZendAst;
+use ZE\Ast\ZendAstKind;
 
 /**
  * `ZendAstDecl` is used for class and function declarations

@@ -11,6 +11,7 @@
             "zend/TValue.php",
             "zend/ZE.php",
             "zend/ZETrait.php",
+            "zend/Types/AstProcess.php",
             "zend/Types/HashTable.php",
             "zend/Types/ObjectHandler.php",
             "zend/Types/OpCode.php",
