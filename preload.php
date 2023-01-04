@@ -575,31 +575,27 @@ if (!\function_exists('setup_ffi_loader')) {
     \setup_ffi_loader('ze', $php);
 
     if (\file_exists('.' . \DS . 'ffi_extension.json')) {
-      $ext_list = \json_decode(\file_get_contents('.' . \DS . 'ffi_extension.json'), true);
-      $isDir = false;
-      $iterator = [];
-      $is_opcache_cli = \ini_get('opcache.enable_cli') === '1';
-      if (isset($ext_list['preload']['directory'])) {
-        $isDir = true;
-        $directory = \array_shift($ext_list['preload']['directory']);
-        $dir = new \RecursiveDirectoryIterator($directory, \RecursiveDirectoryIterator::KEY_AS_PATHNAME);
-        $iterator = new \RecursiveIteratorIterator($dir, \RecursiveIteratorIterator::SELF_FIRST);
-      } elseif (isset($ext_list['preload']['files'])) {
-        $iterator = $ext_list['preload']['files'];
-      }
+      $loader = function ($iterator, bool $isDir) {
+        foreach ($iterator as $fileInfo) {
+          if ($isDir && !$fileInfo->isFile())
+            continue;
 
-      foreach ($iterator as $fileInfo) {
-        if ($isDir && !$fileInfo->isFile()) {
-          continue;
-        }
-
-        $file = $isDir ? $fileInfo->getPathname() : $fileInfo;
-        if ($is_opcache_cli) {
-          if (!\opcache_is_script_cached($file))
-            \opcache_compile_file($file);
-        } else {
+          $file = $isDir ? $fileInfo->getPathname() : $fileInfo;
           include_once $file;
         }
+      };
+
+      $preload_list = \json_decode(\file_get_contents('.' . \DS . 'ffi_extension.json'), true);
+      if (isset($preload_list['preload']['directory'])) {
+        foreach ($preload_list['preload']['directory'] as $directory) {
+          $dir = new \RecursiveDirectoryIterator($directory, \RecursiveDirectoryIterator::KEY_AS_PATHNAME);
+          $iterator = new \RecursiveIteratorIterator($dir, \RecursiveIteratorIterator::SELF_FIRST);
+          $loader($iterator, true);
+        }
+      }
+
+      if (isset($preload_list['preload']['files'])) {
+        $loader($preload_list['preload']['files'], false);
       }
 
       if (\PHP_ZTS) {

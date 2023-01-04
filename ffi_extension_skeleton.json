@@ -3,6 +3,9 @@
     "preload": {
         "files": [
             "preload.php"
+        ],
+        "directory": [
+            "changeMe_Dir"
         ]
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ZE\Ast;
 
 use FFI\CData;
+use ZE\ObjectHandler;
 use ZE\Ast\ZendAstKind;
 use ZE\Ast\ZendAstList;
 use ZE\Ast\ZendAstDecl;
@@ -22,16 +23,43 @@ if (!\class_exists('ZendAst')) {
      * } zend_ast;
      *```
      */
-    class ZendAst extends \ZE
+    class ZendAst extends ObjectHandler
     {
-        protected $isZval = false;
+        protected ?CData $ze_other_ptr = null;
 
-        protected CData $node;
+        /**
+         * Creates **PHP** class `instance` from `C data` structure.
+         *
+         * @param CData $ptr
+         * @return static
+         */
+        public static function init_value(CData $ptr): self
+        {
+            /** @var static */
+            $reflection = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();
+
+            return $reflection->update($ptr);
+        }
+
+        public function update(CData $ptr): self
+        {
+            $this->ze_other_ptr = $ptr;
+
+            return $this;
+        }
+
+        public function __invoke(): ?CData
+        {
+            return $this->ze_other_ptr;
+        }
 
         /**
          * This `factory` is used to create an PHP instance of concrete CData `zend_ast` entry.
+         *
+         * @param CData $node
+         * @return ZendAstZval|ZendAstKind|ZendAstDecl|ZendAstList
          */
-        public static function factory(CData $node): self
+        public static function factory(CData $node): ZendAst
         {
             $kind = $node->kind;
             switch (true) {
@@ -49,7 +77,7 @@ if (!\class_exists('ZendAst')) {
                     $node = \ze_ffi()->cast('zend_ast_list *', $node);
                     return ZendAstList::init_value($node);
                 default:
-                    return self::init_value($node);
+                    return ZendAst::init_value($node);
             }
         }
 
@@ -76,12 +104,12 @@ if (!\class_exists('ZendAst')) {
                 if ($node === null) {
                     $arguments[$index] = null;
                 } else {
-                    $arguments[$index] = \ze_ffi()->cast('zend_ast *', $node->node);
+                    $arguments[$index] = \ze_ffi()->cast('zend_ast *', $node());
                 }
             }
 
             $node = (\ze_ffi()->{$funcName})($kind, ...$arguments);
-            $ast = static::init_value($node);
+            $ast = ZendAst::init_value($node);
             $ast->attr($attributes);
 
             return $ast;
@@ -149,7 +177,7 @@ if (!\class_exists('ZendAst')) {
             $castChildren = \ze_ffi()->cast('zend_ast **', $this->ze_other_ptr->child);
             for ($index = 0; $index < $totalChildren; $index++) {
                 if ($castChildren[$index] !== null) {
-                    $children[$index] = self::factory($castChildren[$index]);
+                    $children[$index] = ZendAst::factory($castChildren[$index]);
                 } else {
                     $children[$index] = null;
                 }
@@ -159,11 +187,12 @@ if (!\class_exists('ZendAst')) {
         }
 
         /**
-         * Return concrete child by index (can be empty)
+         * Return concrete child by index
          *
          * @param int $index Index of child node
+         * @return ZendAstZval|ZendAstKind|ZendAstDecl|ZendAstList|ZendAst
          */
-        public function child(?int $index): ?ZendAst
+        public function child(int $index = 0): ?ZendAst
         {
             $totalChildren = $this->num_children();
             if ($index >= $totalChildren) {
@@ -175,7 +204,7 @@ if (!\class_exists('ZendAst')) {
                 return null;
             }
 
-            return self::factory($castChildren[$index]);
+            return ZendAst::factory($castChildren[$index]);
         }
 
         /**
@@ -192,7 +221,7 @@ if (!\class_exists('ZendAst')) {
             }
 
             $castChildren = \ze_ffi()->cast('zend_ast **', $this->ze_other_ptr->child);
-            $castChildren[$index] = \ze_ffi()->cast('zend_ast *', $node->node);
+            $castChildren[$index] = \ze_ffi()->cast('zend_ast *', $node());
         }
 
         /**
@@ -208,17 +237,14 @@ if (!\class_exists('ZendAst')) {
             }
 
             $castChildren = \ze_ffi()->cast('zend_ast **', $this->ze_other_ptr->child);
-            $child = self::factory($castChildren[$index]);
+            $child = ZendAst::factory($castChildren[$index]);
 
             $castChildren[$index] = null;
 
             return $child;
         }
 
-        /**
-         * This method is used to prevent segmentation faults when dumping CData
-         */
-        final public function __debugInfo(): array
+        public function __debugInfo(): array
         {
             $result  = [];
             $methods = (new \ReflectionClass(static::class))->getMethods(\ReflectionMethod::IS_PUBLIC);

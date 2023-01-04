@@ -16,6 +16,7 @@ if (!\trait_exists('ZETrait')) {
          */
         public static function init_value(CData $ptr): self
         {
+            /** @var \ZE */
             $reflection = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();
 
             return $reflection->update($ptr);

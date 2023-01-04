@@ -273,12 +273,12 @@ typedef struct
 {
 	size_t num;
 	size_t num_allocated;
-	struct _zend_property_info *ptr[1];
+	zend_property_info *ptr[1];
 } zend_property_info_list;
 
 typedef union
 {
-	struct _zend_property_info *ptr;
+	zend_property_info *ptr;
 	uintptr_t list;
 } zend_property_info_source_list;
 
@@ -954,7 +954,7 @@ typedef struct _zend_ast_decl
 	unsigned char *lex_pos;
 	zend_string *doc_comment;
 	zend_string *name;
-	zend_ast *child[5];
+	zend_ast *child[4];
 } zend_ast_decl;
 
 typedef struct _zend_ast_znode
@@ -971,7 +971,6 @@ typedef union _zend_parser_stack_elem
 	zend_string *str;
 	zend_ulong num;
 	unsigned char *ptr;
-	unsigned char *ident;
 } zend_parser_stack_elem;
 
 /* zend_ptr_stack.h */
@@ -980,7 +979,7 @@ typedef struct _zend_ptr_stack
 	int top, max;
 	void **elements;
 	void **top_element;
-	bool persistent;
+	zend_bool persistent;
 } zend_ptr_stack;
 
 /* zend_multibyte.h */
@@ -1039,6 +1038,14 @@ typedef struct _zend_lex_state
 	zend_ast *ast;
 	zend_arena *ast_arena;
 } zend_lex_state;
+
+typedef struct _zend_heredoc_label
+{
+	char *label;
+	int length;
+	int indentation;
+	zend_bool indentation_uses_spaces;
+} zend_heredoc_label;
 
 typedef void (*zend_ast_process_t)(zend_ast *ast);
 extern zend_ast_process_t zend_ast_process;
@@ -1859,7 +1866,7 @@ zend_ast *__vectorcall zend_ast_create_3(zend_ast_kind kind, zend_ast *child1, z
 zend_ast *__vectorcall zend_ast_create_4(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4);
 zend_ast *zend_ast_create_decl(
 	zend_ast_kind kind, uint32_t flags, uint32_t start_lineno, zend_string *doc_comment,
-	zend_string *name, zend_ast *child0, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4);
+	zend_string *name, zend_ast *child0, zend_ast *child1, zend_ast *child2, zend_ast *child3);
 
 typedef struct _php_socket
 {

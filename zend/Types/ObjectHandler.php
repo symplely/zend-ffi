@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ZE;
 
-use FFI;
 use FFI\CData;
 use ZE\Zval;
 
@@ -53,7 +52,7 @@ if (!\class_exists('ObjectHandler')) {
         /**
          * Contains a top-level structure that contains a field with hook
          *
-         * @var CData|FFI Either raw C structure or global FFI object itself
+         * @var CData|\FFI Either raw C structure or global FFI object itself
          */
         protected $c_struct;
 
@@ -75,7 +74,7 @@ if (!\class_exists('ObjectHandler')) {
         /**
          * Holds an original handler (if present)
          */
-        protected ?CData $originalHandler;
+        protected ?CData $originalHandler = null;
 
         /**
          * Object instance to perform casting
@@ -141,7 +140,7 @@ if (!\class_exists('ObjectHandler')) {
 
         public function __construct(\Closure $userHandler, $c_struct)
         {
-            if (!($c_struct instanceof FFI || $c_struct instanceof CData))
+            if (!($c_struct instanceof \FFI || $c_struct instanceof CData))
                 return \ze_ffi()->zend_error(\E_WARNING, 'Invalid container');
 
             $this->userHandler = $userHandler;
@@ -224,10 +223,7 @@ if (!\class_exists('ObjectHandler')) {
             $this->c_struct->{static::HOOK_FIELD} = $this->originalHandler;
         }
 
-        /**
-         * Internal CData fields could result in segfaults, so let's hide everything
-         */
-        final public function __debugInfo(): array
+        public function __debugInfo(): array
         {
             return [
                 'userHandler' => $this->userHandler

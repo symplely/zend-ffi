@@ -2,39 +2,10 @@
     "name": "zend-ffi",
     "preload": {
         "files": [
-            "zend/Constants.php",
-            "zend/Core.php",
-            "zend/CStruct.php",
-            "zend/Functions.php",
-            "zend/StandardModule.php",
-            "zend/ThreadsModule.php",
-            "zend/TValue.php",
-            "zend/ZE.php",
-            "zend/ZETrait.php",
-            "zend/Types/AstProcess.php",
-            "zend/Types/HashTable.php",
-            "zend/Types/ObjectHandler.php",
-            "zend/Types/OpCode.php",
-            "zend/Types/PhpStream.php",
-            "zend/Types/PThread.php",
-            "zend/Types/Resource.php",
-            "zend/Types/Thread.php",
-            "zend/Types/ZendClassConstant.php",
-            "zend/Types/ZendClassEntry.php",
-            "zend/Types/ZendClosure.php",
-            "zend/Types/ZendCompiler.php",
-            "zend/Types/ZendExecutor.php",
-            "zend/Types/ZendFunction.php",
-            "zend/Types/ZendMethod.php",
-            "zend/Types/ZendModule.php",
-            "zend/Types/ZendObject.php",
-            "zend/Types/ZendObjectsStore.php",
-            "zend/Types/ZendOp.php",
-            "zend/Types/ZendReference.php",
-            "zend/Types/ZendResource.php",
-            "zend/Types/ZendString.php",
-            "zend/Types/Zval.php",
             "preload.php"
+        ],
+        "directory": [
+            "zend"
         ]
     }
 }

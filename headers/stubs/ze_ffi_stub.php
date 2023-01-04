@@ -372,6 +372,7 @@ abstract class errno_t extends uint32_t
 }
 
 /**
+ * @property void $zend_interrupt_function
  * @property zend_internal_function $zend_pass_function
  * @property zend_object_handlers $std_object_handlers
  * @property HashTable $module_registry
@@ -861,7 +862,7 @@ interface FFI
         zend_ast &$child1,
         zend_ast &$child2,
         zend_ast &$child3,
-        zend_ast &$child4
+        zend_ast ...$child4
     );
 
     /** @return void_ptr */

@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace ZE;
 
 use FFI\CData;
-use ZE\ObjectHandler;
 use ZE\Ast\ZendAst;
 
 if (!\class_exists('AstProcess')) {
     /**
      * Receiving hook for processing an AST
      */
-    final class AstProcess extends ObjectHandler
+    class AstProcess extends ZendAst
     {
         protected const HOOK_FIELD = 'zend_ast_process';
 
@@ -30,7 +29,7 @@ if (!\class_exists('AstProcess')) {
         {
             [$this->ast] = $c_args;
 
-            ($this->userHandler)($this);
+            @($this->userHandler)($this);
         }
 
         /**

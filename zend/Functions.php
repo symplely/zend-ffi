@@ -1010,7 +1010,7 @@ if (!\function_exists('zval_stack')) {
     /**
      * Installs a global `zend_ast_process` callback hook
      *
-     * @param \Closure $handler function(ZendAst $node): void
+     * @param \Closure $handler function(`AstProcess`|`ZendAst` $node): void
      */
     function zend_ast_process(\Closure $handler): void
     {
