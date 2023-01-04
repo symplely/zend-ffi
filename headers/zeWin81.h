@@ -1084,6 +1084,7 @@ struct _zend_compiler_globals
 	bool variable_width_locale;	  /* UTF-8, Shift-JIS, Big5, ISO 2022, EUC, etc */
 	bool ascii_compatible_locale; /* locale uses ASCII characters as singletons */
 								  /* and don't use them as lead/trail units     */
+
 	zend_string *doc_comment;
 	uint32_t extra_fn_flags;
 
@@ -1109,6 +1110,7 @@ struct _zend_compiler_globals
 	HashTable *memoized_exprs;
 	int memoize_mode;
 
+	void *map_ptr_real_base;
 	void *map_ptr_base;
 	size_t map_ptr_size;
 	size_t map_ptr_last;
@@ -2327,3 +2329,6 @@ extern void (*zend_post_shutdown_cb)(void);
 
 extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
+
+zend_ast *zend_compile_string_to_ast(
+	zend_string *code, struct _zend_arena **ast_arena, zend_string *filename);

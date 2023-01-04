@@ -2537,3 +2537,6 @@ int mprotect(void *addr, size_t len, int prot);
 
 // from <unistd.h>
 int getpagesize(void);
+
+zend_ast *zend_compile_string_to_ast(
+	zend_string *code, struct _zend_arena **ast_arena, zend_string *filename);

@@ -295,6 +295,9 @@ abstract class _zend_ast extends \FFI\CData
 abstract class zend_ast extends _zend_ast
 {
 }
+abstract class _zend_arena extends \FFI\CData
+{
+}
 abstract class long extends int
 {
 }
@@ -798,14 +801,19 @@ interface FFI
     /** @return zend_string */
     public function zend_print_zval_r_to_str(zval &$expr, int $indent);
 
+    /** @return zend_ast */
+    public function zend_compile_string_to_ast(zend_string &$code, _zend_arena &$ast_arena, zend_string &$filename);
+
     /**
      * Language scanner API
      */
     /** @return void */
     public function zend_save_lexical_state(zend_lex_state &$lex_state);
+
     /** @return void */
     public function zend_restore_lexical_state(zend_lex_state &$lex_state);
-    /** @return void */
+
+    /** @return int */
     public function zend_prepare_string_for_scanning(zval &$str, zend_string &$filename);
 
     /** @return zend_result */

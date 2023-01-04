@@ -2174,3 +2174,6 @@ extern void (*zend_post_shutdown_cb)(void);
 
 extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
+
+zend_ast *zend_compile_string_to_ast(
+	zend_string *code, struct _zend_arena **ast_arena, zend_string *filename);

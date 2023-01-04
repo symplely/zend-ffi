@@ -220,7 +220,8 @@ if (!\class_exists('ObjectHandler')) {
          */
         final public function __destruct()
         {
-            $this->c_struct->{static::HOOK_FIELD} = $this->originalHandler;
+            if (isset($this->originalHandler))
+                $this->c_struct->{static::HOOK_FIELD} = $this->originalHandler;
         }
 
         public function __debugInfo(): array

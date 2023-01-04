@@ -17,6 +17,8 @@ use ZE\ZendString;
 use ZE\ZendMethod;
 use ZE\ZendObjectsStore;
 use ZE\AstProcess;
+use ZE\ZendCompiler;
+use ZE\Ast\ZendAst;
 
 if (!\function_exists('zval_stack')) {
     /**
@@ -1016,5 +1018,10 @@ if (!\function_exists('zval_stack')) {
     {
         $hook = new AstProcess($handler, \ze_ffi());
         $hook->install();
+    }
+
+    function zend_parse_string(string $source, string $fileName = ''): ZendAst
+    {
+        return ZendCompiler::init()->parse_string($source, $fileName);
     }
 }
