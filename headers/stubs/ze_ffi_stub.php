@@ -839,6 +839,12 @@ interface FFI
     public function zend_ast_create_list_0(zend_ast_kind $kind);
 
     /** @return zend_ast */
+    public function zend_ast_create_list_1(zend_ast_kind $kind, zend_ast &$child);
+
+    /** @return zend_ast */
+    public function zend_ast_create_list_2(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2);
+
+    /** @return zend_ast */
     public function zend_ast_list_add(zend_ast &$list, zend_ast &$op);
 
     /** @return zend_ast */
@@ -858,6 +864,9 @@ interface FFI
 
     /** @return zend_ast */
     public function zend_ast_create_4(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2, zend_ast &$child3, zend_ast &$child4);
+
+    /** @return zend_ast */
+    public function zend_ast_create_5(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2, zend_ast &$child3, zend_ast &$child4, zend_ast &$child5);
 
     /** @return zend_ast */
     public function zend_ast_create_decl(

@@ -1638,6 +1638,9 @@ void zend_lex_tstring(zval *zv);
 int zendparse(void);
 void __vectorcall zend_ast_destroy(zend_ast *ast);
 zend_ast *__vectorcall zend_ast_create_list_0(zend_ast_kind kind);
+zend_ast *__vectorcall zend_ast_create_list_1(zend_ast_kind kind, zend_ast *child);
+zend_ast *__vectorcall zend_ast_create_list_2(zend_ast_kind kind, zend_ast *child1, zend_ast *child2);
+
 zend_ast *__vectorcall zend_ast_list_add(zend_ast *list, zend_ast *op);
 zend_ast *__vectorcall zend_ast_create_zval_ex(zval *zv, zend_ast_attr attr);
 zend_ast *__vectorcall zend_ast_create_0(zend_ast_kind kind);

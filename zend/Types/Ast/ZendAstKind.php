@@ -14,6 +14,8 @@ if (!\class_exists('ZendAstKind')) {
         private const AST_IS_LIST_SHIFT      = 7;
         private const AST_NUM_CHILDREN_SHIFT = 8;
 
+        const KIND_ADDER    = \IS_PHP74 ? 0 : 1;
+
         const AST_ZVAL     = 1 << self::AST_SPECIAL_SHIFT;
         const AST_CONSTANT = self::AST_ZVAL + 1;
         const AST_ZNODE    = self::AST_ZVAL + 2;
@@ -86,54 +88,66 @@ if (!\class_exists('ZendAstKind')) {
         /* 2 child nodes */
         const AST_DIM             = 2 << self::AST_NUM_CHILDREN_SHIFT;
         const AST_PROP            = self::AST_DIM + 1;
-        const AST_STATIC_PROP     = self::AST_DIM + 2;
-        const AST_CALL            = self::AST_DIM + 3;
-        const AST_CLASS_CONST     = self::AST_DIM + 4;
-        const AST_ASSIGN          = self::AST_DIM + 5;
-        const AST_ASSIGN_REF      = self::AST_DIM + 6;
-        const AST_ASSIGN_OP       = self::AST_DIM + 7;
-        const AST_BINARY_OP       = self::AST_DIM + 8;
-        const AST_GREATER         = self::AST_DIM + 9;
-        const AST_GREATER_EQUAL   = self::AST_DIM + 10;
-        const AST_AND             = self::AST_DIM + 11;
-        const AST_OR              = self::AST_DIM + 12;
-        const AST_ARRAY_ELEM      = self::AST_DIM + 13;
-        const AST_NEW             = self::AST_DIM + 14;
-        const AST_INSTANCEOF      = self::AST_DIM + 15;
-        const AST_YIELD           = self::AST_DIM + 16;
-        const AST_COALESCE        = self::AST_DIM + 17;
-        const AST_ASSIGN_COALESCE = self::AST_DIM + 18;
+        const AST_NULLSAFE_PROP   = \IS_PHP74 ? -1 : self::AST_DIM + 2;
+        const AST_STATIC_PROP     = self::AST_DIM + 2 + self::KIND_ADDER;
+        const AST_CALL            = self::AST_DIM + 3 + self::KIND_ADDER;
+        const AST_CLASS_CONST     = self::AST_DIM + 4 + self::KIND_ADDER;
+        const AST_ASSIGN          = self::AST_DIM + 5 + self::KIND_ADDER;
+        const AST_ASSIGN_REF      = self::AST_DIM + 6 + self::KIND_ADDER;
+        const AST_ASSIGN_OP       = self::AST_DIM + 7 + self::KIND_ADDER;
+        const AST_BINARY_OP       = self::AST_DIM + 8 + self::KIND_ADDER;
+        const AST_GREATER         = self::AST_DIM + 9 + self::KIND_ADDER;
+        const AST_GREATER_EQUAL   = self::AST_DIM + 10 + self::KIND_ADDER;
+        const AST_AND             = self::AST_DIM + 11 + self::KIND_ADDER;
+        const AST_OR              = self::AST_DIM + 12 + self::KIND_ADDER;
+        const AST_ARRAY_ELEM      = self::AST_DIM + 13 + self::KIND_ADDER;
+        const AST_NEW             = self::AST_DIM + 14 + self::KIND_ADDER;
+        const AST_INSTANCEOF      = self::AST_DIM + 15 + self::KIND_ADDER;
+        const AST_YIELD           = self::AST_DIM + 16 + self::KIND_ADDER;
+        const AST_COALESCE        = self::AST_DIM + 17 + self::KIND_ADDER;
+        const AST_ASSIGN_COALESCE = self::AST_DIM + 18 + self::KIND_ADDER;
 
-        const AST_STATIC           = self::AST_DIM + 19;
-        const AST_WHILE            = self::AST_DIM + 20;
-        const AST_DO_WHILE         = self::AST_DIM + 21;
-        const AST_IF_ELEM          = self::AST_DIM + 22;
-        const AST_SWITCH           = self::AST_DIM + 23;
-        const AST_SWITCH_CASE      = self::AST_DIM + 24;
-        const AST_DECLARE          = self::AST_DIM + 25;
-        const AST_USE_TRAIT        = self::AST_DIM + 26;
-        const AST_TRAIT_PRECEDENCE = self::AST_DIM + 27;
-        const AST_METHOD_REFERENCE = self::AST_DIM + 28;
-        const AST_NAMESPACE        = self::AST_DIM + 29;
-        const AST_USE_ELEM         = self::AST_DIM + 30;
-        const AST_TRAIT_ALIAS      = self::AST_DIM + 31;
-        const AST_GROUP_USE        = self::AST_DIM + 32;
-        const AST_PROP_GROUP       = self::AST_DIM + 33;
+        const AST_STATIC           = self::AST_DIM + 19 + self::KIND_ADDER;
+        const AST_WHILE            = self::AST_DIM + 20 + self::KIND_ADDER;
+        const AST_DO_WHILE         = self::AST_DIM + 21 + self::KIND_ADDER;
+        const AST_IF_ELEM          = self::AST_DIM + 22 + self::KIND_ADDER;
+        const AST_SWITCH           = self::AST_DIM + 23 + self::KIND_ADDER;
+        const AST_SWITCH_CASE      = self::AST_DIM + 24 + self::KIND_ADDER;
+        const AST_DECLARE          = self::AST_DIM + 25 + self::KIND_ADDER;
+        const AST_USE_TRAIT        = self::AST_DIM + 26 + self::KIND_ADDER;
+        const AST_TRAIT_PRECEDENCE = self::AST_DIM + 27 + self::KIND_ADDER;
+        const AST_METHOD_REFERENCE = self::AST_DIM + 28 + self::KIND_ADDER;
+        const AST_NAMESPACE        = self::AST_DIM + 29 + self::KIND_ADDER;
+        const AST_USE_ELEM         = self::AST_DIM + 30 + self::KIND_ADDER;
+        const AST_TRAIT_ALIAS      = self::AST_DIM + 31 + self::KIND_ADDER;
+        const AST_GROUP_USE        = self::AST_DIM + 32 + self::KIND_ADDER;
+
+        const AST_CLASS_CONST_GROUP = \IS_PHP74 ? -1 : self::AST_DIM + 33;
+        const AST_ATTRIBUTE         = \IS_PHP74 ? -1 : self::AST_DIM + 34;
+        const AST_MATCH             = \IS_PHP74 ? -1 : self::AST_DIM + 35;
+        const AST_MATCH_ARM         = \IS_PHP74 ? -1 : self::AST_DIM + 36;
+        const AST_NAMED_ARG         = \IS_PHP74 ? -1 : self::AST_DIM + 37;
 
         /* 3 child nodes */
         const AST_METHOD_CALL = 3 << self::AST_NUM_CHILDREN_SHIFT;
-        const AST_STATIC_CALL = self::AST_METHOD_CALL + 1;
-        const AST_CONDITIONAL = self::AST_METHOD_CALL + 2;
+        const AST_NULLSAFE_METHOD_CALL = \IS_PHP74 ? -1 : self::AST_METHOD_CALL + 1;
+        const AST_STATIC_CALL = self::AST_METHOD_CALL + 1 + self::KIND_ADDER;
+        const AST_CONDITIONAL = self::AST_METHOD_CALL + 2 + self::KIND_ADDER;
 
-        const AST_TRY        = self::AST_METHOD_CALL + 3;
-        const AST_CATCH      = self::AST_METHOD_CALL + 4;
-        const AST_PARAM      = self::AST_METHOD_CALL + 5;
-        const AST_PROP_ELEM  = self::AST_METHOD_CALL + 6;
-        const AST_CONST_ELEM = self::AST_METHOD_CALL + 7;
+        const AST_TRY        = self::AST_METHOD_CALL + 3 + self::KIND_ADDER;
+        const AST_CATCH      = self::AST_METHOD_CALL + 4 + self::KIND_ADDER;
+        const AST_PROP_GROUP    = \IS_PHP74 ? self::AST_DIM + 33 : self::AST_METHOD_CALL + 6;
+        const AST_PROP_ELEM  = self::AST_METHOD_CALL + 6 + self::KIND_ADDER;
+        const AST_CONST_ELEM = self::AST_METHOD_CALL + 7 + self::KIND_ADDER;
 
         /* 4 child nodes */
-        const AST_FOR = 4 << self::AST_NUM_CHILDREN_SHIFT;
-        const AST_FOREACH = self::AST_FOR + 1;
+        const AST_FOR       = 4 << self::AST_NUM_CHILDREN_SHIFT;
+        const AST_FOREACH   = self::AST_FOR + 1;
+        const AST_ENUM_CASE = self::AST_FOR + 2;
+
+        /* 5 child nodes */
+        const AST_PARAM      = \IS_PHP74
+            ? self::AST_METHOD_CALL + 5 : 5 << self::AST_NUM_CHILDREN_SHIFT;
 
         /**
          * Cache of constant names (reversed)

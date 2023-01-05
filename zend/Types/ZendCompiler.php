@@ -169,11 +169,10 @@ if (!\class_exists('ZendCompiler')) {
          */
         public function parse_string(string $source, string $fileName = ''): ZendAst
         {
+            $sourceValue = ZendString::init($source);
             if (\IS_PHP74) {
-                $sourceValue = ZendString::init($source);
                 $sourceRaw = $sourceValue();
                 $rawSourceVal = Zval::new(\ZE::IS_STRING, $sourceRaw)();
-
                 $originalLexState = \ze_ffi()->new('zend_lex_state');
                 $originalCompilationMode = $this->in_compilation();
                 $this->in_compilation(true);
@@ -194,13 +193,24 @@ if (!\class_exists('ZendCompiler')) {
 
                 // restore_lexical_state changes CG(ast) and CG(ast_arena)
                 $ast = $this->ze_other_ptr->ast;
-                $node = ZendAst::factory($ast);
 
                 \ze_ffi()->zend_restore_lexical_state(\FFI::addr($originalLexState));
                 $this->in_compilation($originalCompilationMode);
+            } else {
+                $file = ((float) \phpversion()) >= 8.1
+                    ? \FFI::addr(ZendString::init($fileName)()) : $fileName;
 
-                return $node;
+                $arena = \FFI::addr(\ze_ffi()->new("zend_arena*", false));
+                $ast = \ze_ffi()->zend_compile_string_to_ast(
+                    \FFI::addr($sourceValue()),
+                    $arena,
+                    $file
+                );
             }
+
+            $node = ZendAst::factory($ast);
+
+            return $node;
         }
 
         /**
