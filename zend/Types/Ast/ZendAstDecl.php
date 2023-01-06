@@ -22,7 +22,7 @@ if (!\class_exists('ZendAstDecl')) {
      *   unsigned char *lex_pos;
      *   zend_string *doc_comment;
      *   zend_string *name;
-     *   zend_ast *child[4];
+     *   zend_ast *child[4]; // PHP 8+ zend_ast *child[5];
      * } zend_ast_decl;
      *```
      */
@@ -45,17 +45,13 @@ if (!\class_exists('ZendAstDecl')) {
                 throw new \InvalidArgumentException('Given AST type ' . $kindName . ' does not belong to declaration');
             }
 
-            if (\count($childrenNodes) > 4) {
-                throw new \InvalidArgumentException('Declaration node can contain only up to 4 children nodes');
+            if (\count($childrenNodes) > (4 + ZendAstKind::KIND_ADDER)) {
+                throw new \InvalidArgumentException('Declaration node can contain only up to 4 or (5 for PHP 8+) children nodes');
             }
 
             // Fill exactly 4 nodes with default null values
-            $childrenNodes = $childrenNodes + \array_fill(0, 4, null);
+            $childrenNodes = $childrenNodes + \array_fill(0, (4 + ZendAstKind::KIND_ADDER), null);
 
-            // ZEND_API zend_ast *zend_ast_create_decl(
-            //    zend_ast_kind kind, uint32_t flags, uint32_t start_lineno, zend_string *doc_comment,
-            //    zend_string *name, zend_ast *child0, zend_ast *child1, zend_ast *child2, zend_ast *child3
-            //);
             $ast = \ze_ffi()->zend_ast_create_decl(
                 $kind,
                 $flags,
@@ -166,7 +162,7 @@ if (!\class_exists('ZendAstDecl')) {
         public function num_children(): int
         {
             // Declaration node always contain 4 children nodes.
-            return 4;
+            return (4 + ZendAstKind::KIND_ADDER);
         }
 
         protected function dumpThis(int $indent = 0): string
