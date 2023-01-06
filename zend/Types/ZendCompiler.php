@@ -206,6 +206,9 @@ if (!\class_exists('ZendCompiler')) {
                     $arena,
                     $file
                 );
+
+                $this->ze_other_ptr->ast = $ast;
+                $this->ze_other_ptr->ast_arena = $arena[0];
             }
 
             $node = ZendAst::factory($ast);

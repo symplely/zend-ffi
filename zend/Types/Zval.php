@@ -343,6 +343,8 @@ if (!\class_exists('Zval')) {
                         ? \ZE::IS_INTERNED_STRING_EX
                         : \ZE::IS_STRING_EX;
                     break;
+                case \ZE::STRVAL_P:
+                    return $this->ze_ptr->value->str->val;
                 case \ZE::ARR_P:
                 case \ZE::ARRVAL_P:
                     if (\is_null($valuePtr))

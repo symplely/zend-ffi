@@ -50,9 +50,9 @@ if (!\class_exists('ZendAstZval')) {
         }
 
         /**
-         * For ValueNode line is stored in the val.u2.lineno
+         * For line is stored in the `Zval` val.u2.lineno
          */
-        public function lineno(int $newLine = null): int
+        public function lineno(int $newLine = null)
         {
             return $this->get_value()->extra();
         }

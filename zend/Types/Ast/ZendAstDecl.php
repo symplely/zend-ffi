@@ -73,7 +73,7 @@ if (!\class_exists('ZendAstDecl')) {
          * @param integer|null $newLine Changes the start line
          * @return integer|void
          */
-        public function start_lineno(int $newLine = null): int
+        public function start_lineno(int $newLine = null)
         {
             if (\is_null($newLine))
                 return $this->ze_other_ptr->start_lineno;
@@ -120,7 +120,7 @@ if (!\class_exists('ZendAstDecl')) {
          * @param string|null $newDocComment Changes the doc comment for this declaration
          * @return string|void
          */
-        public function doc_comment(string $newDocComment = null): string
+        public function doc_comment(string $newDocComment = null)
         {
             if (\is_null($newDocComment)) {
                 if ($this->ze_other_ptr->doc_comment === null) {

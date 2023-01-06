@@ -6,6 +6,7 @@ namespace ZE\Ast;
 
 use FFI\CData;
 use ZE\ObjectHandler;
+use ZE\Ast\Node;
 use ZE\Ast\ZendAstKind;
 use ZE\Ast\ZendAstList;
 use ZE\Ast\ZendAstDecl;
@@ -131,7 +132,7 @@ if (!\class_exists('ZendAst')) {
          * @param integer $newAttributes Changes node attributes
          * @return integer|void
          */
-        final public function attr(int $newAttributes = null): int
+        final public function attr(int $newAttributes = null)
         {
             if (\is_null($newAttributes))
                 return $this->ze_other_ptr->attr;
@@ -145,7 +146,7 @@ if (!\class_exists('ZendAst')) {
          * @param integer|null $newLine Changes the node line
          * @return integer|void
          */
-        public function lineno(int $newLine = null): int
+        public function lineno(int $newLine = null)
         {
             if (\is_null($newLine))
                 return $this->ze_other_ptr->lineno;

@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace ZE\Ast;
 
+use FFI\CData;
+use ZE\Zval;
+
 if (!\class_exists('ZendAstKind')) {
     /**
      * Declares possible AST nodes kind
      */
     final class ZendAstKind
     {
-        private const AST_SPECIAL_SHIFT      = 6;
-        private const AST_IS_LIST_SHIFT      = 7;
-        private const AST_NUM_CHILDREN_SHIFT = 8;
+        const AST_SPECIAL_SHIFT      = 6;
+        const AST_IS_LIST_SHIFT      = 7;
+        const AST_NUM_CHILDREN_SHIFT = 8;
 
         const KIND_ADDER    = \IS_PHP74 ? 0 : 1;
 
@@ -44,11 +47,17 @@ if (!\class_exists('ZendAstKind')) {
         const AST_NAME_LIST         = self::AST_ARG_LIST + 13;
         const AST_TRAIT_ADAPTATIONS = self::AST_ARG_LIST + 14;
         const AST_USE               = self::AST_ARG_LIST + 15;
+        const AST_TYPE_UNION        = \IS_PHP74 ? -1 : self::AST_ARG_LIST + 16;
+        const AST_TYPE_INTERSECTION = \IS_PHP74 ? -1 : self::AST_ARG_LIST + 17;
+        const AST_ATTRIBUTE_LIST    = \IS_PHP74 ? -1 : self::AST_ARG_LIST + 18;
+        const AST_ATTRIBUTE_GROUP   = \IS_PHP74 ? -1 : self::AST_ARG_LIST + 19;
+        const AST_MATCH_ARM_LIST    = \IS_PHP74 ? -1 : self::AST_ARG_LIST + 20;
 
         /* 0 child nodes */
-        const AST_MAGIC_CONST    = 0 << self::AST_NUM_CHILDREN_SHIFT;
-        const AST_TYPE           = self::AST_MAGIC_CONST + 1;
-        const AST_CONSTANT_CLASS = self::AST_MAGIC_CONST + 2;
+        const AST_MAGIC_CONST       = 0 << self::AST_NUM_CHILDREN_SHIFT;
+        const AST_TYPE              = self::AST_MAGIC_CONST + 1;
+        const AST_CONSTANT_CLASS    = self::AST_MAGIC_CONST + 2;
+        const AST_CALLABLE_CONVERT  = \IS_PHP74 ? -1 : self::AST_MAGIC_CONST + 3;
 
         /* 1 child node */
         const AST_VAR             = 1 << self::AST_NUM_CHILDREN_SHIFT;
@@ -129,16 +138,19 @@ if (!\class_exists('ZendAstKind')) {
         const AST_NAMED_ARG         = \IS_PHP74 ? -1 : self::AST_DIM + 37;
 
         /* 3 child nodes */
-        const AST_METHOD_CALL = 3 << self::AST_NUM_CHILDREN_SHIFT;
-        const AST_NULLSAFE_METHOD_CALL = \IS_PHP74 ? -1 : self::AST_METHOD_CALL + 1;
-        const AST_STATIC_CALL = self::AST_METHOD_CALL + 1 + self::KIND_ADDER;
-        const AST_CONDITIONAL = self::AST_METHOD_CALL + 2 + self::KIND_ADDER;
+        const AST_METHOD_CALL           = 3 << self::AST_NUM_CHILDREN_SHIFT;
+        const AST_NULLSAFE_METHOD_CALL  = \IS_PHP74 ? -1 : self::AST_METHOD_CALL + 1;
+        const AST_STATIC_CALL           = self::AST_METHOD_CALL + 1 + self::KIND_ADDER;
+        const AST_CONDITIONAL           = self::AST_METHOD_CALL + 2 + self::KIND_ADDER;
 
-        const AST_TRY        = self::AST_METHOD_CALL + 3 + self::KIND_ADDER;
-        const AST_CATCH      = self::AST_METHOD_CALL + 4 + self::KIND_ADDER;
+        const AST_TRY           = self::AST_METHOD_CALL + 3 + self::KIND_ADDER;
+        const AST_CATCH         = self::AST_METHOD_CALL + 4 + self::KIND_ADDER;
         const AST_PROP_GROUP    = \IS_PHP74 ? self::AST_DIM + 33 : self::AST_METHOD_CALL + 6;
-        const AST_PROP_ELEM  = self::AST_METHOD_CALL + 6 + self::KIND_ADDER;
-        const AST_CONST_ELEM = self::AST_METHOD_CALL + 7 + self::KIND_ADDER;
+        const AST_PROP_ELEM     = self::AST_METHOD_CALL + 6 + self::KIND_ADDER;
+        const AST_CONST_ELEM    = self::AST_METHOD_CALL + 7 + self::KIND_ADDER;
+
+        // Pseudo node for initializing enums
+        const AST_CONST_ENUM_INIT = \IS_PHP74 ? -1 : self::AST_METHOD_CALL + 9;
 
         /* 4 child nodes */
         const AST_FOR       = 4 << self::AST_NUM_CHILDREN_SHIFT;
@@ -180,6 +192,40 @@ if (!\class_exists('ZendAstKind')) {
             return (bool)(($astKind >> self::AST_IS_LIST_SHIFT) & 1);
         }
 
+        public static function ast_is_list(CData $ast): bool
+        {
+            return self::is_list($ast->kind);
+        }
+
+        public static function ast_get_list(CData $ast): CData
+        {
+            if (self::ast_is_list($ast))
+                return \ze_ffi()->cast('zend_ast_list *', $ast);
+        }
+
+        public static function ast_get_lineno(CData $ast): int
+        {
+            if ($ast->kind == self::AST_ZVAL) {
+                return self::ast_get_zval($ast)->extra();
+                // zval *zv = zend_ast_get_zval($ast);
+                // return Z_LINENO_P(zv);
+            } else {
+                return $ast->lineno;
+            }
+        }
+
+        public static function ast_get_zval(CData $ast): Zval
+        {
+            if ($ast->kind == self::AST_ZVAL)
+                return Zval::init_value(\ze_ffi()->cast('zend_ast_zval *', $ast)->val);
+        }
+
+        public static function ast_get_num_children(CData $ast): int
+        {
+            if (self::ast_is_list($ast))
+                return self::num_children($ast->kind);
+        }
+
         /**
          * Returns the number of children for that node
          *
@@ -206,6 +252,480 @@ if (!\class_exists('ZendAstKind')) {
             }
 
             return self::$constantNames[$astKind];
+        }
+
+        public static function create_node_ast(): \CStruct
+        {
+            $nast = \c_typedef('node_ast', 'ze', false);
+            $nast()->kind = "UNINITIALIZED";
+            $nast()->value = "";
+            $nast()->lineno = 0;
+            $nast()->children = 0;
+
+            return $nast;
+        }
+
+        public static function parse(CData $ast, CData $nast): void
+        {
+            if ($ast->kind == self::AST_ZVAL) {
+                $nast->kind = self::to_string($ast->kind);
+                $nast->lineno = self::ast_get_lineno($ast);
+
+                $zv = self::ast_get_zval($ast);
+                if ($zv instanceof Zval) {
+                    switch ($zv->macro(\ZE::TYPE_P)) {
+                        case \ZE::IS_LONG:
+                            $nast->value = \sprintf("%d", (int)$zv->macro(\ZE::TYPE_P));
+                            break;
+                        case \ZE::IS_DOUBLE:
+                            $nast->value = \sprintf("%.2f", $zv->macro(\ZE::DVAL_P));
+                            break;
+                        case \ZE::IS_STRING:
+                            $nast->value = $zv->macro(\ZE::STRVAL_P);
+                            break;
+                        default:
+                            $nast->value = "UNKNOWN"; //@todo
+                    }
+                }
+
+                return;
+            }
+
+            if (self::is_decl($ast->kind)) {
+                $decl = \ze_ffi()->cast('zend_ast_decl *', $ast);
+
+                $nast->kind = self::to_string($ast->kind);
+                $nast->lineno = self::ast_get_lineno($ast);
+                $nast->value = $decl->name->val;
+                self::parse_decl($decl, $nast);
+                return;
+            }
+
+            if (self::ast_is_list($ast)) {
+                $nast->kind = self::to_string($ast->kind);
+                $nast->lineno = self::ast_get_lineno($ast);
+                self::parse_list($ast, $nast);
+                return;
+            }
+
+            $nast->kind = self::to_string($ast->kind);
+            $nast->lineno = self::ast_get_lineno($ast);
+            self::parse_as_list($ast, $nast);
+        }
+
+        public static function parse_list(CData $ast, CData $nast): void
+        {
+            $ast_list = self::ast_get_list($ast);
+            $nast->children = 0;
+            for ($i = 0; $i < $ast_list->children; $i++) {
+                if (!\is_null($ast_list->child[$i])) {
+                    $nast->child[$nast->children] = self::create_node_ast();
+                    self::parse($ast_list->child[$i], $nast->child[$nast->children]);
+                    $nast->children++;
+                } else {
+                    \ze_ffi()->zend_error(\E_WARNING, "list %s [%d] not found\n", $nast->kind, $i);
+                }
+            }
+        }
+
+        public static function parse_as_list(CData $ast, CData $nast): void
+        {
+            $nast->children = 0;
+            for ($i = 0; $i < self::ast_get_num_children($ast); $i++) {
+                if ($ast->child[i]) {
+                    $nast->child[$nast->children] = self::create_node_ast();
+                    self::parse($ast->child[$i], $nast->child[$nast->children]);
+                    $nast->children++;
+                } else {
+                    \ze_ffi()->zend_error(\E_WARNING, "as_list %s [%d] not found\n", $nast->kind, $i);
+                }
+            }
+        }
+
+        public static function parse_decl(CData $ast, CData $nast)
+        {
+            $nast->children = 0;
+            for ($i = 0; $i < 5; $i++) {
+                if ($ast->child[$i]) {
+                    $nast->child[$nast->children] = self::create_node_ast();
+                    self::parse($ast->child[i], $nast->child[$nast->children]);
+                    $nast->children++;
+                } else {
+                    \ze_ffi()->zend_error(\E_WARNING, "decl %s [%d] not found\n", $nast->kind, $i);
+                }
+            }
+        }
+
+        public static function is_decl(int $kind): bool
+        {
+            return $kind == self::AST_FUNC_DECL
+                || $kind == self::AST_CLOSURE
+                || $kind == self::AST_ARROW_FUNC
+                || $kind == self::AST_METHOD
+                || $kind == self::AST_CLASS;
+        }
+
+        public static function to_string(int $kind): string
+        {
+            switch ($kind) {
+                case self::AST_ZVAL:
+                    return "ZEND_AST_ZVAL";
+                    break;
+                case self::AST_CONSTANT:
+                    return "ZEND_AST_CONSTANT";
+                    break;
+                case self::AST_ZNODE:
+                    return "ZEND_AST_ZNODE";
+                    break;
+                case self::AST_FUNC_DECL:
+                    return "ZEND_AST_FUNC_DECL";
+                    break;
+                case self::AST_CLOSURE:
+                    return "ZEND_AST_CLOSURE";
+                    break;
+                case self::AST_METHOD:
+                    return "ZEND_AST_METHOD";
+                    break;
+                case self::AST_CLASS:
+                    return "ZEND_AST_CLASS";
+                    break;
+                case self::AST_ARROW_FUNC:
+                    return "ZEND_AST_ARROW_FUNC";
+                    break;
+                case self::AST_ARG_LIST:
+                    return "ZEND_AST_ARG_LIST";
+                    break;
+                case self::AST_ARRAY:
+                    return "ZEND_AST_ARRAY";
+                    break;
+                case self::AST_ENCAPS_LIST:
+                    return "ZEND_AST_ENCAPS_LIST";
+                    break;
+                case self::AST_EXPR_LIST:
+                    return "ZEND_AST_EXPR_LIST";
+                    break;
+                case self::AST_STMT_LIST:
+                    return "ZEND_AST_STMT_LIST";
+                    break;
+                case self::AST_IF:
+                    return "ZEND_AST_IF";
+                    break;
+                case self::AST_SWITCH_LIST:
+                    return "ZEND_AST_SWITCH_LIST";
+                    break;
+                case self::AST_CATCH_LIST:
+                    return "ZEND_AST_CATCH_LIST";
+                    break;
+                case self::AST_PARAM_LIST:
+                    return "ZEND_AST_PARAM_LIST";
+                    break;
+                case self::AST_CLOSURE_USES:
+                    return "ZEND_AST_CLOSURE_USES";
+                    break;
+                case self::AST_PROP_DECL:
+                    return "ZEND_AST_PROP_DECL";
+                    break;
+                case self::AST_CONST_DECL:
+                    return "ZEND_AST_CONST_DECL";
+                    break;
+                case self::AST_CLASS_CONST_DECL:
+                    return "ZEND_AST_CLASS_CONST_DECL";
+                    break;
+                case self::AST_NAME_LIST:
+                    return "ZEND_AST_NAME_LIST";
+                    break;
+                case self::AST_TRAIT_ADAPTATIONS:
+                    return "ZEND_AST_TRAIT_ADAPTATIONS";
+                    break;
+                case self::AST_USE:
+                    return "ZEND_AST_USE";
+                    break;
+                case self::AST_TYPE_UNION:
+                    return "ZEND_AST_TYPE_UNION";
+                    break;
+                case self::AST_TYPE_INTERSECTION:
+                    return "ZEND_AST_TYPE_INTERSECTION";
+                    break;
+                case self::AST_ATTRIBUTE_LIST:
+                    return "ZEND_AST_ATTRIBUTE_LIST";
+                    break;
+                case self::AST_ATTRIBUTE_GROUP:
+                    return "ZEND_AST_ATTRIBUTE_GROUP";
+                    break;
+                case self::AST_MATCH_ARM_LIST:
+                    return "ZEND_AST_MATCH_ARM_LIST";
+                    break;
+                case self::AST_MAGIC_CONST:
+                    return "ZEND_AST_MAGIC_CONST";
+                    break;
+                case self::AST_TYPE:
+                    return "ZEND_AST_TYPE";
+                    break;
+                case self::AST_CONSTANT_CLASS:
+                    return "ZEND_AST_CONSTANT_CLASS";
+                    break;
+                case self::AST_CALLABLE_CONVERT:
+                    return "ZEND_AST_CALLABLE_CONVERT";
+                    break;
+                case self::AST_VAR:
+                    return "ZEND_AST_VAR";
+                    break;
+                case self::AST_CONST:
+                    return "ZEND_AST_CONST";
+                    break;
+                case self::AST_UNPACK:
+                    return "ZEND_AST_UNPACK";
+                    break;
+                case self::AST_UNARY_PLUS:
+                    return "ZEND_AST_UNARY_PLUS";
+                    break;
+                case self::AST_UNARY_MINUS:
+                    return "ZEND_AST_UNARY_MINUS";
+                    break;
+                case self::AST_CAST:
+                    return "ZEND_AST_CAST";
+                    break;
+                case self::AST_EMPTY:
+                    return "ZEND_AST_EMPTY";
+                    break;
+                case self::AST_ISSET:
+                    return "ZEND_AST_ISSET";
+                    break;
+                case self::AST_SILENCE:
+                    return "ZEND_AST_SILENCE";
+                    break;
+                case self::AST_SHELL_EXEC:
+                    return "ZEND_AST_SHELL_EXEC";
+                    break;
+                case self::AST_CLONE:
+                    return "ZEND_AST_CLONE";
+                    break;
+                case self::AST_EXIT:
+                    return "ZEND_AST_EXIT";
+                    break;
+                case self::AST_PRINT:
+                    return "ZEND_AST_PRINT";
+                    break;
+                case self::AST_INCLUDE_OR_EVAL:
+                    return "ZEND_AST_INCLUDE_OR_EVAL";
+                    break;
+                case self::AST_UNARY_OP:
+                    return "ZEND_AST_UNARY_OP";
+                    break;
+                case self::AST_PRE_INC:
+                    return "ZEND_AST_PRE_INC";
+                    break;
+                case self::AST_PRE_DEC:
+                    return "ZEND_AST_PRE_DEC";
+                    break;
+                case self::AST_POST_INC:
+                    return "ZEND_AST_POST_INC";
+                    break;
+                case self::AST_POST_DEC:
+                    return "ZEND_AST_POST_DEC";
+                    break;
+                case self::AST_YIELD_FROM:
+                    return "ZEND_AST_YIELD_FROM";
+                    break;
+                case self::AST_CLASS_NAME:
+                    return "ZEND_AST_CLASS_NAME";
+                    break;
+                case self::AST_GLOBAL:
+                    return "ZEND_AST_GLOBAL";
+                    break;
+                case self::AST_UNSET:
+                    return "ZEND_AST_UNSET";
+                    break;
+                case self::AST_RETURN:
+                    return "ZEND_AST_RETURN";
+                    break;
+                case self::AST_LABEL:
+                    return "ZEND_AST_LABEL";
+                    break;
+                case self::AST_REF:
+                    return "ZEND_AST_REF";
+                    break;
+                case self::AST_HALT_COMPILER:
+                    return "ZEND_AST_HALT_COMPILER";
+                    break;
+                case self::AST_ECHO:
+                    return "ZEND_AST_ECHO";
+                    break;
+                case self::AST_THROW:
+                    return "ZEND_AST_THROW";
+                    break;
+                case self::AST_GOTO:
+                    return "ZEND_AST_GOTO";
+                    break;
+                case self::AST_BREAK:
+                    return "ZEND_AST_BREAK";
+                    break;
+                case self::AST_CONTINUE:
+                    return "ZEND_AST_CONTINUE";
+                    break;
+                case self::AST_DIM:
+                    return "ZEND_AST_DIM";
+                    break;
+                case self::AST_PROP:
+                    return "ZEND_AST_PROP";
+                    break;
+                case self::AST_NULLSAFE_PROP:
+                    return "ZEND_AST_NULLSAFE_PROP";
+                    break;
+                case self::AST_STATIC_PROP:
+                    return "ZEND_AST_STATIC_PROP";
+                    break;
+                case self::AST_CALL:
+                    return "ZEND_AST_CALL";
+                    break;
+                case self::AST_CLASS_CONST:
+                    return "ZEND_AST_CLASS_CONST";
+                    break;
+                case self::AST_ASSIGN:
+                    return "ZEND_AST_ASSIGN";
+                    break;
+                case self::AST_ASSIGN_REF:
+                    return "ZEND_AST_ASSIGN_REF";
+                    break;
+                case self::AST_ASSIGN_OP:
+                    return "ZEND_AST_ASSIGN_OP";
+                    break;
+                case self::AST_BINARY_OP:
+                    return "ZEND_AST_BINARY_OP";
+                    break;
+                case self::AST_GREATER:
+                    return "ZEND_AST_GREATER";
+                    break;
+                case self::AST_GREATER_EQUAL:
+                    return "ZEND_AST_GREATER_EQUAL";
+                    break;
+                case self::AST_AND:
+                    return "ZEND_AST_AND";
+                    break;
+                case self::AST_OR:
+                    return "ZEND_AST_OR";
+                    break;
+                case self::AST_ARRAY_ELEM:
+                    return "ZEND_AST_ARRAY_ELEM";
+                    break;
+                case self::AST_NEW:
+                    return "ZEND_AST_NEW";
+                    break;
+                case self::AST_INSTANCEOF:
+                    return "ZEND_AST_INSTANCEOF";
+                    break;
+                case self::AST_YIELD:
+                    return "ZEND_AST_YIELD";
+                    break;
+                case self::AST_COALESCE:
+                    return "ZEND_AST_COALESCE";
+                    break;
+                case self::AST_ASSIGN_COALESCE:
+                    return "ZEND_AST_ASSIGN_COALESCE";
+                    break;
+                case self::AST_STATIC:
+                    return "ZEND_AST_STATIC";
+                    break;
+                case self::AST_WHILE:
+                    return "ZEND_AST_WHILE";
+                    break;
+                case self::AST_DO_WHILE:
+                    return "ZEND_AST_DO_WHILE";
+                    break;
+                case self::AST_IF_ELEM:
+                    return "ZEND_AST_IF_ELEM";
+                    break;
+                case self::AST_SWITCH:
+                    return "ZEND_AST_SWITCH";
+                    break;
+                case self::AST_SWITCH_CASE:
+                    return "ZEND_AST_SWITCH_CASE";
+                    break;
+                case self::AST_DECLARE:
+                    return "ZEND_AST_DECLARE";
+                    break;
+                case self::AST_USE_TRAIT:
+                    return "ZEND_AST_USE_TRAIT";
+                    break;
+                case self::AST_TRAIT_PRECEDENCE:
+                    return "ZEND_AST_TRAIT_PRECEDENCE";
+                    break;
+                case self::AST_METHOD_REFERENCE:
+                    return "ZEND_AST_METHOD_REFERENCE";
+                    break;
+                case self::AST_NAMESPACE:
+                    return "ZEND_AST_NAMESPACE";
+                    break;
+                case self::AST_USE_ELEM:
+                    return "ZEND_AST_USE_ELEM";
+                    break;
+                case self::AST_TRAIT_ALIAS:
+                    return "ZEND_AST_TRAIT_ALIAS";
+                    break;
+                case self::AST_GROUP_USE:
+                    return "ZEND_AST_GROUP_USE";
+                    break;
+                case self::AST_CLASS_CONST_GROUP:
+                    return "ZEND_AST_CLASS_CONST_GROUP";
+                    break;
+                case self::AST_ATTRIBUTE:
+                    return "ZEND_AST_ATTRIBUTE";
+                    break;
+                case self::AST_MATCH:
+                    return "ZEND_AST_MATCH";
+                    break;
+                case self::AST_MATCH_ARM:
+                    return "ZEND_AST_MATCH_ARM";
+                    break;
+                case self::AST_NAMED_ARG:
+                    return "ZEND_AST_NAMED_ARG";
+                    break;
+                case self::AST_METHOD_CALL:
+                    return "ZEND_AST_METHOD_CALL";
+                    break;
+                case self::AST_NULLSAFE_METHOD_CALL:
+                    return "ZEND_AST_NULLSAFE_METHOD_CALL";
+                    break;
+                case self::AST_STATIC_CALL:
+                    return "ZEND_AST_STATIC_CALL";
+                    break;
+                case self::AST_CONDITIONAL:
+                    return "ZEND_AST_CONDITIONAL";
+                    break;
+                case self::AST_TRY:
+                    return "ZEND_AST_TRY";
+                    break;
+                case self::AST_CATCH:
+                    return "ZEND_AST_CATCH";
+                    break;
+                case self::AST_PROP_GROUP:
+                    return "ZEND_AST_PROP_GROUP";
+                    break;
+                case self::AST_PROP_ELEM:
+                    return "ZEND_AST_PROP_ELEM";
+                    break;
+                case self::AST_CONST_ELEM:
+                    return "ZEND_AST_CONST_ELEM";
+                    break;
+                case self::AST_CONST_ENUM_INIT:
+                    return "ZEND_AST_CONST_ENUM_INIT";
+                    break;
+                case self::AST_FOR:
+                    return "ZEND_AST_FOR";
+                    break;
+                case self::AST_FOREACH:
+                    return "ZEND_AST_FOREACH";
+                    break;
+                case self::AST_ENUM_CASE:
+                    return "ZEND_AST_ENUM_CASE";
+                    break;
+                case self::AST_PARAM:
+                    return "ZEND_AST_PARAM";
+                    break;
+                default: {
+                        return \sprintf("UNKNOWN: %d", $kind);
+                    }
+            }
         }
     }
 }
