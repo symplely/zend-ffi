@@ -18,6 +18,7 @@ use ZE\ZendMethod;
 use ZE\ZendObjectsStore;
 use ZE\AstProcess;
 use ZE\ZendCompiler;
+use ZE\Ast\Node;
 use ZE\Ast\ZendAst;
 
 if (!\function_exists('zval_stack')) {
@@ -1020,7 +1021,10 @@ if (!\function_exists('zval_stack')) {
         $hook->install();
     }
 
-    function zend_parse_string(string $source, string $fileName = ''): ZendAst
+    /**
+     * @return ZendAst|Node
+     */
+    function zend_parse_string(string $source, string $fileName = '')
     {
         return ZendCompiler::init()->parse_string($source, $fileName);
     }

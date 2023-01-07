@@ -207,8 +207,6 @@ if (!\class_exists('ZendAstKind')) {
         {
             if ($ast->kind == self::AST_ZVAL) {
                 return self::ast_get_zval($ast)->extra();
-                // zval *zv = zend_ast_get_zval($ast);
-                // return Z_LINENO_P(zv);
             } else {
                 return $ast->lineno;
             }
@@ -216,14 +214,12 @@ if (!\class_exists('ZendAstKind')) {
 
         public static function ast_get_zval(CData $ast): Zval
         {
-            if ($ast->kind == self::AST_ZVAL)
-                return Zval::init_value(\ze_ffi()->cast('zend_ast_zval *', $ast)->val);
+            return Zval::init_value(\ze_ffi()->cast('zend_ast_zval *', $ast)->val);
         }
 
         public static function ast_get_num_children(CData $ast): int
         {
-            if (self::ast_is_list($ast))
-                return self::num_children($ast->kind);
+            return self::num_children($ast->kind);
         }
 
         /**
@@ -254,21 +250,10 @@ if (!\class_exists('ZendAstKind')) {
             return self::$constantNames[$astKind];
         }
 
-        public static function create_node_ast(): \CStruct
-        {
-            $nast = \c_typedef('node_ast', 'ze', false);
-            $nast()->kind = "UNINITIALIZED";
-            $nast()->value = "";
-            $nast()->lineno = 0;
-            $nast()->children = 0;
-
-            return $nast;
-        }
-
         public static function parse(CData $ast, CData $nast): void
         {
             if ($ast->kind == self::AST_ZVAL) {
-                $nast->kind = self::to_string($ast->kind);
+                $nast->kind = \ffi_char(self::to_string($ast->kind));
                 $nast->lineno = self::ast_get_lineno($ast);
 
                 $zv = self::ast_get_zval($ast);
@@ -294,7 +279,7 @@ if (!\class_exists('ZendAstKind')) {
             if (self::is_decl($ast->kind)) {
                 $decl = \ze_ffi()->cast('zend_ast_decl *', $ast);
 
-                $nast->kind = self::to_string($ast->kind);
+                $nast->kind = \ffi_char(self::to_string($ast->kind));
                 $nast->lineno = self::ast_get_lineno($ast);
                 $nast->value = $decl->name->val;
                 self::parse_decl($decl, $nast);
@@ -302,13 +287,13 @@ if (!\class_exists('ZendAstKind')) {
             }
 
             if (self::ast_is_list($ast)) {
-                $nast->kind = self::to_string($ast->kind);
+                $nast->kind = \ffi_char(self::to_string($ast->kind));
                 $nast->lineno = self::ast_get_lineno($ast);
                 self::parse_list($ast, $nast);
                 return;
             }
 
-            $nast->kind = self::to_string($ast->kind);
+            $nast->kind = \ffi_char(self::to_string($ast->kind));
             $nast->lineno = self::ast_get_lineno($ast);
             self::parse_as_list($ast, $nast);
         }
@@ -319,7 +304,7 @@ if (!\class_exists('ZendAstKind')) {
             $nast->children = 0;
             for ($i = 0; $i < $ast_list->children; $i++) {
                 if (!\is_null($ast_list->child[$i])) {
-                    $nast->child[$nast->children] = self::create_node_ast();
+                    $nast->child[$nast->children] = Node::create_ast();
                     self::parse($ast_list->child[$i], $nast->child[$nast->children]);
                     $nast->children++;
                 } else {
@@ -332,8 +317,8 @@ if (!\class_exists('ZendAstKind')) {
         {
             $nast->children = 0;
             for ($i = 0; $i < self::ast_get_num_children($ast); $i++) {
-                if ($ast->child[i]) {
-                    $nast->child[$nast->children] = self::create_node_ast();
+                if ($ast->child[$i]) {
+                    $nast->child[$nast->children] = Node::create_ast();
                     self::parse($ast->child[$i], $nast->child[$nast->children]);
                     $nast->children++;
                 } else {
@@ -347,8 +332,8 @@ if (!\class_exists('ZendAstKind')) {
             $nast->children = 0;
             for ($i = 0; $i < 5; $i++) {
                 if ($ast->child[$i]) {
-                    $nast->child[$nast->children] = self::create_node_ast();
-                    self::parse($ast->child[i], $nast->child[$nast->children]);
+                    $nast->child[$nast->children] = Node::create_ast();
+                    self::parse($ast->child[$i], $nast->child[$nast->children]);
                     $nast->children++;
                 } else {
                     \ze_ffi()->zend_error(\E_WARNING, "decl %s [%d] not found\n", $nast->kind, $i);

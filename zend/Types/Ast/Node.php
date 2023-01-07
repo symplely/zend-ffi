@@ -15,15 +15,34 @@ final class Node
     /** @var Node[] */
     public array $children = [];
 
+    /** @var \CStruct[] */
+    private static ?array $node_ast = [];
+
+    public function __destruct()
+    {
+        self::$node_ast = null;
+    }
+
     private function __construct()
     {
     }
 
-    public static function parse(string $content): Node
+    public static function create_ast(): CData
     {
-        $ast = \zend_parse_string($content);
+        $node_ast = \c_typedef('node_ast', 'ze', false);
+        $node_ast()->kind = \ffi_char("UNINITIALIZED");
+        $node_ast()->value = \ffi_char("");
+        $node_ast()->lineno = 0;
+        $node_ast()->children = 0;
 
-        return self::create($ast());
+        self::$node_ast[] = $node_ast;
+
+        return $node_ast();
+    }
+
+    public function dump(Node $node, int $indent = 0): void
+    {
+        self::print($node, $indent);
     }
 
     public static function print(Node $node, int $indent = 0): void
@@ -41,7 +60,7 @@ final class Node
         }
     }
 
-    private static function create(CData $ast): Node
+    public static function create(CData $ast): Node
     {
         $ast = $ast[0];
 
