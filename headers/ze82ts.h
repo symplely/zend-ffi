@@ -2544,14 +2544,3 @@ int getpagesize(void);
 
 zend_ast *zend_compile_string_to_ast(
 	zend_string *code, struct _zend_arena **ast_arena, zend_string *filename);
-
-typedef struct _node_ast node_ast;
-
-struct _node_ast
-{
-	const char *kind;
-	const char *value;
-	int lineno;
-	int children;
-	node_ast *child[100];
-};

@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace ZE;
 
 use ZE\ZendString;
-use ZE\Ast\Node;
 use ZE\Ast\ZendAst;
-use ZE\Ast\ZendAstKind;
 
 if (!\class_exists('ZendCompiler')) {
     final class ZendCompiler extends \ZE
@@ -167,9 +165,9 @@ if (!\class_exists('ZendCompiler')) {
          * @param string $source Source code to parse
          * @param string $fileName Optional filename that will be used in the engine
          *
-         * @return ZendAst|Node
+         * @return ZendAst
          */
-        public function parse_string(string $source, string $fileName = '')
+        public function parse_string(string $source, string $fileName = ''): ZendAst
         {
             $sourceValue = ZendString::init($source);
             if (\IS_PHP74) {
@@ -195,12 +193,9 @@ if (!\class_exists('ZendCompiler')) {
 
                 // restore_lexical_state changes CG(ast) and CG(ast_arena)
                 $ast = $this->ze_other_ptr->ast;
-                $node = ZendAst::factory($ast);
 
                 \ze_ffi()->zend_restore_lexical_state(\FFI::addr($originalLexState));
                 $this->in_compilation($originalCompilationMode);
-
-                return $node;
             } else {
                 $file = ((float) \phpversion()) >= 8.1
                     ? \FFI::addr(ZendString::init($fileName)()) : $fileName;
@@ -212,11 +207,11 @@ if (!\class_exists('ZendCompiler')) {
                     $file
                 );
 
-                $node_ast = Node::create_ast();
-                ZendAstKind::parse($ast, $node_ast);
-
-                return Node::create($node_ast);
+                $this->ze_other_ptr->ast = $ast;
+                $this->ze_other_ptr->ast_arena = $arena[0];
             }
+
+            return ZendAst::factory($ast);
         }
 
         /**

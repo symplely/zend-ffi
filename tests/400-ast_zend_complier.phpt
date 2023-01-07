@@ -1,7 +1,7 @@
 --TEST--
 Check for Ast Zend Complier
 --SKIPIF--
-<?php if (!extension_loaded("ffi") || ((float) \phpversion() >= 8.0)) print "skip"; ?>
+<?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
 <?php
 require 'vendor/autoload.php';

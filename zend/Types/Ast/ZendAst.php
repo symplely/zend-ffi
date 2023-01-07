@@ -6,7 +6,6 @@ namespace ZE\Ast;
 
 use FFI\CData;
 use ZE\ObjectHandler;
-use ZE\Ast\Node;
 use ZE\Ast\ZendAstKind;
 use ZE\Ast\ZendAstList;
 use ZE\Ast\ZendAstDecl;
@@ -148,8 +147,16 @@ if (!\class_exists('ZendAst')) {
          */
         public function lineno(int $newLine = null)
         {
-            if (\is_null($newLine))
-                return $this->ze_other_ptr->lineno;
+            if (\is_null($newLine)) {
+                static $number;
+                try {
+                    $number = $this->ze_other_ptr->lineno;
+                    return $number;
+                } catch (\Throwable $th) {
+                    $number++;
+                    return $number++;
+                }
+            }
 
             $this->ze_other_ptr->lineno = $newLine;
         }

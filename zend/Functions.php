@@ -18,7 +18,6 @@ use ZE\ZendMethod;
 use ZE\ZendObjectsStore;
 use ZE\AstProcess;
 use ZE\ZendCompiler;
-use ZE\Ast\Node;
 use ZE\Ast\ZendAst;
 
 if (!\function_exists('zval_stack')) {
@@ -1022,10 +1021,16 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
-     * @return ZendAst|Node
+     * @return ZendAst
      */
     function zend_parse_string(string $source, string $fileName = '')
     {
-        return ZendCompiler::init()->parse_string($source, $fileName);
+        $prepend = !\IS_PHP74 && \strpos($source, '<?php ', 0) === false
+            ? '<?php ' . $source : $source;
+
+        return ZendCompiler::init()->parse_string(
+            \str_replace('<?php <?php', '<?php ', $prepend),
+            $fileName
+        );
     }
 }
