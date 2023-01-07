@@ -1086,6 +1086,7 @@ struct _zend_compiler_globals
 	bool variable_width_locale;	  /* UTF-8, Shift-JIS, Big5, ISO 2022, EUC, etc */
 	bool ascii_compatible_locale; /* locale uses ASCII characters as singletons */
 								  /* and don't use them as lead/trail units     */
+
 	zend_string *doc_comment;
 	uint32_t extra_fn_flags;
 
@@ -1111,6 +1112,7 @@ struct _zend_compiler_globals
 	HashTable *memoized_exprs;
 	int memoize_mode;
 
+	void *map_ptr_real_base;
 	void *map_ptr_base;
 	size_t map_ptr_size;
 	size_t map_ptr_last;
@@ -1955,6 +1957,9 @@ zend_result zend_lex_tstring(zval *zv, zend_lexer_ident_ref ident_ref);
 int zendparse(void);
 void __vectorcall zend_ast_destroy(zend_ast *ast);
 zend_ast *__vectorcall zend_ast_create_list_0(zend_ast_kind kind);
+zend_ast *__vectorcall zend_ast_create_list_1(zend_ast_kind kind, zend_ast *child);
+zend_ast *__vectorcall zend_ast_create_list_2(zend_ast_kind kind, zend_ast *child1, zend_ast *child2);
+
 zend_ast *__vectorcall zend_ast_list_add(zend_ast *list, zend_ast *op);
 zend_ast *__vectorcall zend_ast_create_zval_ex(zval *zv, zend_ast_attr attr);
 zend_ast *__vectorcall zend_ast_create_0(zend_ast_kind kind);
@@ -1962,6 +1967,7 @@ zend_ast *__vectorcall zend_ast_create_1(zend_ast_kind kind, zend_ast *child);
 zend_ast *__vectorcall zend_ast_create_2(zend_ast_kind kind, zend_ast *child1, zend_ast *child2);
 zend_ast *__vectorcall zend_ast_create_3(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3);
 zend_ast *__vectorcall zend_ast_create_4(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4);
+zend_ast *__vectorcall zend_ast_create_5(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4, zend_ast *child5);
 zend_ast *zend_ast_create_decl(
 	zend_ast_kind kind, uint32_t flags, uint32_t start_lineno, zend_string *doc_comment,
 	zend_string *name, zend_ast *child0, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4);
@@ -2650,3 +2656,6 @@ extern int (*zend_preload_autoload)(zend_string *filename);
 
 extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
+
+zend_ast *zend_compile_string_to_ast(
+	zend_string *code, struct _zend_arena **ast_arena, zend_string *filename);

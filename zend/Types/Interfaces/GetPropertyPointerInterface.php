@@ -12,11 +12,11 @@ use ZE\Hook\GetPropertyPointer;
 interface GetPropertyPointerInterface
 {
     /**
-     * Returns a pointer to an object's field
+     * Returns a pointer to an object's property
      *
      * @param GetPropertyPointer $hook Instance of current hook
      *
      * @return mixed Value to return
      */
-    public static function __pointer(GetPropertyPointer $hook);
+    public static function __var(GetPropertyPointer $hook);
 }

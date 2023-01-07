@@ -1558,6 +1558,9 @@ zend_result zend_lex_tstring(zval *zv, zend_lexer_ident_ref ident_ref);
 int zendparse(void);
 void __vectorcall zend_ast_destroy(zend_ast *ast);
 zend_ast *__vectorcall zend_ast_create_list_0(zend_ast_kind kind);
+zend_ast *__vectorcall zend_ast_create_list_1(zend_ast_kind kind, zend_ast *child);
+zend_ast *__vectorcall zend_ast_create_list_2(zend_ast_kind kind, zend_ast *child1, zend_ast *child2);
+
 zend_ast *__vectorcall zend_ast_list_add(zend_ast *list, zend_ast *op);
 zend_ast *__vectorcall zend_ast_create_zval_ex(zval *zv, zend_ast_attr attr);
 zend_ast *__vectorcall zend_ast_create_0(zend_ast_kind kind);
@@ -1565,6 +1568,7 @@ zend_ast *__vectorcall zend_ast_create_1(zend_ast_kind kind, zend_ast *child);
 zend_ast *__vectorcall zend_ast_create_2(zend_ast_kind kind, zend_ast *child1, zend_ast *child2);
 zend_ast *__vectorcall zend_ast_create_3(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3);
 zend_ast *__vectorcall zend_ast_create_4(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4);
+zend_ast *__vectorcall zend_ast_create_5(zend_ast_kind kind, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4, zend_ast *child5);
 zend_ast *zend_ast_create_decl(
 	zend_ast_kind kind, uint32_t flags, uint32_t start_lineno, zend_string *doc_comment,
 	zend_string *name, zend_ast *child0, zend_ast *child1, zend_ast *child2, zend_ast *child3, zend_ast *child4);
@@ -2174,3 +2178,6 @@ extern void (*zend_post_shutdown_cb)(void);
 
 extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
+
+zend_ast *zend_compile_string_to_ast(
+	zend_string *code, struct _zend_arena **ast_arena, const char *filename);

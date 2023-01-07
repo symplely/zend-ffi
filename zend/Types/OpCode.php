@@ -8,10 +8,8 @@ use FFI\CData;
 use ZE\ZendExecutor;
 
 if (!\class_exists('Opcode')) {
-    class OpCode extends \ZE
+    final class OpCode
     {
-        protected $isZval = false;
-
         const NOP                        = 0;
         const ADD                        = 1;
         const SUB                        = 2;
@@ -212,6 +210,11 @@ if (!\class_exists('Opcode')) {
         const MATCH_ERROR                = 197;
         const JMP_NULL                   = 198;
         const CHECK_UNDEF_ARGS           = 199;
+        const FETCH_GLOBALS              = 200;
+        const VERIFY_NEVER_TYPE          = 201;
+        const CALLABLE_CONVERT           = 202;
+
+        const VM_LAST_OPCODE             = 202;
 
         /**
          * Reversed class constants, containing names by number

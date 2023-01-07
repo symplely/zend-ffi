@@ -295,6 +295,9 @@ abstract class _zend_ast extends \FFI\CData
 abstract class zend_ast extends _zend_ast
 {
 }
+abstract class _zend_arena extends \FFI\CData
+{
+}
 abstract class long extends int
 {
 }
@@ -372,26 +375,30 @@ abstract class errno_t extends uint32_t
 }
 
 /**
+ * @property void $zend_interrupt_function
  * @property zend_internal_function $zend_pass_function
  * @property zend_object_handlers $std_object_handlers
  * @property HashTable $module_registry
  * @property sapi_module_struct sapi_module
- * @property int $compiler_globals_id if ZTS
- * @property size_t $compiler_globals_offset if ZTS
- * @property zend_compiler_globals $compiler_globals if NTS
- * @property int sapi_globals_id if ZTS
- * @property size_t sapi_globals_offset if ZTS
- * @property sapi_globals_struct sapi_globals if NTS
- * @property int $executor_globals_id; if ZTS
- * @property size_t $executor_globals_offset; if ZTS
- * @property zend_execute_data $executor_globals; if NTS
- * @property int core_globals_id; if ZTS
- * @property size_t core_globals_offset; if ZTS
- * @property _php_core_globals core_globals; if NTS
- * @property php_stream_ops php_stream_stdio_ops;
- * @property php_stream_wrapper php_plain_files_wrapper;
- * @property zend_fcall_info empty_fcall_info;
- * @property zend_fcall_info_cache empty_fcall_info_cache;
+ * @property int $compiler_globals_id
+ * @property size_t|int $compiler_globals_offset
+ * @property zend_compiler_globals $compiler_globals
+ * @property int $basic_globals_id
+ * @property size_t|int $basic_globals_offset
+ * @property zend_basic_globals $basic_globals
+ * @property int sapi_globals_id
+ * @property size_t|int sapi_globals_offset
+ * @property sapi_globals_struct sapi_globals
+ * @property int $executor_globals_id
+ * @property size_t|int $executor_globals_offset
+ * @property zend_execute_data $executor_globals
+ * @property int core_globals_id
+ * @property size_t|int core_globals_offset
+ * @property _php_core_globals core_globals
+ * @property php_stream_ops php_stream_stdio_ops
+ * @property php_stream_wrapper php_plain_files_wrapper
+ * @property zend_fcall_info empty_fcall_info
+ * @property zend_fcall_info_cache empty_fcall_info_cache
  */
 interface FFI
 {
@@ -794,14 +801,19 @@ interface FFI
     /** @return zend_string */
     public function zend_print_zval_r_to_str(zval &$expr, int $indent);
 
+    /** @return zend_ast */
+    public function zend_compile_string_to_ast(zend_string &$code, _zend_arena &$ast_arena, zend_string &$filename);
+
     /**
      * Language scanner API
      */
     /** @return void */
     public function zend_save_lexical_state(zend_lex_state &$lex_state);
+
     /** @return void */
     public function zend_restore_lexical_state(zend_lex_state &$lex_state);
-    /** @return void */
+
+    /** @return int */
     public function zend_prepare_string_for_scanning(zval &$str, zend_string &$filename);
 
     /** @return zend_result */
@@ -827,6 +839,12 @@ interface FFI
     public function zend_ast_create_list_0(zend_ast_kind $kind);
 
     /** @return zend_ast */
+    public function zend_ast_create_list_1(zend_ast_kind $kind, zend_ast &$child);
+
+    /** @return zend_ast */
+    public function zend_ast_create_list_2(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2);
+
+    /** @return zend_ast */
     public function zend_ast_list_add(zend_ast &$list, zend_ast &$op);
 
     /** @return zend_ast */
@@ -848,6 +866,9 @@ interface FFI
     public function zend_ast_create_4(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2, zend_ast &$child3, zend_ast &$child4);
 
     /** @return zend_ast */
+    public function zend_ast_create_5(zend_ast_kind $kind, zend_ast &$child1, zend_ast &$child2, zend_ast &$child3, zend_ast &$child4, zend_ast &$child5);
+
+    /** @return zend_ast */
     public function zend_ast_create_decl(
         zend_ast_kind $kind,
         uint32_t $flags,
@@ -858,7 +879,7 @@ interface FFI
         zend_ast &$child1,
         zend_ast &$child2,
         zend_ast &$child3,
-        zend_ast &$child4
+        zend_ast ...$child4
     );
 
     /** @return void_ptr */

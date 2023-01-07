@@ -16,6 +16,9 @@ use ZE\ZendReference;
 use ZE\ZendString;
 use ZE\ZendMethod;
 use ZE\ZendObjectsStore;
+use ZE\AstProcess;
+use ZE\ZendCompiler;
+use ZE\Ast\ZendAst;
 
 if (!\function_exists('zval_stack')) {
     /**
@@ -1004,5 +1007,30 @@ if (!\function_exists('zval_stack')) {
         return ZendString::init_value(
             \ze_ffi()->zend_print_zval_r_to_str(\zval_stack(0)(), $indent)
         )->value();
+    }
+
+    /**
+     * Installs a global `zend_ast_process` callback hook
+     *
+     * @param \Closure $handler function(`AstProcess`|`ZendAst` $node): void
+     */
+    function zend_ast_process(\Closure $handler): void
+    {
+        $hook = new AstProcess($handler, \ze_ffi());
+        $hook->install();
+    }
+
+    /**
+     * @return ZendAst
+     */
+    function zend_parse_string(string $source, string $fileName = '')
+    {
+        $prepend = !\IS_PHP74 && \strpos($source, '<?php ', 0) === false
+            ? '<?php ' . $source : $source;
+
+        return ZendCompiler::init()->parse_string(
+            \str_replace('<?php <?php', '<?php ', $prepend),
+            $fileName
+        );
     }
 }

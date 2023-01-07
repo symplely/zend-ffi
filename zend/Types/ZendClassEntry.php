@@ -225,8 +225,23 @@ if (!\class_exists('ZendClassEntry')) {
             }
 
             if ($this->reflection->implementsInterface(GetPropertyPointerInterface::class)) {
-                $handler = $this->reflection->getMethod('__pointer')->getClosure();
+                $handler = $this->reflection->getMethod('__var')->getClosure();
                 $this->getPropertyPointer($handler);
+            }
+
+            if ($this->reflection->implementsInterface(UnsetPropertyInterface::class)) {
+                $handler = $this->reflection->getMethod('__unset_var')->getClosure();
+                $this->unsetProperty($handler);
+            }
+
+            if ($this->reflection->implementsInterface(HasPropertyInterface::class)) {
+                $handler = $this->reflection->getMethod('__isset_var')->getClosure();
+                $this->hasProperty($handler);
+            }
+
+            if ($this->reflection->implementsInterface(GetPropertiesForInterface::class)) {
+                $handler = $this->reflection->getMethod('__get_vars')->getClosure();
+                $this->getPropertiesFor($handler);
             }
         }
 
@@ -360,7 +375,7 @@ if (!\class_exists('ZendClassEntry')) {
          *
          * @param \Closure $handler Callback function (object $instance, int $reason): array;
          *
-         * @see ObjectGetPropertiesForInterface
+         * @see GetPropertiesForInterface
          */
         public function getPropertiesFor(\Closure $handler): void
         {

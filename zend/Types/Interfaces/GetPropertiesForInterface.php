@@ -18,5 +18,5 @@ interface GetPropertiesForInterface
      *
      * @return array Key-value pair of fields
      */
-    public static function __getFields(GetPropertiesFor $hook): array;
+    public static function __get_vars(GetPropertiesFor $hook): array;
 }
