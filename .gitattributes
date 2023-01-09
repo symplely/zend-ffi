@@ -24,3 +24,7 @@
 /.cdef       export-ignore
 /php-src-php-*      export-ignore
 /cmd        export-ignore
+/test_thread.php        export-ignore
+/*skeleton.php        export-ignore
+/*.skeleton       export-ignore
+/*skeleton*        export-ignore
