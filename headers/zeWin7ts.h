@@ -393,8 +393,6 @@ typedef int (*zend_object_count_elements_t)(zval *object, zend_long *count);
 typedef int (*zend_object_get_closure_t)(zval *obj, zend_class_entry **ce_ptr, zend_function **fptr_ptr, zend_object **obj_ptr);
 typedef HashTable *(*zend_object_get_gc_t)(zval *object, zval **table, int *n);
 typedef int (*zend_object_do_operation_t)(zend_uchar opcode, zval *result, zval *op1, zval *op2);
-typedef zval *(*zend_object_get_t)(zval *object, zval *rv);
-typedef void (*zend_object_set_t)(zval *object, zval *value);
 typedef int (*zend_object_call_method_t)(zend_string *method, zend_object *object, zend_execute_data *execute_data, zval *return_value);
 typedef int (*zend_object_compare_zvals_t)(zval *result, zval *op1, zval *op2);
 
