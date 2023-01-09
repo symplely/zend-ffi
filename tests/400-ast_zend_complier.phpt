@@ -6,9 +6,9 @@ Check for Ast Zend Complier
 <?php
 require 'vendor/autoload.php';
 
-$ast = zend_parse_string('echo "Hello World". PHP_EOL;');
+$nodes = zend_parse_string('echo "Hello World". PHP_EOL;');
 
-echo $ast->dump();
+print_ast($nodes);
 
 --EXPECTF--
    1: AST_STMT_LIST

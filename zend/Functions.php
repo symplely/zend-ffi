@@ -1021,6 +1021,11 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
+     * Performs parsing of PHP source code into the AST
+     *
+     * @param string $source Source code to parse
+     * @param string $fileName Optional filename that will be used in the engine
+     *
      * @return ZendAst
      */
     function zend_parse_string(string $source, string $fileName = '')
@@ -1032,5 +1037,16 @@ if (!\function_exists('zval_stack')) {
             \str_replace('<?php <?php', '<?php ', $prepend),
             $fileName
         );
+    }
+
+    /**
+     * Prints AST node in friendly format
+     *
+     * @param int $indent Level of indentation
+     * @return int  the length of the AST.
+     */
+    function print_ast(ZendAst $nodes, int $indent = 0): int
+    {
+        return \printf('%s', $nodes->dump($indent));
     }
 }
