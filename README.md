@@ -1,6 +1,10 @@
 # zend-ffi
 
+[![zend-ffi tests](https://github.com/symplely/zend-ffi/actions/workflows/zend-ffi.yml/badge.svg)](https://github.com/symplely/zend-ffi/actions/workflows/zend-ffi.yml)
+
 Provides the base **API** for creating _extensions_, or modifying `Zend/PHP` internal _core_ with FFI.
+
+* **For PHP 7.4, 8.0, 8.1, 8.2, Windows, Mac, Linux**
 
 It allows loading of shared libraries (`.dll` or `.so`), calling of **C functions** and accessing of **C type** data structures in pure `PHP`.
 
@@ -96,6 +100,14 @@ See [tests](https://github.com/symplely/zend-ffi/tree/main/tests) folder for exa
 For general FFI `C data` handling see **CStruct** [_class_](https://github.com/symplely/zend-ffi/blob/main/zend/CStruct.php).
 
 Functions `c_int_type()`, `c_struct_type()`, `c_array_type()` and `c_typedef()` are wrappers for any _C data typedef_ turning it into PHP **CStruct** class instance, with all **FFI** functions as methods with additional features.
+
+For [AST handling](https://dev.to/mrsuh/how-php-engine-builds-ast-1nc4):
+
+* `zend_parse_string()` will convert PHP source code into native _C data_ `zend_ast` _node_ held in **ZendAst** class, use `print_ast()` to display results.
+* `zend_ast_process(function(\ZE\AstProcess $hook){})` to intercept and modify AST after compilation process.
+
+Get the behavior of PHP extensions like [nikic/php-ast](https://github.com/nikic/php-ast) and
+[sgolemon/astkit](https://github.com/sgolemon/astkit/) that provide low-level bindings to the underlying AST structures, without any addition library.
 
 The whole PHP lifecycle process can be achieved by just extending **StandardModule** [_abstract class_](https://github.com/symplely/zend-ffi/blob/main/zend/StandardModule.php).
 
