@@ -512,34 +512,37 @@ if (!\class_exists('StandardModule')) {
          */
         public function startup(): void
         {
+            $module = $this->ze_other_ptr;
             if ($this->restart_sapi) {
-                \ze_ffi()->php_output_end_all();
-                \ze_ffi()->php_output_deactivate();
-                \ze_ffi()->php_output_shutdown();
+                if (\PHP_ZTS) {
+                    \ze_ffi()->php_output_end_all();
+                    \ze_ffi()->php_output_deactivate();
+                    \ze_ffi()->php_output_shutdown();
+                }
+
                 \ze_ffi()->sapi_flush();
                 \ze_ffi()->sapi_deactivate();
                 \ze_ffi()->sapi_shutdown();
-            }
 
-            $module = $this->ze_other_ptr;
-            if ($this->r_startup) {
-                \ze_ffi()->sapi_module->activate = function (...$args) use ($module) {
-                    $result = ($module->request_startup_func)($module->type, $module->module_number);
-                    $sapi_result = !\is_null($this->original_sapi_activate) ? ($this->original_sapi_activate)(...$args) : \ZE::SUCCESS;
+                if ($this->r_startup) {
+                    \ze_ffi()->sapi_module->activate = function (...$args) use ($module) {
+                        $result = ($module->request_startup_func)($module->type, $module->module_number);
+                        $sapi_result = !\is_null($this->original_sapi_activate) ? ($this->original_sapi_activate)(...$args) : \ZE::SUCCESS;
 
-                    return $result == $sapi_result && $result === \ZE::SUCCESS
-                        ? \ZE::SUCCESS : \ZE::FAILURE;
-                };
-            }
+                        return $result == $sapi_result && $result === \ZE::SUCCESS
+                            ? \ZE::SUCCESS : \ZE::FAILURE;
+                    };
+                }
 
-            if ($this->r_shutdown) {
-                \ze_ffi()->sapi_module->deactivate = \PHP_ZTS ? null : function (...$args) use ($module) {
-                    $result = ($module->request_shutdown_func)($module->type, $module->module_number);
-                    $sapi_result = !\is_null($this->original_sapi_deactivate) ? ($this->original_sapi_deactivate)(...$args) : \ZE::SUCCESS;
+                if ($this->r_shutdown) {
+                    \ze_ffi()->sapi_module->deactivate = \PHP_ZTS ? null : function (...$args) use ($module) {
+                        $result = ($module->request_shutdown_func)($module->type, $module->module_number);
+                        $sapi_result = !\is_null($this->original_sapi_deactivate) ? ($this->original_sapi_deactivate)(...$args) : \ZE::SUCCESS;
 
-                    return $result == $sapi_result && $result === \ZE::SUCCESS
-                        ? \ZE::SUCCESS : \ZE::FAILURE;
-                };
+                        return $result == $sapi_result && $result === \ZE::SUCCESS
+                            ? \ZE::SUCCESS : \ZE::FAILURE;
+                    };
+                }
             }
 
             if (\ze_ffi()->zend_startup_module_ex($module) !== \ZE::SUCCESS) {
@@ -551,14 +554,18 @@ if (!\class_exists('StandardModule')) {
                     \closure_from($this, 'module_destructor')
                 );
 
-            \ze_ffi()->php_output_activate();
-            $result = \IS_PHP82
-                ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
-                : \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
-            if ($result !== \ZE::SUCCESS) {
-                throw new \RuntimeException(
-                    'Can not restart SAPI module ' . \ffi_string(\ze_ffi()->sapi_module->name)
-                );
+            if ($this->restart_sapi) {
+                if (\PHP_ZTS)
+                    \ze_ffi()->php_output_activate();
+
+                $result = \IS_PHP82
+                    ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
+                    : \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
+                if ($result !== \ZE::SUCCESS) {
+                    throw new \RuntimeException(
+                        'Can not restart SAPI module ' . \ffi_string(\ze_ffi()->sapi_module->name)
+                    );
+                }
             }
         }
 
