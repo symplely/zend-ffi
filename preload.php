@@ -656,6 +656,20 @@ if (!\function_exists('setup_ffi_loader')) {
             }
           }
 
+          if (\file_exists('vendor\\symplely\\zend-ffi') && \IS_WINDOWS) {
+            $file = \str_replace(
+              'FFI_LIB ".',
+              'FFI_LIB "vendor\\\symplely\\\zend-ffi',
+              \file_get_contents($header)
+            );
+
+            \file_put_contents(
+              $header,
+              $file,
+              \LOCK_EX
+            );
+          }
+
           \setup_ffi_loader('ts', $header);
         }
       }
