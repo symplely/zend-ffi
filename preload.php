@@ -657,17 +657,22 @@ if (!\function_exists('setup_ffi_loader')) {
           }
 
           if (\file_exists('vendor\\symplely\\zend-ffi') && \IS_WINDOWS) {
-            $file = \str_replace(
-              'FFI_LIB ".',
-              'FFI_LIB "vendor\\\symplely\\\zend-ffi',
-              \file_get_contents($header)
-            );
+            $vendor_code = \str_replace('.h', '_vendor.h', $header);
+            if (!\file_exists($vendor_code)) {
+              $file = \str_replace(
+                'FFI_LIB ".',
+                'FFI_LIB "vendor\\\symplely\\\zend-ffi',
+                \file_get_contents($header)
+              );
 
-            \file_put_contents(
-              $header,
-              $file,
-              \LOCK_EX
-            );
+              \file_put_contents(
+                $vendor_code,
+                $file,
+                \LOCK_EX
+              );
+            }
+
+            $header = $vendor_code;
           }
 
           \setup_ffi_loader('ts', $header);
