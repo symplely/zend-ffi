@@ -1,4 +1,4 @@
-name: "zend-ffi tests"
+name: "7.4, 8.0, 8.1, 8.2 Build"
 
 on:
   push:

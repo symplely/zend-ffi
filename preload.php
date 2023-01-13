@@ -636,7 +636,7 @@ if (!\function_exists('setup_ffi_loader')) {
 
               $like = \trim((string) $os['ID_LIKE']);
               if ($like == 'debian')
-                $platform = '/usr/lib/x86_64-linux-gnu/libpthread.so';
+                $platform = '/lib/x86_64-linux-gnu/libpthread.so.0';
               elseif ($like == 'redhat')
                 $platform = '/usr/lib64/libpthread.so';
             }
