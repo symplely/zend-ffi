@@ -293,6 +293,8 @@ if (!\class_exists('StandardModule')) {
         /**
          * Module constructor.
          *
+         * @param boolean $restart_sapi if a `PHP_RINIT_FUNCTION` is provided, this will hook into current SAPI process.
+         * - Default is `true`, the only way to get `request startup` callback to execute.
          * @param boolean $target_threads Use `ZEND_THREAD_SAFE` as default if your module does not depend on thread-safe mode.
          * - Set the thread-safe mode for this module.
          * @param boolean $target_debug Use `ZEND_DEBUG_BUILD` as default if your module does not depend on debug mode.
@@ -303,6 +305,7 @@ if (!\class_exists('StandardModule')) {
          * @return self
          */
         final public function __construct(
+            bool $restart_sapi = null,
             bool $target_threads = \ZEND_THREAD_SAFE,
             bool $target_debug = \ZEND_DEBUG_BUILD,
             int $target_version = self::ZEND_MODULE_API_NO
@@ -312,6 +315,9 @@ if (!\class_exists('StandardModule')) {
 
             if (!isset($this->module_name))
                 $this->module_name = self::detect_name();
+
+            if (!\is_null($restart_sapi))
+                $this->restart_sapi = $restart_sapi;
 
             $this->target_threads = $target_threads;
             $this->target_debug = $target_debug;
