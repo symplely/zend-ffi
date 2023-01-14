@@ -348,7 +348,6 @@ if (!\class_exists('ZE')) {
         const IS_OBJECT_EX              = (self::IS_OBJECT | (self::IS_TYPE_REFCOUNTED << self::Z_TYPE_FLAGS_SHIFT)
             | (self::IS_TYPE_COLLECTABLE << self::Z_TYPE_FLAGS_SHIFT));
 
-        //protected ?CData $ze = null;
         protected ?CData $ze_ptr = null;
 
         protected ?CData $ze_other = null;
@@ -384,8 +383,6 @@ if (!\class_exists('ZE')) {
             $this->isZval = $isZval;
             if ($this->isZval) {
                 $this->ze_ptr = \ffi_ptr(\ze_ffi()->new($typedef, false));
-                // $this->ze = \ze_ffi()->new($typedef);
-                // $this->ze_ptr = \ffi_ptr($this->ze);
             } else {
                 $this->ze_other = \ze_ffi()->new($typedef);
                 $this->ze_other_ptr = \ffi_ptr($this->ze_other);
@@ -412,7 +409,6 @@ if (!\class_exists('ZE')) {
                 \ffi_free_if($this->ze_ptr);
 
                 $this->ze_ptr = null;
-                // $this->ze = null;
             }
 
             self::$constant_names = [];

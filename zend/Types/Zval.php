@@ -67,7 +67,6 @@ if (!\class_exists('Zval')) {
         public function __destruct()
         {
             $this->ze_ptr = null;
-            //$this->ze = null;
         }
 
         /**

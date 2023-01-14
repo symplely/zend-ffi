@@ -270,12 +270,12 @@ if (!\class_exists('StandardModule')) {
                         $this->global_rsrc = null;
                     }
 
-                    if ($this->r_startup) {
+                    if ($this->restart_sapi && $this->r_startup) {
                         \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
                         $this->original_sapi_activate = null;
                     }
 
-                    if ($this->r_shutdown) {
+                    if ($this->restart_sapi && $this->r_shutdown) {
                         \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
                         $this->original_sapi_deactivate = null;
                     }
@@ -482,12 +482,16 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other->module_shutdown_func = \closure_from($this, 'module_shutdown');
 
             if ($this->r_startup) {
-                $this->original_sapi_activate = \ze_ffi()->sapi_module->activate;
+                if ($this->restart_sapi)
+                    $this->original_sapi_activate = \ze_ffi()->sapi_module->activate;
+
                 $this->ze_other->request_startup_func = \closure_from($this, 'request_startup');
             }
 
             if ($this->r_shutdown) {
-                $this->original_sapi_deactivate = \ze_ffi()->sapi_module->deactivate;
+                if ($this->restart_sapi)
+                    $this->original_sapi_deactivate = \ze_ffi()->sapi_module->deactivate;
+
                 $this->ze_other->request_shutdown_func = \closure_from($this, 'request_shutdown');
             }
 
@@ -498,8 +502,7 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other->globals_dtor = \closure_from($this, 'global_shutdown');
 
             // $module pointer will be updated, as registration method returns a copy of memory
-            $module_ptr = \FFI::addr($this->ze_other);
-            $this->update(\ze_ffi()->zend_register_module_ex($module_ptr));
+            $this->update(\ze_ffi()->zend_register_module_ex(\FFI::addr($this->ze_other)));
 
             $this->addReflection($moduleName);
             static::set_module($this);
