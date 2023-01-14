@@ -82,7 +82,7 @@ if (!\class_exists('ZendObject')) {
         {
             $entry = Zval::new(\ZE::IS_OBJECT, $this->ze_other_ptr[0]);
             $entry->native_value($realObject);
-            \ffi_free($entry());
+            \ffi_free_if($entry);
 
             return $realObject;
         }

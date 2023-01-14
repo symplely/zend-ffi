@@ -53,7 +53,7 @@ if (!\class_exists('ZendString')) {
         {
             $zval = Zval::new(\ZE::IS_STRING, $this->ze_other_ptr[0]);
             $zval->native_value($realString);
-            \ffi_free($zval());
+            \ffi_free_if($zval);
 
             return $realString;
         }
