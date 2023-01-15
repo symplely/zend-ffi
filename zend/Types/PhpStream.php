@@ -151,7 +151,7 @@ if (!\class_exists('PhpStream')) {
         public static function zval_to_fd(Zval $ptr, bool $isStream = false): int
         {
             $fd = -1;
-            if ($ptr->macro(ZE::TYPE_P) === ZE::IS_RESOURCE) {
+            if ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
                 $zval_fd = Resource::get_fd($handle, true);
                 if ($zval_fd instanceof Zval)
@@ -171,8 +171,7 @@ if (!\class_exists('PhpStream')) {
                             self::PHP_STREAM_AS_FD | self::PHP_STREAM_CAST_INTERNAL,
                             \ffi_void($fd),
                             1
-                        ) != ZE::SUCCESS)
-                        || $fd < 0
+                        ) != \ZE::SUCCESS)
                     ) {
                         $fd = -1;
                     }
@@ -183,8 +182,8 @@ if (!\class_exists('PhpStream')) {
 
                 if ($fd === -1)
                     unset($zval_fd);
-            } elseif ($ptr->macro(ZE::TYPE_P) === ZE::IS_LONG) {
-                $fd = $ptr->macro(ZE::LVAL_P);
+            } elseif ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_LONG) {
+                $fd = $ptr->macro(\ZE::LVAL_P);
                 if ($fd < 0) {
                     $fd = -1;
                     \ze_ffi()->zend_error(\E_WARNING, "invalid resource type detected");
@@ -212,7 +211,7 @@ if (!\class_exists('PhpStream')) {
                 return false;
             }
 
-            if ($fd->macro(ZE::TYPE_INFO_P) === ZE::IS_UNDEF) {
+            if ($fd->macro(\ZE::TYPE_INFO_P) === \ZE::IS_UNDEF) {
                 $fd->copy($stream());
             }
 
