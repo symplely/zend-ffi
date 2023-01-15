@@ -208,14 +208,43 @@ if (!\class_exists('StandardModule')) {
             if ($this->r_shutdown) {
                 $module = $this->__invoke();
                 if (!\is_null($module)) {
-                    try {
-                        $this->request_shutdown($module->type, $module->module_number);
-                        if ($this->destruct_on_request && !$this->target_persistent) {
-                            $this->destruct_on_request = false;
-                            $this->module_shutdown($module->type, $module->module_number);
-                            $this->global_shutdown($module);
+                    $this->request_shutdown($module->type, $module->module_number);
+                    if ($this->destruct_on_request && !$this->target_persistent) {
+                        $this->destruct_on_request = false;
+                        $this->module_shutdown($module->type, $module->module_number);
+                        $this->global_shutdown($module);
+                        if (\PHP_ZTS) {
+                            $id = \ze_ffi()->tsrm_thread_id();
+                            if (isset($this->global_id[$id])) {
+                                \ze_ffi()->ts_free_id($this->global_id[$id]);
+                                unset($this->global_id[$id]);
+                                unset($this->global_rsrc[$id]);
+                            }
+
+                            \ze_ffi()->tsrm_mutex_free($this->module_mutex);
+                            $this->module_mutex = null;
+                        } else {
+                            // \ffi_free_if($this->global_rsrc);
+                            $this->global_rsrc = null;
                         }
-                    } catch (\Throwable $e) {
+
+                        if ($this->restart_sapi && $this->r_startup) {
+                            \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
+                            $this->original_sapi_activate = null;
+                        }
+
+                        if ($this->restart_sapi && $this->r_shutdown) {
+                            \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
+                            $this->original_sapi_deactivate = null;
+                        }
+
+                        static::set_module(null);
+                        // \ffi_free_if($this->ze_other_ptr, $this->ze_other);
+
+                        $this->ze_other_ptr = null;
+                        $this->ze_other = null;
+                        $this->reflection = null;
+                        $module = null;
                     }
                 }
             }
@@ -250,44 +279,6 @@ if (!\class_exists('StandardModule')) {
         final public function ffi(): \FFI
         {
             return \Core::get($this->ffi_tag);
-        }
-
-        public function __destruct()
-        {
-            if (\is_ze_ffi()) {
-                if (!$this->target_persistent && !is_null($this->get_module())) {
-                    if (\PHP_ZTS) {
-                        $id = \ze_ffi()->tsrm_thread_id();
-                        if (isset($this->global_id[$id])) {
-                            \ze_ffi()->ts_free_id($this->global_id[$id]);
-                            unset($this->global_id[$id]);
-                            unset($this->global_rsrc[$id]);
-                        }
-
-                        \ze_ffi()->tsrm_mutex_free($this->module_mutex);
-                        $this->module_mutex = null;
-                    } else {
-                        $this->global_rsrc = null;
-                    }
-
-                    if ($this->restart_sapi && $this->r_startup) {
-                        \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
-                        $this->original_sapi_activate = null;
-                    }
-
-                    if ($this->restart_sapi && $this->r_shutdown) {
-                        \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
-                        $this->original_sapi_deactivate = null;
-                    }
-
-                    static::set_module(null);
-                    $this->free();
-                }
-            } elseif (!\is_null($this->get_module())) {
-                $this->global_rsrc = null;
-                static::set_module(null);
-                $this->free();
-            }
         }
 
         /**
@@ -404,7 +395,6 @@ if (!\class_exists('StandardModule')) {
          */
         public function global_shutdown(CData $memory): void
         {
-            $this->__destruct();
         }
 
         /**
@@ -446,7 +436,7 @@ if (!\class_exists('StandardModule')) {
                 throw new \RuntimeException('Module ' . $this->module_name . ' was already registered.');
             }
 
-            $this->target_persistent = \Core::is_scoped(); // \ini_get('opcache.enable_cli') === '1';
+            $this->target_persistent = \Core::is_scoped();
 
             // We don't need persistent memory here, as PHP copies structures into persistent memory itself
             $this->ze_other = \ze_ffi()->new('zend_module_entry');
@@ -475,8 +465,8 @@ if (!\class_exists('StandardModule')) {
                         null
                     );
                 } else {
-                    $this->global_rsrc = \c_typedef($globalType, $this->ffi_tag, false, $this->target_persistent);
-                    $this->ze_other->globals_ptr = $this->global_rsrc->addr();
+                    $this->global_rsrc = $this->ffi()->new($globalType);
+                    $this->ze_other->globals_ptr = \FFI::addr($this->global_rsrc);
                 }
             }
 
@@ -508,7 +498,8 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other->globals_dtor = \closure_from($this, 'global_shutdown');
 
             // $module pointer will be updated, as registration method returns a copy of memory
-            $this->update(\ze_ffi()->zend_register_module_ex(\FFI::addr($this->ze_other)));
+            // $this->update(\ze_ffi()->zend_register_module_ex(\FFI::addr($this->ze_other)));
+            $this->update(\ze_ffi()->zend_register_internal_module(\FFI::addr($this->ze_other)));
 
             $this->addReflection($moduleName);
             static::set_module($this);
