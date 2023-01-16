@@ -220,7 +220,7 @@ if (!\class_exists('StandardModule')) {
                         if ($this->restart_sapi && $this->r_shutdown) {
                             \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
                         }
-                        /*
+
                         if (\PHP_ZTS) {
                             $id = \ze_ffi()->tsrm_thread_id();
                             if (isset($this->global_id[$id])) {
@@ -232,19 +232,14 @@ if (!\class_exists('StandardModule')) {
                             \ze_ffi()->tsrm_mutex_free($this->module_mutex);
                             $this->module_mutex = null;
                         } else {
-                            \ffi_free_if($this->global_rsrc);
                             $this->global_rsrc = null;
                         }
 
                         static::set_module(null);
-                        \ffi_free_if($this->ze_other_ptr, $this->ze_other);
 
                         $this->ze_other_ptr = null;
                         $this->ze_other = null;
                         $this->reflection = null;
-                        */
-                        if (\ini_get('opcache.enable') === '1' && \IS_LINUX)
-                            \opcache_reset();
                     }
                 }
             }
@@ -499,8 +494,10 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other->globals_dtor = \closure_from($this, 'global_shutdown');
 
             // $module pointer will be updated, as registration method returns a copy of memory
-            $this->update(\ze_ffi()->zend_register_module_ex(\FFI::addr($this->ze_other)));
-            // $this->update(\ze_ffi()->zend_register_internal_module(\FFI::addr($this->ze_other)));
+            if (\IS_LINUX)
+                $this->update(\ze_ffi()->zend_register_internal_module(\FFI::addr($this->ze_other)));
+            else
+                $this->update(\ze_ffi()->zend_register_module_ex(\FFI::addr($this->ze_other)));
 
             $this->addReflection($moduleName);
             static::set_module($this);
