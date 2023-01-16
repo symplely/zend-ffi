@@ -304,7 +304,7 @@ abstract class long extends int
 abstract class zend_long extends long
 {
 }
-abstract class double extends float
+abstract class double_t extends float
 {
 }
 abstract class intptr_t extends long
@@ -508,7 +508,7 @@ interface FFI
     public function add_assoc_resource_ex(zval &$arg, const_char $key, size_t $key_len, zend_resource &$r);
 
     /** @return void */
-    public function add_assoc_double_ex(zval &$arg, const_char $key, size_t $key_len, double $d);
+    public function add_assoc_double_ex(zval &$arg, const_char $key, size_t $key_len, double_t $d);
 
     /** @return void */
     public function add_assoc_str_ex(zval &$arg, const_char $key, size_t $key_len, zend_string &$str);
@@ -528,8 +528,14 @@ interface FFI
     /** @return zend_module_entry */
     public function zend_register_module_ex(zend_module_entry &$module);
 
+    /** @return zend_module_entry */
+    public function zend_register_internal_module(zend_module_entry $module_entry);
+
     /** @return zend_result */
     public function zend_startup_module_ex(zend_module_entry &$module);
+
+    /** @return zend_result */
+    public function zend_startup_module(zend_module_entry &$module_entry);
 
     /** @return int */
     public function zend_alter_ini_entry(zend_string &$name, zend_string &$new_value, int $modify_type, int $stage);
