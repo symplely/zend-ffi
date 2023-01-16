@@ -79,18 +79,6 @@ if (!\class_exists('StandardModule')) {
     abstract class StandardModule extends ZendModule
     {
         /**
-         * @see zend_modules.h:MODULE_PERSISTENT
-         */
-        private const MODULE_PERSISTENT = 1;
-
-        /**
-         * @see zend_modules.h:MODULE_TEMPORARY
-         */
-        private const MODULE_TEMPORARY = 2;
-
-        private const ZEND_MODULE_API_NO = 20190902;
-
-        /**
          * `ZTS|NTS` _ts_rsrc_id_ or _C typedef_ **instance**
          * @var \CStruct[]
          */
@@ -125,7 +113,7 @@ if (!\class_exists('StandardModule')) {
          *
          * @see zend_modules.h:ZEND_MODULE_API_NO
          */
-        protected int $target_version = self::ZEND_MODULE_API_NO;
+        protected int $target_version = \ZEND_MODULE_API_NO;
 
         /**
          * An `FFI` instance tag *name*
@@ -294,7 +282,7 @@ if (!\class_exists('StandardModule')) {
             bool $restart_sapi = null,
             bool $target_threads = \ZEND_THREAD_SAFE,
             bool $target_debug = \ZEND_DEBUG_BUILD,
-            int $target_version = self::ZEND_MODULE_API_NO
+            int $target_version = \ZEND_MODULE_API_NO
         ) {
             if (!isset($this->ffi_tag))
                 return \ze_ffi()->zend_error(\E_ERROR, 'No `FFI` instance found!');
@@ -437,7 +425,7 @@ if (!\class_exists('StandardModule')) {
             $this->ze_other = \ze_ffi()->new('zend_module_entry');
             $moduleName = $this->module_name;
             $this->ze_other->size = \FFI::sizeof($this->ze_other);
-            $this->ze_other->type = $this->target_persistent ? self::MODULE_PERSISTENT : self::MODULE_TEMPORARY;
+            $this->ze_other->type = $this->target_persistent ? \MODULE_PERSISTENT : \MODULE_TEMPORARY;
             $this->ze_other->name = \ffi_char($moduleName, false, $this->target_persistent);
             $this->ze_other->zend_api = $this->target_version;
             $this->ze_other->zend_debug = (int)$this->target_debug;
@@ -493,11 +481,12 @@ if (!\class_exists('StandardModule')) {
             if ($this->g_shutdown || !\is_null($globalType))
                 $this->ze_other->globals_dtor = \closure_from($this, 'global_shutdown');
 
+            $this->ze_other_ptr = \FFI::addr($this->ze_other);
             // $module pointer will be updated, as registration method returns a copy of memory
-            if (\IS_LINUX)
-                $this->update(\ze_ffi()->zend_register_internal_module(\FFI::addr($this->ze_other)));
+            if (\IS_LINUX && !\IS_PHP74)
+                $this->ze_other_ptr = \ze_ffi()->zend_register_internal_module($this->ze_other_ptr);
             else
-                $this->update(\ze_ffi()->zend_register_module_ex(\FFI::addr($this->ze_other)));
+                $this->ze_other_ptr = \ze_ffi()->zend_register_module_ex($this->ze_other_ptr);
 
             $this->addReflection($moduleName);
             static::set_module($this);

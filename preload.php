@@ -6,6 +6,23 @@ use FFI\CData;
 use FFI\CType;
 use ZE\PhpStream;
 
+if (!\defined('MODULE_PERSISTENT')) {
+  /**
+   * @see zend_modules.h:MODULE_PERSISTENT
+   */
+  \define('MODULE_PERSISTENT', 1);
+}
+
+if (!\defined('MODULE_TEMPORARY')) {
+  /**
+   * @see zend_modules.h:MODULE_TEMPORARY
+   */
+  \define('MODULE_TEMPORARY', 2);
+}
+
+if (!\defined('ZEND_MODULE_API_NO'))
+  \define('ZEND_MODULE_API_NO', 20190902);
+
 if (!\defined('DS'))
   \define('DS', \DIRECTORY_SEPARATOR);
 
@@ -17,9 +34,6 @@ if (!\defined('INET_ADDRSTRLEN'))
 
 if (!\defined('INET6_ADDRSTRLEN'))
   \define('INET6_ADDRSTRLEN', 65);
-
-if (!\defined('DS'))
-  \define('DS', \DIRECTORY_SEPARATOR);
 
 if (!\defined('IS_WINDOWS'))
   \define('IS_WINDOWS', ('\\' === \DS));
