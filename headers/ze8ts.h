@@ -724,8 +724,25 @@ struct _zend_class_entry
 	} info;
 };
 
-struct _zend_ini_entry;
 typedef struct _zend_ini_entry zend_ini_entry;
+struct _zend_ini_entry
+{
+	zend_string *name;
+	int (*on_modify)(zend_ini_entry *entry, zend_string *new_value, void *mh_arg1, void *mh_arg2, void *mh_arg3, int stage);
+	void *mh_arg1;
+	void *mh_arg2;
+	void *mh_arg3;
+	zend_string *value;
+	zend_string *orig_value;
+	void (*displayer)(zend_ini_entry *ini_entry, int type);
+
+	int module_number;
+
+	uint8_t modifiable;
+	uint8_t orig_modifiable;
+	uint8_t modified;
+};
+
 struct _zend_module_dep
 {
 	const char *name;
