@@ -14,11 +14,11 @@ threads_customize(
         echo 'module_shutdown' . \PHP_EOL;
         return \ZE::SUCCESS;
     },
-    function (...$args): int {
+    function (int $type, int $module_number): int {
         echo 'request_startup' . \PHP_EOL;
         return \ZE::SUCCESS;
     },
-    function (...$args): int {
+    function (int $type, int $module_number): int {
         echo 'request_shutdown' . \PHP_EOL;
         return \ZE::SUCCESS;
     },

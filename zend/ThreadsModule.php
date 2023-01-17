@@ -237,18 +237,18 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
                 ? ($this->m_end)($type, $module_number) : \ZE::SUCCESS;
         }
 
-        public function request_startup(...$args): int
+        public function request_startup(int $type, int $module_number): int
         {
-            $this->thread_startup(...$args);
+            $this->thread_startup($type, $module_number);
             return !\is_null($this->r_init)
-                ? ($this->r_init)(...$args) : \ZE::SUCCESS;
+                ? ($this->r_init)($type, $module_number) : \ZE::SUCCESS;
         }
 
-        public function request_shutdown(...$args): int
+        public function request_shutdown(int $type, int $module_number): int
         {
             // $this->thread_shutdown();
             return !\is_null($this->r_end)
-                ? ($this->r_end)(...$args) : \ZE::SUCCESS;
+                ? ($this->r_end)($type, $module_number) : \ZE::SUCCESS;
         }
 
         public function global_startup(CData $memory): void
