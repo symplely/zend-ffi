@@ -203,10 +203,12 @@ if (!\class_exists('StandardModule')) {
                         $this->global_shutdown($module);
                         if ($this->restart_sapi && $this->r_startup) {
                             \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
+                            $this->original_sapi_activate = null;
                         }
 
                         if ($this->restart_sapi && $this->r_shutdown) {
                             \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
+                            $this->original_sapi_deactivate = null;
                         }
 
                         if (\PHP_ZTS) {
@@ -220,14 +222,16 @@ if (!\class_exists('StandardModule')) {
                             \ze_ffi()->tsrm_mutex_free($this->module_mutex);
                             $this->module_mutex = null;
                         } else {
+                            \ffi_free_if($this->global_rsrc);
                             $this->global_rsrc = null;
                         }
 
-                        static::set_module(null);
-
+                        \ffi_free_if($this->ze_other_ptr, $this->ze_other);
                         $this->ze_other_ptr = null;
                         $this->ze_other = null;
                         $this->reflection = null;
+
+                        static::set_module(null);
                     }
                 }
             }
