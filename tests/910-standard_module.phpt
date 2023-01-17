@@ -1,7 +1,7 @@
 --TEST--
 Check/Test Standard Module
 --SKIPIF--
-<?php if (!extension_loaded("ffi") || (('/' === DIRECTORY_SEPARATOR) && (PHP_OS !== 'Darwin'))) print "skip"; ?>
+<?php if (!extension_loaded("ffi")) print "skip"; ?>
 --FILE--
 <?php
 require 'vendor/autoload.php';
@@ -29,7 +29,7 @@ final class SimpleCountersModule extends \StandardModule
         return \ZE::SUCCESS;
     }
 
-    public function request_startup(...$args): int
+    public function request_startup(int $type, int $module_number): int
     {
         echo 'request_startup' . \PHP_EOL;
         $data = $this->get_globals();
@@ -37,7 +37,7 @@ final class SimpleCountersModule extends \StandardModule
         return \ZE::SUCCESS;
     }
 
-    public function request_shutdown(...$args): int
+    public function request_shutdown(int $type, int $module_number): int
     {
         echo 'request_shutdown' . \PHP_EOL;
         return \ZE::SUCCESS;
@@ -75,8 +75,7 @@ $value = ob_get_clean();
 
 preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
-var_dump(\extension_loaded('simple_counters'));
-var_dump(SimpleCountersModule::get_name());
+var_dump(\extension_loaded(SimpleCountersModule::get_name()));
 var_dump($module->ffi());
 --EXPECTF--
 global_startup
@@ -107,7 +106,6 @@ object(FFI\CData:uint32_t[10])#%d (10) {
 }
 string(34) "simple_counters support => enabled"
 bool(true)
-string(15) "simple_counters"
 object(FFI)#%d (0) {
 }
 request_shutdown

@@ -344,7 +344,7 @@ if (!\class_exists('StandardModule')) {
          * @param mixed $args
          * @return integer
          */
-        public function request_startup(...$args): int
+        public function request_startup(int $type, int $module_number): int
         {
             return \ZE::SUCCESS;
         }
@@ -355,7 +355,7 @@ if (!\class_exists('StandardModule')) {
          * @param mixed $args
          * @return integer
          */
-        public function request_shutdown(...$args): int
+        public function request_shutdown(int $type, int $module_number): int
         {
             return \ZE::SUCCESS;
         }
@@ -483,10 +483,7 @@ if (!\class_exists('StandardModule')) {
 
             $this->ze_other_ptr = \FFI::addr($this->ze_other);
             // $module pointer will be updated, as registration method returns a copy of memory
-            if (\IS_LINUX && !\IS_PHP74)
-                $this->ze_other_ptr = \ze_ffi()->zend_register_internal_module($this->ze_other_ptr);
-            else
-                $this->ze_other_ptr = \ze_ffi()->zend_register_module_ex($this->ze_other_ptr);
+            $this->ze_other_ptr = \ze_ffi()->zend_register_module_ex($this->ze_other_ptr);
 
             $this->addReflection($moduleName);
             static::set_module($this);
@@ -516,7 +513,7 @@ if (!\class_exists('StandardModule')) {
                         $result = ($module->request_startup_func)($module->type, $module->module_number);
                         $sapi_result = !\is_null($this->original_sapi_activate) ? ($this->original_sapi_activate)(...$args) : \ZE::SUCCESS;
 
-                        return $result == $sapi_result && $result === \ZE::SUCCESS
+                        return ($result == $sapi_result && $result === \ZE::SUCCESS)
                             ? \ZE::SUCCESS : \ZE::FAILURE;
                     };
                 }
@@ -526,7 +523,7 @@ if (!\class_exists('StandardModule')) {
                         $result = ($module->request_shutdown_func)($module->type, $module->module_number);
                         $sapi_result = !\is_null($this->original_sapi_deactivate) ? ($this->original_sapi_deactivate)(...$args) : \ZE::SUCCESS;
 
-                        return $result == $sapi_result && $result === \ZE::SUCCESS
+                        return ($result == $sapi_result && $result === \ZE::SUCCESS)
                             ? \ZE::SUCCESS : \ZE::FAILURE;
                     };
                 }
