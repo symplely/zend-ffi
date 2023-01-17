@@ -222,11 +222,11 @@ if (!\class_exists('StandardModule')) {
                             \ze_ffi()->tsrm_mutex_free($this->module_mutex);
                             $this->module_mutex = null;
                         } else {
-                            \ffi_free_if($this->global_rsrc);
+                            // \ffi_free_if($this->global_rsrc);
                             $this->global_rsrc = null;
                         }
 
-                        \ffi_free_if($this->ze_other_ptr, $this->ze_other);
+                        // \ffi_free_if($this->ze_other_ptr, $this->ze_other);
                         $this->ze_other_ptr = null;
                         $this->ze_other = null;
                         $this->reflection = null;
@@ -487,7 +487,10 @@ if (!\class_exists('StandardModule')) {
 
             $this->ze_other_ptr = \FFI::addr($this->ze_other);
             // $module pointer will be updated, as registration method returns a copy of memory
-            $this->ze_other_ptr = \ze_ffi()->zend_register_module_ex($this->ze_other_ptr);
+            if (\IS_LINUX && !\IS_MACOS && !\IS_PHP74)
+                $this->ze_other_ptr = \ze_ffi()->zend_register_internal_module($this->ze_other_ptr);
+            else
+                $this->ze_other_ptr = \ze_ffi()->zend_register_module_ex($this->ze_other_ptr);
 
             $this->addReflection($moduleName);
             static::set_module($this);
