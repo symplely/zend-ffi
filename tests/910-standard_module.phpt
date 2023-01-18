@@ -33,7 +33,7 @@ final class SimpleCountersModule extends \StandardModule
     {
         echo 'request_startup' . \PHP_EOL;
         $data = $this->get_globals();
-        $data[5] = 25;
+        $data[5] += 25;
         return \ZE::SUCCESS;
     }
 
@@ -45,7 +45,7 @@ final class SimpleCountersModule extends \StandardModule
 
     public function global_startup(\FFI\CData $memory): void
     {
-        \FFI::memset($this->get_globals(), 0, $this->globals_size());
+        \FFI::memset($memory, 0, $this->globals_size());
         echo 'global_startup' . \PHP_EOL;
     }
 
@@ -63,6 +63,7 @@ if (!$module->is_registered()) {
 
 $module->destruct_set();
 var_dump(SimpleCountersModule::get_module() instanceof \StandardModule);
+standard_r_init($module);
 $data = $module->get_globals();
 $module->get_globals('4', 20);
 $data[0] = 5;
@@ -77,11 +78,13 @@ preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
 var_dump(\extension_loaded(SimpleCountersModule::get_name()));
 var_dump($module->ffi());
+standard_r_shutdown($module);
 --EXPECTF--
 global_startup
 module_startup
 request_startup
 bool(true)
+request_startup
 object(FFI\CData:uint32_t[10])#%d (10) {
   [0]=>
   int(5)
@@ -94,7 +97,7 @@ object(FFI\CData:uint32_t[10])#%d (10) {
   [4]=>
   int(20)
   [5]=>
-  int(25)
+  int(50)
   [6]=>
   int(0)
   [7]=>
@@ -108,6 +111,7 @@ string(34) "simple_counters support => enabled"
 bool(true)
 object(FFI)#%d (0) {
 }
+request_shutdown
 request_shutdown
 module_shutdown
 global_shutdown

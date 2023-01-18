@@ -157,6 +157,8 @@ if (!\class_exists('StandardModule')) {
 
         protected bool $restart_sapi = true;
 
+        protected ?bool $zts_sapi_output = null;
+
         protected static $global_module;
 
         protected bool $destruct_on_request = false;
@@ -181,9 +183,29 @@ if (!\class_exists('StandardModule')) {
             $this->destruct_on_request = true;
         }
 
+        public function output_set(): void
+        {
+            $this->zts_sapi_output = true;
+        }
+
+        public function output_reset(): void
+        {
+            $this->zts_sapi_output = false;
+        }
+
         public function is_destruct(): bool
         {
             return $this->destruct_on_request;
+        }
+
+        public function is_sapi(): bool
+        {
+            return $this->restart_sapi;
+        }
+
+        public function is_output_reset(): bool
+        {
+            return !\is_null($this->restart_sapi) && !$this->restart_sapi;
         }
 
         /**
@@ -221,12 +243,11 @@ if (!\class_exists('StandardModule')) {
 
                             \ze_ffi()->tsrm_mutex_free($this->module_mutex);
                             $this->module_mutex = null;
+                            \ze_ffi()->sapi_shutdown();
                         } else {
-                            \ffi_free_if($this->global_rsrc);
                             $this->global_rsrc = null;
                         }
 
-                        \ffi_free_if($this->ze_other_ptr, $this->ze_other);
                         $this->ze_other_ptr = null;
                         $this->ze_other = null;
                         $this->reflection = null;
@@ -426,7 +447,7 @@ if (!\class_exists('StandardModule')) {
             $this->target_persistent = \Core::is_scoped();
 
             // We don't need persistent memory here, as PHP copies structures into persistent memory itself
-            $this->ze_other = \ze_ffi()->new('zend_module_entry');
+            $this->ze_other = \ze_ffi()->new('zend_module_entry', false);
             $moduleName = $this->module_name;
             $this->ze_other->size = \FFI::sizeof($this->ze_other);
             $this->ze_other->type = $this->target_persistent ? \MODULE_PERSISTENT : \MODULE_TEMPORARY;
@@ -523,15 +544,9 @@ if (!\class_exists('StandardModule')) {
         {
             $module = $this->ze_other_ptr;
             if ($this->restart_sapi) {
-                if (\PHP_ZTS) {
-                    \ze_ffi()->php_output_end_all();
-                    \ze_ffi()->php_output_deactivate();
-                    \ze_ffi()->php_output_shutdown();
-                }
-
-                \ze_ffi()->sapi_flush();
-                \ze_ffi()->sapi_deactivate();
-                \ze_ffi()->sapi_shutdown();
+                \standard_r_shutdown($this);
+                if (\PHP_ZTS)
+                    \ze_ffi()->sapi_shutdown();
 
                 if ($this->r_startup) {
                     \ze_ffi()->sapi_module->activate = function (...$args) use ($module) {
@@ -564,13 +579,7 @@ if (!\class_exists('StandardModule')) {
                 );
 
             if ($this->restart_sapi) {
-                if (\PHP_ZTS)
-                    \ze_ffi()->php_output_activate();
-
-                $result = \IS_PHP82
-                    ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
-                    : \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
-                if ($result !== \ZE::SUCCESS) {
+                if (\standard_r_init($this) !== \ZE::SUCCESS) {
                     throw new \RuntimeException(
                         'Can not restart SAPI module ' . \ffi_string(\ze_ffi()->sapi_module->name)
                     );
