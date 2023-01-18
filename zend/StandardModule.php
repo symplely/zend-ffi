@@ -222,11 +222,11 @@ if (!\class_exists('StandardModule')) {
                             \ze_ffi()->tsrm_mutex_free($this->module_mutex);
                             $this->module_mutex = null;
                         } else {
-                            // \ffi_free_if($this->global_rsrc);
+                            \ffi_free_if($this->global_rsrc);
                             $this->global_rsrc = null;
                         }
 
-                        // \ffi_free_if($this->ze_other_ptr, $this->ze_other);
+                        \ffi_free_if($this->ze_other_ptr, $this->ze_other);
                         $this->ze_other_ptr = null;
                         $this->ze_other = null;
                         $this->reflection = null;
@@ -454,17 +454,24 @@ if (!\class_exists('StandardModule')) {
                 } else {
                     $this->global_rsrc = $this->ffi()->new($globalType, false, $this->target_persistent);
                     $this->ze_other->globals_ptr = \FFI::addr($this->global_rsrc);
-                    $this->ze_other->globals_size = \FFI::sizeof($this->ze_other->globals_ptr[0]);
+                    $this->ze_other->globals_size = \FFI::sizeof($this->ze_other->globals_ptr);
                 }
+            } else {
+                $this->ze_other->globals_size = 0;
+                if (\PHP_ZTS)
+                    $this->ze_other->globals_id_ptr = null;
+                else
+                    $this->ze_other->globals_ptr = null;
             }
 
+            $this->ze_other->ini_entry = null;
+            $this->ze_other->deps = null;
+            $this->ze_other->functions = null;
             $this->ze_other->info_func = \closure_from($this, 'module_info');
-            if ($this->m_startup)
-                $this->ze_other->module_startup_func = \closure_from($this, 'module_startup');
+            $this->ze_other->module_startup_func = $this->m_startup ? \closure_from($this, 'module_startup') : null;
+            $this->ze_other->module_shutdown_func = $this->m_shutdown ? \closure_from($this, 'module_shutdown') : null;
 
-            if ($this->m_shutdown)
-                $this->ze_other->module_shutdown_func = \closure_from($this, 'module_shutdown');
-
+            $this->ze_other->request_startup_func = null;
             if ($this->r_startup) {
                 if ($this->restart_sapi)
                     $this->original_sapi_activate = \ze_ffi()->sapi_module->activate;
@@ -472,6 +479,7 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other->request_startup_func = \closure_from($this, 'request_startup');
             }
 
+            $this->ze_other->request_shutdown_func = null;
             if ($this->r_shutdown) {
                 if ($this->restart_sapi)
                     $this->original_sapi_deactivate = \ze_ffi()->sapi_module->deactivate;
@@ -479,18 +487,28 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other->request_shutdown_func = \closure_from($this, 'request_shutdown');
             }
 
-            if ($this->g_startup || !\is_null($globalType))
-                $this->ze_other->globals_ctor = \closure_from($this, 'global_startup');
+            $this->ze_other->globals_ctor = ($this->g_startup || !\is_null($globalType))
+                ? \closure_from($this, 'global_startup') : null;
 
-            if ($this->g_shutdown || !\is_null($globalType))
-                $this->ze_other->globals_dtor = \closure_from($this, 'global_shutdown');
+            $this->ze_other->globals_dtor = ($this->g_shutdown || !\is_null($globalType))
+                ? \closure_from($this, 'global_shutdown') : null;
+
+            $this->ze_other->post_deactivate_func = null;
+            $this->ze_other->module_started = 0;
+            $this->ze_other->handle = null;
+            $this->ze_other->module_number = 0;
+            $this->ze_other->build_id = \ffi_char(
+                'API'
+                    . (string)\ZEND_MODULE_API_NO
+                    . (\PHP_ZTS ? ',TS' : ',NTS')
+                    . (\ZEND_DEBUG_BUILD ? ',debug' : ''),
+                false,
+                $this->target_persistent
+            );
 
             $this->ze_other_ptr = \FFI::addr($this->ze_other);
             // $module pointer will be updated, as registration method returns a copy of memory
-            if (\IS_LINUX && !\IS_MACOS && !\IS_PHP74)
-                $this->ze_other_ptr = \ze_ffi()->zend_register_internal_module($this->ze_other_ptr);
-            else
-                $this->ze_other_ptr = \ze_ffi()->zend_register_module_ex($this->ze_other_ptr);
+            $this->ze_other_ptr = \ze_ffi()->zend_register_module_ex($this->ze_other_ptr);
 
             $this->addReflection($moduleName);
             static::set_module($this);
