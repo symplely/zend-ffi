@@ -20,7 +20,6 @@ if (!\defined('MODULE_TEMPORARY')) {
   \define('MODULE_TEMPORARY', 2);
 }
 
-
 if (!\defined('DS'))
   \define('DS', \DIRECTORY_SEPARATOR);
 
@@ -98,6 +97,17 @@ if (!\defined('IS_PHP80'))
 if (!\defined('IS_PHP74'))
   \define('IS_PHP74', ((float) \phpversion() >= 7.4) && !\IS_PHP8);
 
+if (!\defined('ZEND_MODULE_API_NO'))
+  \define(
+    'ZEND_MODULE_API_NO',
+    \IS_PHP80 ? 20200930
+      : (\IS_PHP81 ? 20210902
+        : (\IS_PHP82 ? 20220829
+          : 20190902
+        )
+      )
+  );
+
 if (!\function_exists('setup_ffi_loader')) {
   function ffi_cdef(string $code, string $lib = null): \FFI
   {
@@ -108,23 +118,12 @@ if (!\function_exists('setup_ffi_loader')) {
     }
   }
 
-  if (!\defined('ZEND_MODULE_API_NO'))
-    \define(
-      'ZEND_MODULE_API_NO',
-      \IS_PHP80 ? 20200930
-        : (\IS_PHP81 ? 20210902
-          : (\IS_PHP82 ? 20220829
-            : 20190902
-          )
-        )
-    );
-
   /**
    * @return php_stream
    */
   function stream_stdout(): CData
   {
-    return \ffi_object(Core::get_stdio(1));
+    return \ffi_object(\Core::get_stdio(1));
   }
 
   /**
@@ -132,7 +131,7 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function stream_stdin(): CData
   {
-    return \ffi_object(Core::get_stdio(0));
+    return \ffi_object(\Core::get_stdio(0));
   }
 
   /**
@@ -140,7 +139,7 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function stream_stderr(): CData
   {
-    return \ffi_object(Core::get_stdio(2));
+    return \ffi_object(\Core::get_stdio(2));
   }
 
   /**
