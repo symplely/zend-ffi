@@ -18,7 +18,6 @@ final class SimpleCountersModule extends \StandardModule
 
     public function module_startup(int $type, int $module_number): int
     {
-        SimpleCountersModule::set_module($this);
         echo 'module_startup' . \PHP_EOL;
         return \ZE::SUCCESS;
     }

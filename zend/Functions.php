@@ -1002,6 +1002,13 @@ if (!\function_exists('zval_stack')) {
         return \zval_native($ret);
     }
 
+    /**
+     * Execute **StandardModule** `request_startup()`, and _current SAPI_ `activate` routine.
+     * - PHP_RINIT_FUNCTION()
+     *
+     * @param \StandardModule $module
+     * @return integer|null
+     */
     function standard_r_init(\StandardModule $module): ?int
     {
         if ($module->is_sapi()) {
@@ -1018,6 +1025,13 @@ if (!\function_exists('zval_stack')) {
         return null;
     }
 
+    /**
+     * Execute **StandardModule** `request_shutdown()`, and _current SAPI_ `deactivate` routine.
+     * - PHP_RSHUTDOWN_FUNCTION()
+     *
+     * @param \StandardModule $module
+     * @return integer|null
+     */
     function standard_r_shutdown(\StandardModule $module): ?int
     {
         if ($module->is_sapi()) {

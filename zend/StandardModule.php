@@ -173,37 +173,37 @@ if (!\class_exists('StandardModule')) {
         protected ?CData $module_mutex = null;
 
         /**
-         * Set __`StandardModule`__ to call `module_shutdown()` and `global_shutdown()`
-         * on __`request_shutdown()`__ or __`module_destructor()`__.
+         * Set __`StandardModule`__ to `module_shutdown()` and `global_shutdown()`
+         * on __`request_shutdown()`__ execution.
          *
          * @return void
          */
-        public function destruct_set(): void
+        final public function destruct_set(): void
         {
             $this->destruct_on_request = true;
         }
 
-        public function output_set(): void
+        final public function output_set(): void
         {
             $this->zts_sapi_output = true;
         }
 
-        public function output_reset(): void
+        final public function output_reset(): void
         {
             $this->zts_sapi_output = false;
         }
 
-        public function is_destruct(): bool
+        final public function is_destruct(): bool
         {
             return $this->destruct_on_request;
         }
 
-        public function is_sapi(): bool
+        final public function is_sapi(): bool
         {
             return $this->restart_sapi;
         }
 
-        public function is_output_reset(): bool
+        final public function is_output_reset(): bool
         {
             return !\is_null($this->restart_sapi) && !$this->restart_sapi;
         }
@@ -366,7 +366,8 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_RINIT_FUNCTION()` _macro_.
          *
-         * @param mixed $args
+         * @param integer $type
+         * @param integer $module_number
          * @return integer
          */
         public function request_startup(int $type, int $module_number): int
@@ -377,7 +378,8 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_RSHUTDOWN_FUNCTION()` _macro_.
          *
-         * @param mixed $args
+         * @param integer $type
+         * @param integer $module_number
          * @return integer
          */
         public function request_shutdown(int $type, int $module_number): int
@@ -388,7 +390,7 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_GINIT_FUNCTION()` _macro_.
          *
-         * @param CData $memory `void*` needs to be __cast__ to `global_type()`
+         * @param CData|void_t $memory `void*` needs to be __cast__ to `global_type()`
          * @return void
          */
         public function global_startup(CData $memory): void
@@ -398,7 +400,7 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_GSHUTDOWN_FUNCTION()` _macro_.
          *
-         * @param CData $memory `void*` needs to be __cast__ to `global_type()`
+         * @param CData|zend_module_entry $memory
          * @return void
          */
         public function global_shutdown(CData $memory): void
@@ -408,7 +410,7 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_MINFO_FUNCTION()` _macro_.
          *
-         * @param CData $entry
+         * @param CData|zend_module_entry $entry
          * @return void
          */
         public function module_info(CData $entry): void
