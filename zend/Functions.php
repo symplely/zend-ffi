@@ -1009,17 +1009,12 @@ if (!\function_exists('zval_stack')) {
      * @param \StandardModule $module
      * @return integer|null
      */
-    function standard_r_init(\StandardModule $module): ?int
+    function standard_activate(\StandardModule $module): ?int
     {
         if ($module->is_sapi()) {
-            if (\PHP_ZTS && $module->is_output_reset()) {
-                \ze_ffi()->php_output_activate();
-                $module->output_set();
-            }
+            \ze_ffi()->sapi_activate();
 
-            return \IS_PHP82
-                ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
-                : \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
+            return \ZE::SUCCESS;
         }
 
         return null;
@@ -1032,20 +1027,13 @@ if (!\function_exists('zval_stack')) {
      * @param \StandardModule $module
      * @return integer|null
      */
-    function standard_r_shutdown(\StandardModule $module): ?int
+    function standard_deactivate(\StandardModule $module): ?int
     {
         if ($module->is_sapi()) {
-            if (\PHP_ZTS) {
-                \ze_ffi()->php_output_end_all();
-                \ze_ffi()->php_output_deactivate();
-                \ze_ffi()->php_output_shutdown();
-                $module->output_reset();
-            }
-
-            $result = \ze_ffi()->sapi_flush();
+            \ze_ffi()->sapi_flush();
             \ze_ffi()->sapi_deactivate();
 
-            return $result;
+            return \ZE::SUCCESS;
         }
 
         return null;
