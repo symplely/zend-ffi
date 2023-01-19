@@ -157,8 +157,6 @@ if (!\class_exists('StandardModule')) {
 
         protected bool $restart_sapi = true;
 
-        protected ?bool $zts_sapi_output = null;
-
         protected static $global_module;
 
         protected bool $destruct_on_request = false;
@@ -183,16 +181,6 @@ if (!\class_exists('StandardModule')) {
             $this->destruct_on_request = true;
         }
 
-        final public function output_set(): void
-        {
-            $this->zts_sapi_output = true;
-        }
-
-        final public function output_reset(): void
-        {
-            $this->zts_sapi_output = false;
-        }
-
         final public function is_destruct(): bool
         {
             return $this->destruct_on_request;
@@ -201,11 +189,6 @@ if (!\class_exists('StandardModule')) {
         final public function is_sapi(): bool
         {
             return $this->restart_sapi;
-        }
-
-        final public function is_output_reset(): bool
-        {
-            return !\is_null($this->restart_sapi) && !$this->restart_sapi;
         }
 
         /**
@@ -237,13 +220,12 @@ if (!\class_exists('StandardModule')) {
                             $id = \ze_ffi()->tsrm_thread_id();
                             if (isset($this->global_id[$id])) {
                                 \ze_ffi()->ts_free_id($this->global_id[$id]);
-                                unset($this->global_id[$id]);
-                                unset($this->global_rsrc[$id]);
+                                $this->global_id[$id] = null;
+                                $this->global_rsrc[$id] = null;
                             }
 
                             \ze_ffi()->tsrm_mutex_free($this->module_mutex);
                             $this->module_mutex = null;
-                            \ze_ffi()->sapi_shutdown();
                         } else {
                             $this->global_rsrc = null;
                         }
@@ -465,11 +447,11 @@ if (!\class_exists('StandardModule')) {
                 if (\PHP_ZTS) {
                     \tsrmls_activate();
                     $id = \ze_ffi()->tsrm_thread_id();
-                    $this->global_rsrc[$id] = \c_int_type('ts_rsrc_id', 'ze', null, false, $this->target_persistent);
-                    $this->ze_other->globals_id_ptr = $this->global_rsrc[$id]->addr();
+                    $this->global_rsrc[$id] = $this->ffi()->new('ts_rsrc_id', false, $this->target_persistent);
+                    $this->ze_other->globals_id_ptr = \FFI::addr($this->global_rsrc[$id]);
                     $this->ze_other->globals_size = \FFI::sizeof($this->ffi()->type($globalType));
                     $this->global_id[$id] = \ze_ffi()->ts_allocate_id(
-                        $this->global_rsrc[$id]->addr(),
+                        $this->ze_other->globals_id_ptr,
                         $this->ze_other->globals_size,
                         null,
                         null
@@ -546,7 +528,15 @@ if (!\class_exists('StandardModule')) {
         {
             $module = $this->ze_other_ptr;
             if ($this->restart_sapi) {
-                \standard_r_shutdown($this);
+                if (\PHP_ZTS) {
+                    \ze_ffi()->php_output_end_all();
+                    \ze_ffi()->php_output_deactivate();
+                    \ze_ffi()->php_output_shutdown();
+                }
+
+                \ze_ffi()->sapi_flush();
+                \ze_ffi()->sapi_deactivate();
+
                 if (\PHP_ZTS)
                     \ze_ffi()->sapi_shutdown();
 
@@ -561,7 +551,7 @@ if (!\class_exists('StandardModule')) {
                 }
 
                 if ($this->r_shutdown) {
-                    \ze_ffi()->sapi_module->deactivate = \PHP_ZTS ? null : function (...$args) use ($module) {
+                    \ze_ffi()->sapi_module->deactivate = function (...$args) use ($module) {
                         $result = ($module->request_shutdown_func)($module->type, $module->module_number);
                         $sapi_result = !\is_null($this->original_sapi_deactivate) ? ($this->original_sapi_deactivate)(...$args) : \ZE::SUCCESS;
 
@@ -580,8 +570,15 @@ if (!\class_exists('StandardModule')) {
                     \closure_from($this, 'module_destructor')
                 );
 
+
             if ($this->restart_sapi) {
-                if (\standard_r_init($this) !== \ZE::SUCCESS) {
+                if (\PHP_ZTS)
+                    \ze_ffi()->php_output_activate();
+
+                $result = \IS_PHP82
+                    ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
+                    : \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
+                if ($result !== \ZE::SUCCESS) {
                     throw new \RuntimeException(
                         'Can not restart SAPI module ' . \ffi_string(\ze_ffi()->sapi_module->name)
                     );

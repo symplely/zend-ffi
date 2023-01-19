@@ -62,7 +62,7 @@ if (!$module->is_registered()) {
 
 $module->destruct_set();
 var_dump(SimpleCountersModule::get_module() instanceof \StandardModule);
-standard_r_init($module);
+standard_activate($module);
 $data = $module->get_globals();
 $module->get_globals('4', 20);
 $data[0] = 5;
@@ -76,8 +76,8 @@ $value = ob_get_clean();
 preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
 var_dump(\extension_loaded(SimpleCountersModule::get_name()));
+standard_deactivate($module);
 var_dump($module->ffi());
-standard_r_shutdown($module);
 --EXPECTF--
 global_startup
 module_startup
@@ -108,9 +108,9 @@ object(FFI\CData:uint32_t[10])#%d (10) {
 }
 string(34) "simple_counters support => enabled"
 bool(true)
+request_shutdown
 object(FFI)#%d (0) {
 }
-request_shutdown
 request_shutdown
 module_shutdown
 global_shutdown
