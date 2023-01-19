@@ -157,6 +157,8 @@ if (!\class_exists('StandardModule')) {
 
         protected bool $restart_sapi = true;
 
+        protected ?bool $zts_sapi_output = null;
+
         protected static $global_module;
 
         protected bool $destruct_on_request = false;
@@ -171,19 +173,39 @@ if (!\class_exists('StandardModule')) {
         protected ?CData $module_mutex = null;
 
         /**
-         * Set __`StandardModule`__ to call `module_shutdown()` and `global_shutdown()`
-         * on __`request_shutdown()`__ or __`module_destructor()`__.
+         * Set __`StandardModule`__ to `module_shutdown()` and `global_shutdown()`
+         * on __`request_shutdown()`__ execution.
          *
          * @return void
          */
-        public function destruct_set(): void
+        final public function destruct_set(): void
         {
             $this->destruct_on_request = true;
         }
 
-        public function is_destruct(): bool
+        final public function output_set(): void
+        {
+            $this->zts_sapi_output = true;
+        }
+
+        final public function output_reset(): void
+        {
+            $this->zts_sapi_output = false;
+        }
+
+        final public function is_destruct(): bool
         {
             return $this->destruct_on_request;
+        }
+
+        final public function is_sapi(): bool
+        {
+            return $this->restart_sapi;
+        }
+
+        final public function is_output_reset(): bool
+        {
+            return !\is_null($this->restart_sapi) && !$this->restart_sapi;
         }
 
         /**
@@ -221,12 +243,11 @@ if (!\class_exists('StandardModule')) {
 
                             \ze_ffi()->tsrm_mutex_free($this->module_mutex);
                             $this->module_mutex = null;
+                            \ze_ffi()->sapi_shutdown();
                         } else {
-                            \ffi_free_if($this->global_rsrc);
                             $this->global_rsrc = null;
                         }
 
-                        \ffi_free_if($this->ze_other_ptr, $this->ze_other);
                         $this->ze_other_ptr = null;
                         $this->ze_other = null;
                         $this->reflection = null;
@@ -345,7 +366,8 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_RINIT_FUNCTION()` _macro_.
          *
-         * @param mixed $args
+         * @param integer $type
+         * @param integer $module_number
          * @return integer
          */
         public function request_startup(int $type, int $module_number): int
@@ -356,7 +378,8 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_RSHUTDOWN_FUNCTION()` _macro_.
          *
-         * @param mixed $args
+         * @param integer $type
+         * @param integer $module_number
          * @return integer
          */
         public function request_shutdown(int $type, int $module_number): int
@@ -367,7 +390,7 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_GINIT_FUNCTION()` _macro_.
          *
-         * @param CData $memory `void*` needs to be __cast__ to `global_type()`
+         * @param CData|void_t $memory `void*` needs to be __cast__ to `global_type()`
          * @return void
          */
         public function global_startup(CData $memory): void
@@ -377,7 +400,7 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_GSHUTDOWN_FUNCTION()` _macro_.
          *
-         * @param CData $memory `void*` needs to be __cast__ to `global_type()`
+         * @param CData|zend_module_entry $memory
          * @return void
          */
         public function global_shutdown(CData $memory): void
@@ -387,7 +410,7 @@ if (!\class_exists('StandardModule')) {
         /**
          * Represents `PHP_MINFO_FUNCTION()` _macro_.
          *
-         * @param CData $entry
+         * @param CData|zend_module_entry $entry
          * @return void
          */
         public function module_info(CData $entry): void
@@ -426,7 +449,7 @@ if (!\class_exists('StandardModule')) {
             $this->target_persistent = \Core::is_scoped();
 
             // We don't need persistent memory here, as PHP copies structures into persistent memory itself
-            $this->ze_other = \ze_ffi()->new('zend_module_entry');
+            $this->ze_other = \ze_ffi()->new('zend_module_entry', false);
             $moduleName = $this->module_name;
             $this->ze_other->size = \FFI::sizeof($this->ze_other);
             $this->ze_other->type = $this->target_persistent ? \MODULE_PERSISTENT : \MODULE_TEMPORARY;
@@ -454,17 +477,24 @@ if (!\class_exists('StandardModule')) {
                 } else {
                     $this->global_rsrc = $this->ffi()->new($globalType, false, $this->target_persistent);
                     $this->ze_other->globals_ptr = \FFI::addr($this->global_rsrc);
-                    $this->ze_other->globals_size = \FFI::sizeof($this->ze_other->globals_ptr[0]);
+                    $this->ze_other->globals_size = \FFI::sizeof($this->ze_other->globals_ptr);
                 }
+            } else {
+                $this->ze_other->globals_size = 0;
+                if (\PHP_ZTS)
+                    $this->ze_other->globals_id_ptr = null;
+                else
+                    $this->ze_other->globals_ptr = null;
             }
 
+            $this->ze_other->ini_entry = null;
+            $this->ze_other->deps = null;
+            $this->ze_other->functions = null;
             $this->ze_other->info_func = \closure_from($this, 'module_info');
-            if ($this->m_startup)
-                $this->ze_other->module_startup_func = \closure_from($this, 'module_startup');
+            $this->ze_other->module_startup_func = $this->m_startup ? \closure_from($this, 'module_startup') : null;
+            $this->ze_other->module_shutdown_func = $this->m_shutdown ? \closure_from($this, 'module_shutdown') : null;
 
-            if ($this->m_shutdown)
-                $this->ze_other->module_shutdown_func = \closure_from($this, 'module_shutdown');
-
+            $this->ze_other->request_startup_func = null;
             if ($this->r_startup) {
                 if ($this->restart_sapi)
                     $this->original_sapi_activate = \ze_ffi()->sapi_module->activate;
@@ -472,6 +502,7 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other->request_startup_func = \closure_from($this, 'request_startup');
             }
 
+            $this->ze_other->request_shutdown_func = null;
             if ($this->r_shutdown) {
                 if ($this->restart_sapi)
                     $this->original_sapi_deactivate = \ze_ffi()->sapi_module->deactivate;
@@ -479,11 +510,24 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other->request_shutdown_func = \closure_from($this, 'request_shutdown');
             }
 
-            if ($this->g_startup || !\is_null($globalType))
-                $this->ze_other->globals_ctor = \closure_from($this, 'global_startup');
+            $this->ze_other->globals_ctor = ($this->g_startup || !\is_null($globalType))
+                ? \closure_from($this, 'global_startup') : null;
 
-            if ($this->g_shutdown || !\is_null($globalType))
-                $this->ze_other->globals_dtor = \closure_from($this, 'global_shutdown');
+            $this->ze_other->globals_dtor = ($this->g_shutdown || !\is_null($globalType))
+                ? \closure_from($this, 'global_shutdown') : null;
+
+            $this->ze_other->post_deactivate_func = null;
+            $this->ze_other->module_started = 0;
+            $this->ze_other->handle = null;
+            $this->ze_other->module_number = 0;
+            $this->ze_other->build_id = \ffi_char(
+                'API'
+                    . (string)\ZEND_MODULE_API_NO
+                    . (\PHP_ZTS ? ',TS' : ',NTS')
+                    . (\ZEND_DEBUG_BUILD ? ',debug' : ''),
+                false,
+                $this->target_persistent
+            );
 
             $this->ze_other_ptr = \FFI::addr($this->ze_other);
             // $module pointer will be updated, as registration method returns a copy of memory
@@ -502,15 +546,9 @@ if (!\class_exists('StandardModule')) {
         {
             $module = $this->ze_other_ptr;
             if ($this->restart_sapi) {
-                if (\PHP_ZTS) {
-                    \ze_ffi()->php_output_end_all();
-                    \ze_ffi()->php_output_deactivate();
-                    \ze_ffi()->php_output_shutdown();
-                }
-
-                \ze_ffi()->sapi_flush();
-                \ze_ffi()->sapi_deactivate();
-                \ze_ffi()->sapi_shutdown();
+                \standard_r_shutdown($this);
+                if (\PHP_ZTS)
+                    \ze_ffi()->sapi_shutdown();
 
                 if ($this->r_startup) {
                     \ze_ffi()->sapi_module->activate = function (...$args) use ($module) {
@@ -543,13 +581,7 @@ if (!\class_exists('StandardModule')) {
                 );
 
             if ($this->restart_sapi) {
-                if (\PHP_ZTS)
-                    \ze_ffi()->php_output_activate();
-
-                $result = \IS_PHP82
-                    ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
-                    : \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
-                if ($result !== \ZE::SUCCESS) {
+                if (\standard_r_init($this) !== \ZE::SUCCESS) {
                     throw new \RuntimeException(
                         'Can not restart SAPI module ' . \ffi_string(\ze_ffi()->sapi_module->name)
                     );

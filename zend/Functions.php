@@ -1002,6 +1002,55 @@ if (!\function_exists('zval_stack')) {
         return \zval_native($ret);
     }
 
+    /**
+     * Execute **StandardModule** `request_startup()`, and _current SAPI_ `activate` routine.
+     * - PHP_RINIT_FUNCTION()
+     *
+     * @param \StandardModule $module
+     * @return integer|null
+     */
+    function standard_r_init(\StandardModule $module): ?int
+    {
+        if ($module->is_sapi()) {
+            if (\PHP_ZTS && $module->is_output_reset()) {
+                \ze_ffi()->php_output_activate();
+                $module->output_set();
+            }
+
+            return \IS_PHP82
+                ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
+                : \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null, 0);
+        }
+
+        return null;
+    }
+
+    /**
+     * Execute **StandardModule** `request_shutdown()`, and _current SAPI_ `deactivate` routine.
+     * - PHP_RSHUTDOWN_FUNCTION()
+     *
+     * @param \StandardModule $module
+     * @return integer|null
+     */
+    function standard_r_shutdown(\StandardModule $module): ?int
+    {
+        if ($module->is_sapi()) {
+            if (\PHP_ZTS) {
+                \ze_ffi()->php_output_end_all();
+                \ze_ffi()->php_output_deactivate();
+                \ze_ffi()->php_output_shutdown();
+                $module->output_reset();
+            }
+
+            $result = \ze_ffi()->sapi_flush();
+            \ze_ffi()->sapi_deactivate();
+
+            return $result;
+        }
+
+        return null;
+    }
+
     function zend_print_zval_r_to_str($variable, int $indent = 0): string
     {
         return ZendString::init_value(
