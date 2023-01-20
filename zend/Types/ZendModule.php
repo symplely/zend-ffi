@@ -63,8 +63,7 @@ if (!\class_exists('ZendModule')) {
         public static function init(string $name): self
         {
             /** @var Zval */
-            $ext = HashTable::init_value(static::module_registry())
-                ->find($name);
+            $ext = \zend_hash_find($name);
             if ($ext === null) {
                 return \ze_ffi()->zend_error(\E_WARNING, "Module %s should be in the engine.", $name);
             }

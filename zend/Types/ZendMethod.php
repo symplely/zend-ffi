@@ -22,8 +22,7 @@ if (!\class_exists('ZendMethod')) {
             $methodName = \reset($arguments);
 
             /** @var Zval */
-            $zvalClass = HashTable::init_value(static::executor_globals()->class_table)
-                ->find(\strtolower($className));
+            $zvalClass = \zend_hash_find(\strtolower($className), static::executor_globals()->class_table);
             if ($zvalClass === null) {
                 return \ze_ffi()->zend_error(\E_WARNING, "Class %s should be in the engine.", $className);
             }
@@ -31,9 +30,7 @@ if (!\class_exists('ZendMethod')) {
             $classPtr = $zvalClass->ce();
 
             /** @var Zval */
-            $zvalMethod = HashTable::init_value(\ffi_ptr($classPtr->function_table))
-                ->find(\strtolower($methodName));
-
+            $zvalMethod = \zend_hash_find(\strtolower($methodName), \ffi_ptr($classPtr->function_table));
             if ($zvalMethod === null) {
                 return \ze_ffi()->zend_error(\E_WARNING, "Method %s was not found in the class.", $methodName);
             }

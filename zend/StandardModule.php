@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use FFI\CData;
 use ZE\Zval;
-use ZE\HashTable;
 use ZE\ZendModule;
 
 if (!\class_exists('StandardModule')) {
@@ -307,7 +306,7 @@ if (!\class_exists('StandardModule')) {
             // if module is already registered, then we can use it immediately
             if ($this->is_registered()) {
                 /** @var Zval */
-                $ext = HashTable::init_value(static::module_registry())->find($this->module_name);
+                $ext = \zend_hash_find($this->module_name);
                 if ($ext === null) {
                     return \ze_ffi()->zend_error(\E_WARNING, "Module %s should be in the engine.", $this->module_name);
                 }
