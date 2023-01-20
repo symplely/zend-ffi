@@ -833,7 +833,7 @@ interface FFI
     public function zendparse();
 
     /** @return void */
-    public function zend_ast_destroy(zend_ast &$ast);
+    public function zend_ast_destroy(?zend_ast &$ast);
 
     /** @return zend_object */
     public function zend_objects_new(zend_class_entry &$ce);
