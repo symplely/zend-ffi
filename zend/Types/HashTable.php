@@ -113,6 +113,16 @@ if (!\class_exists('HashTable')) {
             return $this;
         }
 
+        public function delete_index(string $key): void
+        {
+            $string = ZendString::init($key);
+            $result = \ze_ffi()->zend_hash_del_ind($this->ze_other_ptr, $string->addr());
+
+            if ($result === \ZE::FAILURE) {
+                \ze_ffi()->zend_error(\E_WARNING, "Can not delete an item with key %s", $key);
+            }
+        }
+
         /**
          * Adds new value to the HashTable
          */

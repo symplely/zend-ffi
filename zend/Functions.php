@@ -942,6 +942,25 @@ if (!\function_exists('zval_stack')) {
             ->find($name);
     }
 
+    function zend_hash_delete(string $name, CData $ht = null): HashTable
+    {
+        return HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+            ->delete($name);
+    }
+
+    function zend_hash_delete_index(string $name, CData $ht = null): void
+    {
+        HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+            ->delete_index($name);
+    }
+
+    function zend_hash_rehash(CData $ht = null): int
+    {
+        return \ze_ffi()->zend_hash_rehash(
+            \is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht
+        );
+    }
+
     /**
      * Represents `zend_hash_exists()` inline _macro_.
      *

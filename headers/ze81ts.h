@@ -1557,6 +1557,8 @@ void add_assoc_zval_ex(zval *arg, const char *key, size_t key_len, zval *value);
 zend_result add_next_index_string(zval *arg, const char *str);
 
 zend_result zend_hash_del(HashTable *ht, zend_string *key);
+zend_result zend_hash_del_ind(HashTable *ht, zend_string *key);
+zend_result zend_hash_rehash(HashTable *ht);
 zval *zend_hash_find(const HashTable *ht, zend_string *key);
 zval *zend_hash_str_find(const HashTable *ht, const char *key, size_t len);
 zval *zend_hash_add_or_update(HashTable *ht, zend_string *key, zval *pData, uint32_t flag);

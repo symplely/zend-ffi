@@ -432,6 +432,12 @@ interface FFI
     /** @return int */
     public function zend_hash_del(HashTable &$ht, zend_string &$key);
 
+    /** @return int */
+    public function zend_hash_del_ind(HashTable &$ht, zend_string &$key);
+
+    /** @return int */
+    public function zend_hash_rehash(HashTable &$ht);
+
     /** @return zval */
     public function zend_hash_add_or_update(HashTable &$ht, zend_string &$key, zval &$pData, uint32_t $flag);
 

@@ -203,8 +203,7 @@ if (!\class_exists('StandardModule')) {
                     $this->request_shutdown($module->type, $module->module_number);
                     if ($this->destruct_on_request && !$this->target_persistent) {
                         $this->destruct_on_request = false;
-                        $this->module_shutdown($module->type, $module->module_number);
-                        $this->global_shutdown($module);
+                        \zend_hash_delete($this->module_name);
                         if ($this->restart_sapi && $this->r_startup) {
                             \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
                             $this->original_sapi_activate = null;
@@ -433,7 +432,7 @@ if (!\class_exists('StandardModule')) {
             $this->ze_other = \ze_ffi()->new('zend_module_entry', false);
             $moduleName = $this->module_name;
             $this->ze_other->size = \FFI::sizeof($this->ze_other);
-            $this->ze_other->type = $this->target_persistent ? \MODULE_PERSISTENT : \MODULE_TEMPORARY;
+            $this->ze_other->type = \MODULE_PERSISTENT;
             $this->ze_other->name = \ffi_char($moduleName, false, $this->target_persistent);
             $this->ze_other->zend_api = $this->target_version;
             $this->ze_other->zend_debug = (int)$this->target_debug;

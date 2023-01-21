@@ -1537,9 +1537,11 @@ void add_assoc_zval_ex(zval *arg, const char *key, size_t key_len, zval *value);
 zend_result add_next_index_string(zval *arg, const char *str);
 
 __declspec(dllimport) int __vectorcall zend_hash_del(HashTable *ht, zend_string *key);
-__declspec(dllimport) zval __vectorcall *zend_hash_find(const HashTable *ht, zend_string *key);
+__declspec(dllimport) int __vectorcall zend_hash_del_ind(HashTable *ht, zend_string *key);
+__declspec(dllimport) int __vectorcall zend_hash_rehash(HashTable *ht);
+__declspec(dllimport) zval *__vectorcall zend_hash_find(const HashTable *ht, zend_string *key);
 __declspec(dllimport) zval *__vectorcall zend_hash_str_find(const HashTable *ht, const char *key, size_t len);
-__declspec(dllimport) zval __vectorcall *zend_hash_add_or_update(HashTable *ht, zend_string *key, zval *pData, uint32_t flag);
+__declspec(dllimport) zval *__vectorcall zend_hash_add_or_update(HashTable *ht, zend_string *key, zval *pData, uint32_t flag);
 __declspec(dllimport) zval *__vectorcall zend_hash_next_index_insert(HashTable *ht, zval *pData);
 
 typedef void (*copy_ctor_func_t)(zval *pElement);
