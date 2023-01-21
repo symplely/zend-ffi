@@ -432,6 +432,12 @@ interface FFI
     /** @return int */
     public function zend_hash_del(HashTable &$ht, zend_string &$key);
 
+    /** @return int */
+    public function zend_hash_del_ind(HashTable &$ht, zend_string &$key);
+
+    /** @return int */
+    public function zend_hash_rehash(HashTable &$ht);
+
     /** @return zval */
     public function zend_hash_add_or_update(HashTable &$ht, zend_string &$key, zval &$pData, uint32_t $flag);
 
@@ -833,7 +839,7 @@ interface FFI
     public function zendparse();
 
     /** @return void */
-    public function zend_ast_destroy(zend_ast &$ast);
+    public function zend_ast_destroy(?zend_ast &$ast);
 
     /** @return zend_object */
     public function zend_objects_new(zend_class_entry &$ce);

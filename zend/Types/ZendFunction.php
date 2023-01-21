@@ -49,9 +49,7 @@ if (!\class_exists('ZendFunction')) {
             $functionName = \reset($arguments);
 
             /** @var Zval */
-            $zvalFunction = HashTable::init_value(static::executor_globals()->function_table)
-                ->find(\strtolower($functionName));
-
+            $zvalFunction = \zend_hash_find(\strtolower($functionName), static::executor_globals()->function_table);
             if ($zvalFunction === null) {
                 return \ze_ffi()->zend_error(\E_WARNING, "Function %s should be in the engine.", $functionName);
             }

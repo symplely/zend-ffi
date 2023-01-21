@@ -3,11 +3,8 @@
 declare(strict_types=1);
 
 use FFI\CData;
-use ZE\HashTable;
 use ZE\PThread;
-use ZE\Zval;
 use ZE\Thread;
-use ZE\ZendString;
 
 if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
     final class ThreadsModule extends \StandardModule
@@ -97,7 +94,7 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
             // TODO: store the list of modules to reload in a global module variable
             foreach (self::MODULES_TO_RELOAD as $module_name) {
-                $module = \zend_hash_str_find_ptr(HashTable::module_registry(), $module_name);
+                $module = \zend_hash_str_find_ptr($module_name);
                 ($module->request_shutdown_func)($module->type, $module->module_number);
             }
 
@@ -275,8 +272,6 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
                     $this->output_mutex = null;
                     $this->get_globals('mutex', null);
                 }
-
-                parent::__destruct();
             }
         }
     }

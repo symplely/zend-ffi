@@ -397,6 +397,11 @@ if (!\class_exists('ZE')) {
             return $this->ze_other_ptr;
         }
 
+        public function addr(): CData
+        {
+            return \FFI::addr($this->__invoke());
+        }
+
         public function free(): void
         {
             if (!$this->isZval && !\is_null($this->ze_other_ptr)) {

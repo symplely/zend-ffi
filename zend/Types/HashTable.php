@@ -37,6 +37,12 @@ if (!\class_exists('HashTable')) {
     {
         protected $isZval = false;
 
+        public function __destruct()
+        {
+            $this->ze_other_ptr = null;
+            $this->ze_other = null;
+        }
+
         /**
          * Retrieve an external iterator
          *
@@ -84,9 +90,9 @@ if (!\class_exists('HashTable')) {
         public function find(string $key): ?Zval
         {
             $string = ZendString::init($key);
-            $result = \ze_ffi()->zend_hash_find($this->ze_other_ptr, \ffi_ptr($string()));
+            $result = \ze_ffi()->zend_hash_find($this->ze_other_ptr, $string->addr());
 
-            return \is_cdata($result) ? Zval::init_value($result) : $result;
+            return \is_cdata($result) ? Zval::init_value($result) : null;
         }
 
         /**
@@ -98,13 +104,23 @@ if (!\class_exists('HashTable')) {
         public function delete(string $key): self
         {
             $string = ZendString::init($key);
-            $result = \ze_ffi()->zend_hash_del($this->ze_other_ptr, \ffi_ptr($string()));
+            $result = \ze_ffi()->zend_hash_del($this->ze_other_ptr, $string->addr());
 
             if ($result === \ZE::FAILURE) {
                 return \ze_ffi()->zend_error(\E_WARNING, "Can not delete an item with key %s", $key);
             }
 
             return $this;
+        }
+
+        public function delete_index(string $key): void
+        {
+            $string = ZendString::init($key);
+            $result = \ze_ffi()->zend_hash_del_ind($this->ze_other_ptr, $string->addr());
+
+            if ($result === \ZE::FAILURE) {
+                \ze_ffi()->zend_error(\E_WARNING, "Can not delete an item with key %s", $key);
+            }
         }
 
         /**
@@ -115,7 +131,7 @@ if (!\class_exists('HashTable')) {
             $string = ZendString::init($key);
             $result = \ze_ffi()->zend_hash_add_or_update(
                 $this->ze_other_ptr,
-                \ffi_ptr($string()),
+                $string->addr(),
                 $value(),
                 \ZE::HASH_ADD_NEW
             );

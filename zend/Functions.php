@@ -918,13 +918,59 @@ if (!\function_exists('zval_stack')) {
     /**
      * Represents `zend_hash_str_find_ptr()` inline _macro_.
      *
-     * @param HashTable|CData $ht
      * @param string $name key
+     * @param HashTable|CData $ht default `module_registry`
      * @return CData
      */
-    function zend_hash_str_find_ptr(CData $ht, string $name): CData
+    function zend_hash_str_find_ptr(string $name, CData $ht = null): CData
     {
-        return HashTable::init_value($ht)->str_find($name)->ptr();
+        return HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+            ->str_find($name)->ptr();
+    }
+
+    /**
+     * Performs search by key in the HashTable.
+     * - Represents `zend_hash_find()`.
+     *
+     * @param string $name key
+     * @param HashTable|CData $ht default `module_registry`
+     * @return Zval|null
+     */
+    function zend_hash_find(string $name, CData $ht = null): ?Zval
+    {
+        return HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+            ->find($name);
+    }
+
+    function zend_hash_delete(string $name, CData $ht = null): HashTable
+    {
+        return HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+            ->delete($name);
+    }
+
+    function zend_hash_delete_index(string $name, CData $ht = null): void
+    {
+        HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+            ->delete_index($name);
+    }
+
+    function zend_hash_rehash(CData $ht = null): int
+    {
+        return \ze_ffi()->zend_hash_rehash(
+            \is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht
+        );
+    }
+
+    /**
+     * Represents `zend_hash_exists()` inline _macro_.
+     *
+     * @param string $name key
+     * @param HashTable|CData $ht default `module_registry`
+     * @return bool
+     */
+    function zend_hash_exists(string $name, CData $ht = null): bool
+    {
+        return !\is_null(\zend_hash_find($name, $ht));
     }
 
     function zend_fcall_info_call($routine, ...$arguments)
