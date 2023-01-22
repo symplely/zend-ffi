@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ZE;
 
+use ZE\Zval;
 use ZE\ZendExecutor;
 
 if (!\class_exists('ZendReference')) {
@@ -36,7 +37,7 @@ if (!\class_exists('ZendReference')) {
          */
         public function internal_value(): Zval
         {
-            return Zval::init_value($this->ze_other_ptr->val);
+            return \zend_value($this->ze_other_ptr->val);
         }
 
         public function __debugInfo(): array

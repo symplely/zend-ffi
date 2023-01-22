@@ -60,7 +60,7 @@ if (!\class_exists('ZendClosure')) {
                 return null;
             }
 
-            $calledScopeName = ZendString::init_value($this->ze_other_ptr->called_scope->name);
+            $calledScopeName = \zend_string($this->ze_other_ptr->called_scope->name);
 
             return $calledScopeName->value();
         }

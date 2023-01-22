@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ZE\Hook;
 
-use ZE\Zval;
 use ZE\ObjectHandler;
 
 /**
@@ -29,7 +28,7 @@ class DoOperation extends ObjectHandler
         [$this->opCode, $this->returnValue, $this->op1, $this->op2] = $c_args;
 
         $result = ($this->userHandler)($this);
-        Zval::init_value($this->returnValue)->change_value($result);
+        \zend_value($this->returnValue)->change_value($result);
 
         return \ZE::SUCCESS;
     }

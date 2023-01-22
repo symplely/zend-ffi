@@ -61,8 +61,8 @@ if (!\class_exists('ZendMethod')) {
                 $scopeNamePtr = $ptr->scope->name;
             }
 
-            $scopeName = ZendString::init_value($scopeNamePtr)->value();
-            $functionName = ZendString::init_value($functionNamePtr)->value();
+            $scopeName = \zend_string($scopeNamePtr)->value();
+            $functionName = \zend_string($functionNamePtr)->value();
 
             /** @var ZendMethod|\ReflectionMethod */
             $method = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();

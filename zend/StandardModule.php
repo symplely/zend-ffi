@@ -197,44 +197,41 @@ if (!\class_exists('StandardModule')) {
          */
         final public function module_destructor(): void
         {
-            if ($this->r_shutdown) {
-                $module = $this->__invoke();
-                if (!\is_null($module)) {
-                    $this->request_shutdown($module->type, $module->module_number);
-                    if ($this->destruct_on_request && !$this->target_persistent) {
-                        $this->destruct_on_request = false;
-                        \zend_hash_delete($this->module_name);
-                        if ($this->restart_sapi && $this->r_startup) {
-                            \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
-                            $this->original_sapi_activate = null;
-                        }
+            $module = $this->__invoke();
+            if ($this->r_shutdown && !\is_null($module))
+                $this->request_shutdown($module->type, $module->module_number);
 
-                        if ($this->restart_sapi && $this->r_shutdown) {
-                            \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
-                            $this->original_sapi_deactivate = null;
-                        }
-
-                        if (\PHP_ZTS) {
-                            $id = \ze_ffi()->tsrm_thread_id();
-                            if (isset($this->global_id[$id])) {
-                                \ze_ffi()->ts_free_id($this->global_id[$id]);
-                                $this->global_id[$id] = null;
-                                $this->global_rsrc[$id] = null;
-                            }
-
-                            \ze_ffi()->tsrm_mutex_free($this->module_mutex);
-                            $this->module_mutex = null;
-                        } else {
-                            $this->global_rsrc = null;
-                        }
-
-                        $this->ze_other_ptr = null;
-                        $this->ze_other = null;
-                        $this->reflection = null;
-
-                        static::set_module(null);
-                    }
+            if (!$this->target_persistent || !$this->restart_sapi) {
+                if ($this->restart_sapi && $this->r_startup) {
+                    \ze_ffi()->sapi_module->activate = $this->original_sapi_activate;
+                    $this->original_sapi_activate = null;
                 }
+
+                if ($this->restart_sapi && $this->r_shutdown) {
+                    \ze_ffi()->sapi_module->deactivate = $this->original_sapi_deactivate;
+                    $this->original_sapi_deactivate = null;
+                }
+
+                if (\PHP_ZTS) {
+                    $id = \ze_ffi()->tsrm_thread_id();
+                    if (isset($this->global_id[$id])) {
+                        \ze_ffi()->ts_free_id($this->global_id[$id]);
+                        $this->global_id[$id] = null;
+                        $this->global_rsrc[$id] = null;
+                    }
+
+                    \ze_ffi()->tsrm_mutex_free($this->module_mutex);
+                    $this->module_mutex = null;
+                } else {
+                    $this->global_rsrc = null;
+                }
+
+                $this->ze_other_ptr = null;
+                $this->ze_other = null;
+                $this->reflection = null;
+                static::set_module(null);
+
+                \zend_hash_delete($this->module_name);
             }
         }
 

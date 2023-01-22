@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ZE\Ast;
 
-use ZE\ZendString;
 use ZE\Ast\ZendAst;
 use ZE\Ast\ZendAstKind;
 
@@ -128,10 +127,10 @@ if (!\class_exists('ZendAstDecl')) {
                 }
 
                 // TODO: investigate what to do with string copying
-                return ZendString::init_value($this->ze_other_ptr->doc_comment)->copy()->value();
+                return \zend_string($this->ze_other_ptr->doc_comment)->copy()->value();
             }
 
-            $entry = ZendString::init($newDocComment);
+            $entry = \zend_strings($newDocComment);
 
             // TODO: investigate what to do with string copying
             $this->ze_other_ptr->doc_comment = $entry->copy()->value();
@@ -144,7 +143,7 @@ if (!\class_exists('ZendAstDecl')) {
         public function get_name(): string
         {
             // TODO: investigate what to do with string copying
-            return ZendString::init_value($this->ze_other_ptr->name)->copy()->value();
+            return \zend_string($this->ze_other_ptr->name)->copy()->value();
         }
 
         /**
@@ -152,7 +151,7 @@ if (!\class_exists('ZendAstDecl')) {
          */
         public function set_name(string $newName): void
         {
-            $entry = ZendString::init($newName);
+            $entry = \zend_strings($newName);
 
             // TODO: investigate what to do with string copying
             $this->ze_other_ptr->name = $entry->copy()();

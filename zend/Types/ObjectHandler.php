@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ZE;
 
 use FFI\CData;
-use ZE\Zval;
 
 if (!\class_exists('ObjectHandler')) {
     /**
@@ -162,7 +161,7 @@ if (!\class_exists('ObjectHandler')) {
         public function object(): object
         {
             if (\IS_PHP74)
-                Zval::init_value($this->object)->native_value($objectInstance);
+                \zend_value($this->object)->native_value($objectInstance);
             else
                 $objectInstance = ZendObject::init_value($this->object)->native_value();
 
@@ -174,7 +173,7 @@ if (!\class_exists('ObjectHandler')) {
          */
         public function result()
         {
-            Zval::init_value($this->returnValue)->native_value($result);
+            \zend_value($this->returnValue)->native_value($result);
 
             return $result;
         }
@@ -192,7 +191,7 @@ if (!\class_exists('ObjectHandler')) {
          */
         public function op1()
         {
-            Zval::init_value($this->op1)->native_value($value);
+            \zend_value($this->op1)->native_value($value);
 
             return $value;
         }
@@ -202,7 +201,7 @@ if (!\class_exists('ObjectHandler')) {
          */
         public function op2()
         {
-            Zval::init_value($this->op2)->native_value($value);
+            \zend_value($this->op2)->native_value($value);
 
             return $value;
         }

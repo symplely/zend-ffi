@@ -30,8 +30,6 @@ threads_customize(
     }
 );
 
-threads_request_destruct();
-
 // example from http://codingbison.com/c/c-pthreads-basics.html
 
 define('MAX_THREADS', 2);

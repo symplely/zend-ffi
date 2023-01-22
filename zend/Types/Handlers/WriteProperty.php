@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ZE\Hook;
 
 use FFI\CData;
-use ZE\Zval;
 use ZE\ZendExecutor;
 use ZE\Hook\AbstractProperty;
 
@@ -31,7 +30,7 @@ class WriteProperty extends AbstractProperty
         [$this->object, $this->member, $this->writeValue, $this->cacheSlot] = $c_args;
 
         $result = ($this->userHandler)($this);
-        Zval::init_value($this->writeValue)->change_value($result);
+        \zend_value($this->writeValue)->change_value($result);
 
         return $this->continue();
     }
@@ -45,12 +44,12 @@ class WriteProperty extends AbstractProperty
     public function value($newValue = null)
     {
         if (\is_null($newValue)) {
-            Zval::init_value($this->writeValue)->native_value($value);
+            \zend_value($this->writeValue)->native_value($value);
 
             return $value;
         }
 
-        Zval::init_value($this->writeValue)->change_value($newValue);
+        \zend_value($this->writeValue)->change_value($newValue);
     }
 
     /**

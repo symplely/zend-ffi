@@ -1,7 +1,7 @@
 --TEST--
 Check for Misc & General C
 --SKIPIF--
-<?php if (!extension_loaded("ffi") || (('/' === DIRECTORY_SEPARATOR) && (PHP_OS !== 'Darwin') && ((float) \phpversion() >= 7.4) && !((float) \phpversion() >= 8.0))) print "skip"; ?>
+<?php if (!extension_loaded("ffi") || (('/' === DIRECTORY_SEPARATOR) && (PHP_OS !== 'Darwin') && ((float) \phpversion() < 8.0))) print "skip"; ?>
 --FILE--
 <?php
 require 'vendor/autoload.php';
@@ -44,7 +44,6 @@ var_dump($cc->value());
 $cc->free();
 $ct = c_array_type('zend_property_info_list', 'ze', 3, false);
 var_dump($ct);
-$ct->free();
 --EXPECTF--
 Original - 5208
 int(22548)

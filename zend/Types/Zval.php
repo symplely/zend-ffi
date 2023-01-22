@@ -179,7 +179,7 @@ if (!\class_exists('Zval')) {
                 return \ze_ffi()->zend_error(\E_WARNING, 'Indirect creation available only for the type IS_INDIRECT');
             }
 
-            return zval::init_value($this->ze_ptr->value->zv);
+            return \zend_value($this->ze_ptr->value->zv);
         }
 
         public function extra(): int

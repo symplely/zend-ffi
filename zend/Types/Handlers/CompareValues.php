@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ZE\Hook;
 
 use ZE\ObjectHandler;
-use ZE\Zval;
 
 /**
  * Receiving hook for performing operation on object
@@ -30,7 +29,7 @@ class CompareValues extends ObjectHandler
             [$this->returnValue, $this->op1, $this->op2] = $c_args;
 
             $result = ($this->userHandler)($this);
-            Zval::init_value($this->returnValue)->change_value($result);
+            \zend_value($this->returnValue)->change_value($result);
 
             return \ZE::SUCCESS;
         }

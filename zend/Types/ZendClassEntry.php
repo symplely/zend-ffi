@@ -7,6 +7,8 @@ namespace ZE;
 use FFI\CData;
 use ZE\Zval;
 use ZE\HashTable;
+use ZE\ZendMethod;
+use ZE\ZendExecutor;
 use ZE\Hook\CastInterface;
 use ZE\Hook\CastObject;
 use ZE\Hook\CompareValues;
@@ -28,9 +30,6 @@ use ZE\Hook\UnsetProperty;
 use ZE\Hook\UnsetPropertyInterface;
 use ZE\Hook\WriteProperty;
 use ZE\Hook\WritePropertyInterface;
-use ZE\ZendMethod;
-use ZE\ZendString;
-use ZE\ZendExecutor;
 
 if (!\class_exists('ZendClassEntry')) {
     /**
@@ -118,7 +117,7 @@ if (!\class_exists('ZendClassEntry')) {
         {
             /** @var static */
             $class = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();
-            $classNameValue = ZendString::init_value($ptr->name);
+            $classNameValue = \zend_string($ptr->name);
             $class->initLowLevel($ptr);
             try {
                 $class->addReflection($classNameValue->value());
@@ -151,7 +150,7 @@ if (!\class_exists('ZendClassEntry')) {
             $rawFunction->fn_flags |= \ZE::ZEND_ACC_PUBLIC;
             $rawFunction->handler = \ffi_void($rawCode);
 
-            $funcName = ZendString::init($methodName)();
+            $funcName = \zend_strings($methodName)();
             $rawFunction->function_name = $funcName;
 
             // Adjust the scope of our function to our class
@@ -439,7 +438,7 @@ if (!\class_exists('ZendClassEntry')) {
          */
         private static function object_handlers(CData $classType): CData
         {
-            $className = ZendString::init_value($classType->name)->value();
+            $className = \zend_string($classType->name)->value();
             if (!isset(self::$objectHandlers[$className])) {
                 self::allocate_object_handlers($className);
             }
@@ -473,7 +472,7 @@ if (!\class_exists('ZendClassEntry')) {
 
         public function getName(): string
         {
-            return ZendString::init_value($this->ze_other_ptr->name)->value();
+            return \zend_string($this->ze_other_ptr->name)->value();
         }
 
         /**
@@ -487,7 +486,7 @@ if (!\class_exists('ZendClassEntry')) {
                 $propertyIndex = 0;
                 while ($propertyIndex < $this->ze_other_ptr->default_properties_count) {
                     $value = $this->ze_other_ptr->default_properties_table[$propertyIndex];
-                    yield $propertyIndex => Zval::init_value($value);
+                    yield $propertyIndex => \zend_value($value);
                     $propertyIndex++;
                 }
             };
@@ -508,7 +507,7 @@ if (!\class_exists('ZendClassEntry')) {
                 $rawParentName = $this->ze_other_ptr->parent_name;
             }
 
-            $parentNameValue = ZendString::init_value($rawParentName);
+            $parentNameValue = \zend_string($rawParentName);
             $classReflection = new ZendClassEntry($parentNameValue->value());
 
             return $classReflection;
@@ -617,7 +616,7 @@ if (!\class_exists('ZendClassEntry')) {
                     $rawInterfaceName = $this->ze_other_ptr->interface_names[$index]->name;
                 }
 
-                $interfaceNameValue = ZendString::init_value($rawInterfaceName);
+                $interfaceNameValue = \zend_string($rawInterfaceName);
                 $interfaceNames[] = $interfaceNameValue->value();
             }
 
@@ -664,7 +663,7 @@ if (!\class_exists('ZendClassEntry')) {
             $closureEntry->change($this->reflection->name);
 
             $rawFunction = $closureEntry->func();
-            $rawFunction->common->function_name = ZendString::init($methodName)();
+            $rawFunction->common->function_name = \zend_strings($methodName)();
 
             // Adjust the scope of our function to our class
             $classScopeValue = ZendExecutor::init()->class_table()->find(\strtolower($this->reflection->name));
@@ -723,8 +722,8 @@ if (!\class_exists('ZendClassEntry')) {
 
             for ($position = $totalTraits, $index = 0; $index < $numTraitsToAdd; $position++, $index++) {
                 $traitName = $traitsToAdd[$index];
-                $name = ZendString::init($traitName);
-                $lcName = ZendString::init(\strtolower($traitName));
+                $name = \zend_strings($traitName);
+                $lcName = \zend_strings(\strtolower($traitName));
 
                 $memory[$position]->name = $name();
                 $memory[$position]->lc_name = $lcName();
@@ -780,8 +779,8 @@ if (!\class_exists('ZendClassEntry')) {
                     $memory[$destIndex++] = $traitNameStruct;
                 } else {
                     // Clean strings to prevent memory leaks
-                    ZendString::init_value($traitNameStruct->name)->release();
-                    ZendString::init_value($traitNameStruct->lc_name)->release();
+                    \zend_string($traitNameStruct->name)->release();
+                    \zend_string($traitNameStruct->lc_name)->release();
                 }
             }
 
@@ -938,7 +937,7 @@ if (!\class_exists('ZendClassEntry')) {
                 \ze_ffi()->zend_error(\E_ERROR, 'File can be configured only for user-defined class');
             }
 
-            $stringEntry = ZendString::init($newFileName);
+            $stringEntry = \zend_strings($newFileName);
             $this->ze_other_ptr->info->user->filename = $stringEntry();
         }
 
@@ -1028,11 +1027,11 @@ if (!\class_exists('ZendClassEntry')) {
         private function initLowLevel(CData $ce): void
         {
             $this->ze_other_ptr = $ce;
-            $this->methodTable = HashTable::init_value(\ffi_ptr(($ce->function_table)));
-            $this->propertiesTable = HashTable::init_value(\ffi_ptr($ce->properties_info));
-            $this->constantsTable  = HashTable::init_value(\ffi_ptr($ce->constants_table));
+            $this->methodTable = \hash_table(\ffi_ptr(($ce->function_table)));
+            $this->propertiesTable = \hash_table(\ffi_ptr($ce->properties_info));
+            $this->constantsTable  = \hash_table(\ffi_ptr($ce->constants_table));
             if (\IS_PHP8 && $ce->attributes !== null) {
-                $this->attributesTable = HashTable::init_value(\ffi_ptr($ce->attributes));
+                $this->attributesTable = \hash_table(\ffi_ptr($ce->attributes));
             }
         }
     }
