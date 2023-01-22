@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ZE;
 
-use ZE\ZendString;
+use ZE\HashTable;
 use ZE\Ast\ZendAst;
 
 if (!\class_exists('ZendCompiler')) {
@@ -89,12 +89,12 @@ if (!\class_exists('ZendCompiler')) {
          */
         public static function class_table(): HashTable
         {
-            return HashTable::init_value(static::compiler_globals()->class_table);
+            return \hash_table(static::compiler_globals()->class_table);
         }
 
         public static function auto_globals(): HashTable
         {
-            return HashTable::init_value(static::compiler_globals()->auto_globals);
+            return \hash_table(static::compiler_globals()->auto_globals);
         }
 
         /**
@@ -104,7 +104,7 @@ if (!\class_exists('ZendCompiler')) {
          */
         public static function function_table(): HashTable
         {
-            return HashTable::init_value(static::compiler_globals()->function_table);
+            return \hash_table(static::compiler_globals()->function_table);
         }
 
         /**
@@ -142,7 +142,7 @@ if (!\class_exists('ZendCompiler')) {
                 throw new \LogicException('Not in compilation process');
             }
 
-            return ZendString::init_value($this->ze_other_ptr->compiled_filename)->value();
+            return \zend_string($this->ze_other_ptr->compiled_filename)->value();
         }
 
         /**
@@ -169,7 +169,7 @@ if (!\class_exists('ZendCompiler')) {
          */
         public function parse_string(string $source, string $fileName = ''): ZendAst
         {
-            $sourceValue = ZendString::init($source);
+            $sourceValue = \zend_strings($source);
             if (\IS_PHP74) {
                 $sourceRaw = $sourceValue();
                 $rawSourceVal = Zval::new(\ZE::IS_STRING, $sourceRaw)();
@@ -198,7 +198,7 @@ if (!\class_exists('ZendCompiler')) {
                 $this->in_compilation($originalCompilationMode);
             } else {
                 $file = ((float) \phpversion()) >= 8.1
-                    ? ZendString::init($fileName)->addr() : $fileName;
+                    ? \zend_strings($fileName)->addr() : $fileName;
 
                 $arena = \FFI::addr(\ze_ffi()->new("zend_arena*"));
                 $ast = \ze_ffi()->zend_compile_string_to_ast(

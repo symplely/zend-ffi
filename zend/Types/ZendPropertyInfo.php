@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace ZE;
 
 use FFI\CData;
-use ZE\HashTable;
-use ZE\ZendString;
 use ZE\ZendExecutor;
 use ZE\ZendClassEntry;
 
@@ -43,7 +41,7 @@ if (!\class_exists('ZendPropertyInfo')) {
             }
 
             $classEntry = $classEntryValue->ce();
-            $propertiesTable = HashTable::init_value(\FFI::addr($classEntry->properties_info));
+            $propertiesTable = \hash_table(\FFI::addr($classEntry->properties_info));
 
             $propertyEntry = $propertiesTable->find(\strtolower($propertyName));
             if ($propertyEntry === null) {
@@ -66,7 +64,7 @@ if (!\class_exists('ZendPropertyInfo')) {
             /** @var ZendPropertyInfo */
             $property = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();
 
-            $propertyName = ZendString::init_value($ptr->name);
+            $propertyName = \zend_string($ptr->name);
             $property->update($ptr);
 
             return $property->addReflection($propertyName->value());

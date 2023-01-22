@@ -91,7 +91,7 @@ if (!\class_exists('ZendObject')) {
         {
             $this->ze_other_ptr = $ptr;
             if ($this->ze_other_ptr->properties !== null) {
-                $this->properties = HashTable::init_value($this->ze_other_ptr->properties);
+                $this->properties = \hash_table($this->ze_other_ptr->properties);
             }
 
             return $this;

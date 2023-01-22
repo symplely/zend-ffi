@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace ZE;
 
 use ZE\Zval;
-use ZE\ZendString;
 
 if (!\class_exists('HashTable')) {
     /**
@@ -58,8 +57,8 @@ if (!\class_exists('HashTable')) {
                     if ($item->val->u1->v->type === \ZE::IS_UNDEF) {
                         continue;
                     }
-                    $key = $item->key !== null ? ZendString::init_value($item->key)->value() : null;
-                    yield $key => Zval::init_value($item->val);
+                    $key = $item->key !== null ? \zend_string($item->key)->value() : null;
+                    yield $key => \zend_value($item->val);
                 }
             };
 
@@ -74,10 +73,10 @@ if (!\class_exists('HashTable')) {
          */
         public function str_find(string $key): ?Zval
         {
-            $string = ZendString::init($key);
+            $string = \zend_strings($key);
             $result = \ze_ffi()->zend_hash_str_find($this->ze_other_ptr, $string->value(), $string->length());
 
-            return \is_cdata($result) ? Zval::init_value($result) : $result;
+            return \is_cdata($result) ? \zend_value($result) : $result;
         }
 
         /**
@@ -89,10 +88,10 @@ if (!\class_exists('HashTable')) {
          */
         public function find(string $key): ?Zval
         {
-            $string = ZendString::init($key);
+            $string = \zend_strings($key);
             $result = \ze_ffi()->zend_hash_find($this->ze_other_ptr, $string->addr());
 
-            return \is_cdata($result) ? Zval::init_value($result) : null;
+            return \is_cdata($result) ? \zend_value($result) : null;
         }
 
         /**
@@ -103,7 +102,7 @@ if (!\class_exists('HashTable')) {
          */
         public function delete(string $key): self
         {
-            $string = ZendString::init($key);
+            $string = \zend_strings($key);
             $result = \ze_ffi()->zend_hash_del($this->ze_other_ptr, $string->addr());
 
             if ($result === \ZE::FAILURE) {
@@ -115,7 +114,7 @@ if (!\class_exists('HashTable')) {
 
         public function delete_index(string $key): void
         {
-            $string = ZendString::init($key);
+            $string = \zend_strings($key);
             $result = \ze_ffi()->zend_hash_del_ind($this->ze_other_ptr, $string->addr());
 
             if ($result === \ZE::FAILURE) {
@@ -128,7 +127,7 @@ if (!\class_exists('HashTable')) {
          */
         public function add(string $key, Zval $value): self
         {
-            $string = ZendString::init($key);
+            $string = \zend_strings($key);
             $result = \ze_ffi()->zend_hash_add_or_update(
                 $this->ze_other_ptr,
                 $string->addr(),

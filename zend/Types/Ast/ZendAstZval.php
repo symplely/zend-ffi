@@ -46,7 +46,7 @@ if (!\class_exists('ZendAstZval')) {
          */
         public function get_value(): Zval
         {
-            return Zval::init_value($this->ze_other_ptr->val);
+            return \zend_value($this->ze_other_ptr->val);
         }
 
         /**

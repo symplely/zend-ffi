@@ -70,7 +70,7 @@ class ReadProperty extends AbstractProperty
         $result = ($originalHandler)($object, $member, $type, $cacheSlot, $rv);
         ZendExecutor::fake_scope($previousScope);
 
-        Zval::init_value($result)->native_value($phpResult);
+        \zend_value($result)->native_value($phpResult);
 
         return $phpResult;
     }

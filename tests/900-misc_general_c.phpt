@@ -44,7 +44,6 @@ var_dump($cc->value());
 $cc->free();
 $ct = c_array_type('zend_property_info_list', 'ze', 3, false);
 var_dump($ct);
-$ct->free();
 --EXPECTF--
 Original - 5208
 int(22548)

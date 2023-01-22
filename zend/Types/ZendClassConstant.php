@@ -6,8 +6,6 @@ namespace ZE;
 
 use FFI\CData;
 use ZE\Zval;
-use ZE\HashTable;
-use ZE\ZendString;
 use ZE\ZendExecutor;
 use ZE\ZendClassEntry;
 
@@ -40,7 +38,7 @@ if (!\class_exists('ZendClassConstant')) {
             }
 
             $ce = $classZval->ce();
-            $constantsTable  = HashTable::init_value(\ffi_ptr($ce->constants_table));
+            $constantsTable = \hash_table(\ffi_ptr($ce->constants_table));
 
             $constantEntry = $constantsTable->find($constantName);
             if ($constantEntry === null) {
@@ -58,7 +56,7 @@ if (!\class_exists('ZendClassConstant')) {
         {
             /** @var ZendClassConstant */
             $constant = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();
-            $className = ZendString::init_value($ptr->ce->name);
+            $className = \zend_string($ptr->ce->name);
 
             $constant->update($ptr);
             return $constant->addReflection($className->value(), $constantName);
@@ -125,7 +123,7 @@ if (!\class_exists('ZendClassConstant')) {
          */
         public function getZval(): Zval
         {
-            return Zval::init_value($this->ze_other_ptr->value);
+            return \zend_value($this->ze_other_ptr->value);
         }
 
         public function __debugInfo(): array

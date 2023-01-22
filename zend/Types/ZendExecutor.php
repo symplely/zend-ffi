@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ZE;
 
 use FFI\CData;
+use ZE\Zval;
 use ZE\ZendOp;
 use ZE\HashTable;
 use ZE\ZendMethod;
@@ -50,12 +51,12 @@ if (!\class_exists('ZendExecutor')) {
 
         public static function class_table(): HashTable
         {
-            return HashTable::init_value(static::executor_globals()->class_table);
+            return \hash_table(static::executor_globals()->class_table);
         }
 
         public static function function_table(): HashTable
         {
-            return HashTable::init_value(static::executor_globals()->function_table);
+            return \hash_table(static::executor_globals()->function_table);
         }
 
         public static function objects_store(): ZendObjectsStore
@@ -88,7 +89,7 @@ if (!\class_exists('ZendExecutor')) {
         public function return_value(): Zval
         {
             if (!\is_null($this->ze_other_ptr->return_value)) {
-                return Zval::init_value($this->ze_other_ptr->return_value);
+                return \zend_value($this->ze_other_ptr->return_value);
             }
 
             return Zval::init();
@@ -191,7 +192,7 @@ if (!\class_exists('ZendExecutor')) {
                 return \ze_ffi()->zend_error(\E_WARNING, "Argument index is greater than available arguments");
 
             $pointer = $this->call_variable_number($argumentIndex);
-            return Zval::init_value($pointer);
+            return \zend_value($pointer);
         }
 
         /**
@@ -217,7 +218,7 @@ if (!\class_exists('ZendExecutor')) {
          */
         public function This(): Zval
         {
-            return Zval::init_value(\ffi_ptr($this->ze_other_ptr->This));
+            return \zend_value(\ffi_ptr($this->ze_other_ptr->This));
         }
 
         /**
@@ -241,7 +242,7 @@ if (!\class_exists('ZendExecutor')) {
          */
         public function symbol_table(): HashTable
         {
-            return HashTable::init_value($this->ze_other_ptr->symbol_table);
+            return \hash_table($this->ze_other_ptr->symbol_table);
         }
 
         /**

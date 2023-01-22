@@ -212,7 +212,7 @@ if (!\class_exists('ZendOp')) {
                 0
             );
 
-            return \is_null($zval) ? $this->get_zval_ptr_native($node, $opType) : Zval::init_value($zval);
+            return \is_null($zval) ? $this->get_zval_ptr_native($node, $opType) : \zend_value($zval);
         }
 
         private function get_zval_ptr_native(CData $node, int $opType): ?Zval
@@ -238,7 +238,7 @@ if (!\class_exists('ZendOp')) {
             }
 
 
-            return isset($pointer) ? Zval::init_value($pointer) : null;
+            return isset($pointer) ? \zend_value($pointer) : null;
         }
 
         /**

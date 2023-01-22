@@ -96,7 +96,7 @@ if (!\function_exists('zval_stack')) {
      */
     function zval_native_zend(CData $ptr)
     {
-        Zval::init_value($ptr)->native_value($argument);
+        \zend_value($ptr)->native_value($argument);
 
         return $argument;
     }
@@ -110,7 +110,7 @@ if (!\function_exists('zval_stack')) {
      */
     function zval_native_cast(string $typedef, CData $ptr)
     {
-        Zval::init_value(\ze_cast($typedef, $ptr))->native_value($argument);
+        \zend_value(\ze_cast($typedef, $ptr))->native_value($argument);
 
         return $argument;
     }
@@ -915,6 +915,11 @@ if (!\function_exists('zval_stack')) {
             \ze_ffi()->tsrm_mutex_unlock($mutex);
     }
 
+    function hash_table(CData $ht): HashTable
+    {
+        return HashTable::init_value($ht);
+    }
+
     /**
      * Represents `zend_hash_str_find_ptr()` inline _macro_.
      *
@@ -924,7 +929,7 @@ if (!\function_exists('zval_stack')) {
      */
     function zend_hash_str_find_ptr(string $name, CData $ht = null): CData
     {
-        return HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+        return \hash_table((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
             ->str_find($name)->ptr();
     }
 
@@ -938,19 +943,19 @@ if (!\function_exists('zval_stack')) {
      */
     function zend_hash_find(string $name, CData $ht = null): ?Zval
     {
-        return HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+        return \hash_table((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
             ->find($name);
     }
 
     function zend_hash_delete(string $name, CData $ht = null): HashTable
     {
-        return HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+        return \hash_table((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
             ->delete($name);
     }
 
     function zend_hash_delete_index(string $name, CData $ht = null): void
     {
-        HashTable::init_value((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
+        \hash_table((\is_null($ht) ? \FFI::addr(\ze_ffi()->module_registry) : $ht))
             ->delete_index($name);
     }
 
@@ -1087,7 +1092,7 @@ if (!\function_exists('zval_stack')) {
 
     function zend_print_zval_r_to_str($variable, int $indent = 0): string
     {
-        return ZendString::init_value(
+        return \zend_string(
             \ze_ffi()->zend_print_zval_r_to_str(\zval_stack(0)(), $indent)
         )->value();
     }

@@ -75,7 +75,7 @@ if (!\class_exists('ZendFunction')) {
             $function->update($ptr);
 
             if ($functionPtr !== null) {
-                $string = ZendString::init_value($functionPtr);
+                $string = \zend_string($functionPtr);
                 $function->addReflection($string->value());
             }
 
@@ -146,7 +146,7 @@ if (!\class_exists('ZendFunction')) {
             } else {
                 // For internal function we can simply adjust a handler
                 $this->ze_other_ptr->handler = function (CData $executeData, CData $returnValue) use ($newCode): void {
-                    $rawValue = Zval::init_value($returnValue);
+                    $rawValue = \zend_value($returnValue);
                     $stackTrace = \debug_backtrace(0, 2);
                     $result = $newCode(...$stackTrace[1]['args']);
                     $rawValue->change_value($result);
@@ -216,7 +216,7 @@ if (!\class_exists('ZendFunction')) {
 
             $literal = $this->ze_other_ptr->op_array->literals[$index];
 
-            return Zval::init_value($literal);
+            return \zend_value($literal);
         }
 
         /**
@@ -236,7 +236,7 @@ if (!\class_exists('ZendFunction')) {
                 while ($literalIndex < $totalLiterals) {
                     $item = $this->ze_other_ptr->op_array->literals[$literalIndex];
                     $literalIndex++;
-                    yield Zval::init_value($item);
+                    yield \zend_value($item);
                 }
             };
 
