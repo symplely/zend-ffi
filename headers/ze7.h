@@ -272,12 +272,12 @@ typedef struct
 {
 	size_t num;
 	size_t num_allocated;
-	zend_property_info *ptr[1];
+	struct _zend_property_info *ptr[1];
 } zend_property_info_list;
 
 typedef union
 {
-	zend_property_info *ptr;
+	struct _zend_property_info *ptr;
 	uintptr_t list;
 } zend_property_info_source_list;
 
@@ -436,7 +436,8 @@ typedef struct _zend_internal_arg_info
 {
 	const char *name;
 	zend_type type;
-	const char *default_value;
+	zend_uchar pass_by_reference;
+	zend_bool is_variadic;
 } zend_internal_arg_info;
 
 typedef struct
@@ -449,7 +450,8 @@ typedef struct _zend_arg_info
 {
 	zend_string *name;
 	zend_type type;
-	zend_string *default_value;
+	zend_uchar pass_by_reference;
+	zend_bool is_variadic;
 } zend_arg_info;
 
 typedef struct _zend_internal_function
@@ -595,7 +597,7 @@ union _zend_function
 		zend_function *prototype;
 		uint32_t num_args;
 		uint32_t required_num_args;
-		zend_arg_info *arg_info; /* index -1 represents the return value info, if any */
+		zend_arg_info *arg_info;
 	} common;
 
 	zend_op_array op_array;
