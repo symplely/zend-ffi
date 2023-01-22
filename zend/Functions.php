@@ -293,7 +293,7 @@ if (!\function_exists('zval_stack')) {
      */
     function zval_resource(CData $res): Zval
     {
-        return Zval::init()->macro(\ZE::RES_P, $res);
+        return \zval_macro(\ZE::RES_P, $res);
     }
 
     /**
@@ -302,7 +302,7 @@ if (!\function_exists('zval_stack')) {
      */
     function zval_array(CData $ht): Zval
     {
-        return Zval::init()->macro(\ZE::ARR_P, $ht);
+        return \zval_macro(\ZE::ARR_P, $ht);
     }
 
     /**
