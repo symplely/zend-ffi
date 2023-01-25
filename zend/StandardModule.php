@@ -156,6 +156,8 @@ if (!\class_exists('StandardModule')) {
 
         protected bool $restart_sapi = true;
 
+        protected bool $module_destructor_linked = false;
+
         protected static $global_module;
 
         protected bool $destruct_on_request = false;
@@ -178,6 +180,11 @@ if (!\class_exists('StandardModule')) {
         final public function destruct_set(): void
         {
             $this->destruct_on_request = true;
+        }
+
+        final public function destructor_set(): void
+        {
+            $this->module_destructor_linked = true;
         }
 
         final public function is_destruct(): bool
@@ -229,7 +236,8 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other_ptr = null;
                 $this->ze_other = null;
                 $this->reflection = null;
-                static::set_module(null);
+                if (!$this->module_destructor_linked)
+                    static::set_module(null);
 
                 \zend_hash_delete($this->module_name);
             }
@@ -240,7 +248,7 @@ if (!\class_exists('StandardModule')) {
             if (\PHP_ZTS)
                 self::$global_module[\ze_ffi()->tsrm_thread_id()] = $module;
             else
-                self::$global_module = $module;
+                static::$global_module = $module;
         }
 
         /**
