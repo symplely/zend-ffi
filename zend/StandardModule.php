@@ -238,7 +238,7 @@ if (!\class_exists('StandardModule')) {
          *
          * @return static|null
          */
-        final public static function get_module(): self
+        final public static function get_module(): ?self
         {
             if (\PHP_ZTS)
                 return self::$global_module[\ze_ffi()->tsrm_thread_id()] ?? null;
@@ -300,6 +300,9 @@ if (!\class_exists('StandardModule')) {
                 $ptr = $ext->ptr();
                 $this->update(\ze_ffi()->cast('zend_module_entry*', $ptr));
                 $this->addReflection($ptr->name);
+            } else {
+                $this->register();
+                $this->startup();
             }
 
             if (\PHP_ZTS && \is_null($this->module_mutex))
