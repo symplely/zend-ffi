@@ -60,7 +60,6 @@ if (!$module->is_registered()) {
     $module->startup();
 }
 
-$module->destruct_set();
 var_dump(SimpleCountersModule::get_module() instanceof \StandardModule);
 standard_activate($module);
 $data = $module->get_globals();
@@ -75,7 +74,7 @@ $value = ob_get_clean();
 
 preg_match('/simple_counters support => enabled/', $value, $matches);
 var_dump($matches[0]);
-var_dump(\extension_loaded(SimpleCountersModule::get_name()));
+var_dump(extension_loaded(SimpleCountersModule::get_name()));
 standard_deactivate($module);
 var_dump($module->ffi());
 --EXPECTF--

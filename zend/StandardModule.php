@@ -156,9 +156,9 @@ if (!\class_exists('StandardModule')) {
 
         protected bool $restart_sapi = true;
 
-        protected static $global_module;
+        protected bool $module_destructor_linked = false;
 
-        protected bool $destruct_on_request = false;
+        protected static $global_module;
 
         /** @var \Closure */
         protected ?CData $original_sapi_activate = null;
@@ -169,20 +169,9 @@ if (!\class_exists('StandardModule')) {
         /** @var \MUTEX_T */
         protected ?CData $module_mutex = null;
 
-        /**
-         * Set __`StandardModule`__ to `module_shutdown()` and `global_shutdown()`
-         * on __`request_shutdown()`__ execution.
-         *
-         * @return void
-         */
-        final public function destruct_set(): void
+        final public function destructor_set(): void
         {
-            $this->destruct_on_request = true;
-        }
-
-        final public function is_destruct(): bool
-        {
-            return $this->destruct_on_request;
+            $this->module_destructor_linked = true;
         }
 
         final public function is_sapi(): bool
@@ -229,7 +218,8 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other_ptr = null;
                 $this->ze_other = null;
                 $this->reflection = null;
-                static::set_module(null);
+                if (!$this->module_destructor_linked)
+                    static::set_module(null);
 
                 \zend_hash_delete($this->module_name);
             }
@@ -240,7 +230,7 @@ if (!\class_exists('StandardModule')) {
             if (\PHP_ZTS)
                 self::$global_module[\ze_ffi()->tsrm_thread_id()] = $module;
             else
-                self::$global_module = $module;
+                self::$global_module[static::class] = $module;
         }
 
         /**
@@ -248,12 +238,12 @@ if (!\class_exists('StandardModule')) {
          *
          * @return static|null
          */
-        final public static function get_module(): ?self
+        final public static function get_module(): self
         {
             if (\PHP_ZTS)
-                return static::$global_module[\ze_ffi()->tsrm_thread_id()] ?? null;
+                return self::$global_module[\ze_ffi()->tsrm_thread_id()] ?? null;
 
-            return self::$global_module;
+            return self::$global_module[static::class];
         }
 
         /**
