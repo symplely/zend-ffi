@@ -55,11 +55,6 @@ final class SimpleCountersModule extends \StandardModule
 }
 
 $module = new SimpleCountersModule();
-if (!$module->is_registered()) {
-    $module->register();
-    $module->startup();
-}
-
 var_dump(SimpleCountersModule::get_module() instanceof \StandardModule);
 standard_activate($module);
 $data = $module->get_globals();
