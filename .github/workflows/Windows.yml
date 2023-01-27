@@ -32,15 +32,15 @@ jobs:
       - uses: actions/checkout@v2
       - name: Envinfo
         run: npx envinfo
-      - name: Build
+      - name: Build Windows pthreads
         shell: cmd
         run: |
           curl -L https://cytranet.dl.sourceforge.net/project/pthreads4w/pthreads4w-code-v${{ env.VERSION }}.zip --output pthreads4w-code.zip
           unzip -xoq pthreads4w-code.zip
           mkdir pthreads4w-code-${{ env.HASH }}\cmake
-          copy /Y .github\cmake\*.* pthreads4w-code-${{ env.HASH }}\cmake
-          copy /Y .github\CMakeLists.txt pthreads4w-code-${{ env.HASH }}
-          copy /Y .github\pthread.cxx pthreads4w-code-${{ env.HASH }}
+          copy /Y .github\pthread\cmake\*.* pthreads4w-code-${{ env.HASH }}\cmake
+          copy /Y .github\pthread\CMakeLists.txt pthreads4w-code-${{ env.HASH }}
+          copy /Y .github\pthread\pthread.cxx pthreads4w-code-${{ env.HASH }}
           cd pthreads4w-code-${{ env.HASH }}
           mkdir build
           cd build
@@ -49,6 +49,17 @@ jobs:
           dir ..\PTHREADS-BUILT\bin
           dir ..\PTHREADS-BUILT\include
           dir ..\PTHREADS-BUILT\lib
+      - name: Build Windows mmap
+        shell: cmd
+        run: |
+          mkdir windows_mmap
+          copy /Y .github\mmap\cmake\*.* windows_mmap
+          cd windows_mmap
+          mkdir build
+          cd build
+          cmake .. -D BUILD_TESTING=OFF -G "${{ matrix.config.toolchain }}" -A ${{ matrix.config.arch }} -D CMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release --target install
+          dir Release
         env:
           VERSION: ${{ github.event.inputs.version }}
           HASH: ${{ github.event.inputs.hash }}
