@@ -1,4 +1,4 @@
-name: Windows PThreads
+name: Windows PThreads & mmap
 
 on:
   workflow_dispatch:
@@ -49,20 +49,20 @@ jobs:
           dir ..\PTHREADS-BUILT\bin
           dir ..\PTHREADS-BUILT\include
           dir ..\PTHREADS-BUILT\lib
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          HASH: ${{ github.event.inputs.hash }}
       - name: Build Windows mmap
         shell: cmd
         run: |
           mkdir windows_mmap
-          copy /Y .github\mmap\cmake\*.* windows_mmap
+          copy /Y .github\mmap\*.* windows_mmap
           cd windows_mmap
           mkdir build
           cd build
-          cmake .. -D BUILD_TESTING=OFF -G "${{ matrix.config.toolchain }}" -A ${{ matrix.config.arch }} -D CMAKE_BUILD_TYPE=Release
-          cmake --build . --config Release --target install
+          cmake ..
+          cmake --build . --config Release
           dir Release
-        env:
-          VERSION: ${{ github.event.inputs.version }}
-          HASH: ${{ github.event.inputs.hash }}
       - name: Upload/Commit to Repo
         shell: cmd
         run: |
@@ -79,4 +79,8 @@ jobs:
           copy /Y pthreads4w-code-${{ env.HASH }}\PTHREADS-BUILT\bin\pthreadV*.dll lib\Windows\
           git add lib
           git commit -m "created pthreadVC3.dll, pthreadVCE3.dll, pthreadVSE3.dll - for Windows x86_64"
+          git push -q
+          copy /Y windows_mmap\build\Release\mman.dll lib\Windows\
+          git add lib
+          git commit -m "created mman.dll - for Windows x86_64"
           git push -q
