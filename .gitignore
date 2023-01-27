@@ -91,3 +91,4 @@ ext-async/
 pthreads4w-code-*/
 pthreads4w-code.zip
 headers/linux_pthreads.h
+windows_mmap/
