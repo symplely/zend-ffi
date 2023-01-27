@@ -127,7 +127,6 @@ if (!\class_exists('ZendClassEntry')) {
             return $class;
         }
 
-        /*
         /**
          * Defines a method as machine bytecode
          *
@@ -135,7 +134,7 @@ if (!\class_exists('ZendClassEntry')) {
          * @param string $code Platform dependent source-code with relative addressing
          *
          * @return ZendMethod|\ReflectionMethod
-         *
+         */
         public function addInternalMethod(string $methodName, string $code)
         {
             $pageSize = \ze_ffi()->getpagesize();
@@ -150,8 +149,8 @@ if (!\class_exists('ZendClassEntry')) {
             $rawFunction->fn_flags |= \ZE::ZEND_ACC_PUBLIC;
             $rawFunction->handler = \ffi_void($rawCode);
 
-            $funcName = \zend_strings($methodName)();
-            $rawFunction->function_name = $funcName;
+            $funcName = \zend_strings($methodName);
+            $rawFunction->function_name = $funcName();
 
             // Adjust the scope of our function to our class
             $classScopeValue = ZendExecutor::class_table()->find(\strtolower($this->reflection->name));
@@ -163,7 +162,7 @@ if (!\class_exists('ZendClassEntry')) {
             $refMethod = ZendMethod::init_value($rawFunction);
 
             return $refMethod;
-        }*/
+        }
 
         /**
          * Creates a new instance of zend_object.
