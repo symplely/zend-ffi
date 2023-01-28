@@ -137,8 +137,8 @@ if (!\class_exists('ZendClassEntry')) {
          */
         public function addInternalMethod(string $methodName, string $code)
         {
-            $pageSize = \ze_ffi()->getpagesize();
-            $rawCode = \ze_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0);
+            $pageSize = \IS_WINDOWS ? \misc_ffi()->getpagesize() : \ze_ffi()->getpagesize();
+            $rawCode = \IS_WINDOWS ? \misc_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0) : \ze_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0);
             \FFI::memcpy($rawCode, $code, \strlen($code));
 
             $rawFunction = \ze_ffi()->new('zend_internal_function', false);

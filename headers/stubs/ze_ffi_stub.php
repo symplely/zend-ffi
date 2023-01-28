@@ -894,7 +894,18 @@ interface FFI
         zend_ast ...$child4
     );
 
-    /** @return void_ptr */
+    /**
+     * Creates a new mapping in the virtual address space of the calling process.
+     * - @link https://man7.org/linux/man-pages/man2/mmap.2.html
+     *
+     * @param void_ptr|null $addr
+     * @param size_t $length
+     * @param integer $prot
+     * @param integer $flags
+     * @param integer $fd
+     * @param off_t $offset
+     * @return void_ptr
+     */
     public function mmap(?void_ptr &$addr, size_t $length, int $prot, int $flags, int $fd, off_t $offset);
 
     /** @return int */
