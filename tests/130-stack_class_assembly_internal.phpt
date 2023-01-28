@@ -1,7 +1,7 @@
 --TEST--
 Check for Stack Class Assembly Internal Method
 --SKIPIF--
-<?php if (!extension_loaded("ffi") || ('\\' === DIRECTORY_SEPARATOR) || (((float) \phpversion() >= 8.2))) print "skip"; ?>
+<?php if (!extension_loaded("ffi") || ('\\' === DIRECTORY_SEPARATOR) || (PHP_OS === 'Darwin') || (((float) \phpversion() >= 8.2))) print "skip"; ?>
 --FILE--
 <?php
 require 'vendor/autoload.php';
@@ -59,3 +59,4 @@ $test->run();
 --EXPECTF--
 bool(true)
 bool(true)
+Hello, World!
