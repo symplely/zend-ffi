@@ -128,10 +128,14 @@ if (!\class_exists('ZendClassEntry')) {
         }
 
         /**
-         * Defines a method as machine bytecode
+         * Defines a method as machine byte code
          *
          * @param string $methodName Method to add
-         * @param string $code Platform dependent source-code with relative addressing
+         * @param string $code Platform dependent source-code with relative addressing, will be auto converted if `hexadecimal` into binary
+         * - @see https://www.felixcloutier.com/x86/ for assembly opcodes
+         * - @see https://j00ru.vexillium.org/syscalls/nt/64/ and https://github.com/hfiref0x/SyscallTables for Windows x64 syscall opcodes
+         * - @see https://www.capstone-engine.org/ for `cstool` a command-line tool to disassemble assembly hex-string.
+         * - @see https://defuse.ca/online-x86-assembler.htm for pure assembly to opcodes
          *
          * @return ZendMethod|\ReflectionMethod
          */
@@ -139,6 +143,11 @@ if (!\class_exists('ZendClassEntry')) {
         {
             $pageSize = \IS_WINDOWS ? \misc_ffi()->getpagesize() : \ze_ffi()->getpagesize();
             $rawCode = \IS_WINDOWS ? \misc_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0) : \ze_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0);
+
+            // Prepare this code as binary string
+            $opcode = \preg_replace('/\s+/', '', $code);
+            $code = \ctype_xdigit($opcode) ? \hex2bin($opcode) : $code;
+
             \FFI::memcpy($rawCode, $code, \strlen($code));
 
             $rawFunction = \ze_ffi()->new('zend_internal_function', false);

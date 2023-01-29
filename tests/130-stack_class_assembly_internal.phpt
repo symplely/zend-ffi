@@ -35,10 +35,6 @@ class Entry
             '48 65 6c 6c 6f 2c' . //       db 'Hello,'
             '20 57 6f 72 6c 64 21 0a'; //  db ' world!\n'
 
-        // Prepare this code as binary string
-        $code = preg_replace('/\s+/', '', $code);
-        $code = hex2bin($code);
-
         $method = $this->refClass->addInternalMethod($methodName, $code);
         $isMethodExists = method_exists(Dummy::class, $methodName);
         var_dump($isMethodExists === true);
