@@ -186,7 +186,7 @@ if (!\class_exists('ZendCompiler')) {
                     if ($result !== \ZE::SUCCESS) {
                         \ze_ffi()->zend_ast_destroy($this->ze_other_ptr->ast);
                         $this->ze_other_ptr->ast = null;
-                        \FFI::free($this->ze_other_ptr->ast_arena);
+                        \ffi_free_if($this->ze_other_ptr->ast_arena);
                         $this->ze_other_ptr->ast_arena = null;
                     }
                 }

@@ -127,19 +127,27 @@ if (!\class_exists('ZendClassEntry')) {
             return $class;
         }
 
-        /*
         /**
-         * Defines a method as machine bytecode
+         * Defines a method as machine byte code
          *
          * @param string $methodName Method to add
-         * @param string $code Platform dependent source-code with relative addressing
+         * @param string $code Platform dependent source-code with relative addressing, will be auto converted if `hexadecimal` into binary
+         * - @see https://www.felixcloutier.com/x86/ for assembly opcodes
+         * - @see https://j00ru.vexillium.org/syscalls/nt/64/ and https://github.com/hfiref0x/SyscallTables for Windows x64 syscall opcodes
+         * - @see https://www.capstone-engine.org/ for `cstool` a command-line tool to disassemble assembly hex-string.
+         * - @see https://defuse.ca/online-x86-assembler.htm for pure assembly to opcodes
          *
          * @return ZendMethod|\ReflectionMethod
-         *
+         */
         public function addInternalMethod(string $methodName, string $code)
         {
-            $pageSize = \ze_ffi()->getpagesize();
-            $rawCode = \ze_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0);
+            $pageSize = \IS_WINDOWS ? \misc_ffi()->getpagesize() : \ze_ffi()->getpagesize();
+            $rawCode = \IS_WINDOWS ? \misc_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0) : \ze_ffi()->mmap(null, $pageSize, 0x7, 0x22, -1, 0);
+
+            // Prepare this code as binary string
+            $opcode = \preg_replace('/\s+/', '', $code);
+            $code = \ctype_xdigit($opcode) ? \hex2bin($opcode) : $code;
+
             \FFI::memcpy($rawCode, $code, \strlen($code));
 
             $rawFunction = \ze_ffi()->new('zend_internal_function', false);
@@ -150,8 +158,8 @@ if (!\class_exists('ZendClassEntry')) {
             $rawFunction->fn_flags |= \ZE::ZEND_ACC_PUBLIC;
             $rawFunction->handler = \ffi_void($rawCode);
 
-            $funcName = \zend_strings($methodName)();
-            $rawFunction->function_name = $funcName;
+            $funcName = \zend_strings($methodName);
+            $rawFunction->function_name = $funcName();
 
             // Adjust the scope of our function to our class
             $classScopeValue = ZendExecutor::class_table()->find(\strtolower($this->reflection->name));
@@ -163,7 +171,7 @@ if (!\class_exists('ZendClassEntry')) {
             $refMethod = ZendMethod::init_value($rawFunction);
 
             return $refMethod;
-        }*/
+        }
 
         /**
          * Creates a new instance of zend_object.

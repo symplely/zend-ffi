@@ -64,13 +64,13 @@ opcache.preload==path/to/vendor/symplely/zend-ffi/preload.php ; For standalone u
 
 For a simple FFI integration process **create/edit**:
 
-- `ffi_extension.json`  each _package/library_ should list the files to preload, will be process by `ffi_preloader.php` script.
-- `.ignore_autoload.php` will be called/executed by `composer create-project your_package .cdef/foldername` event.
-  - This event is only called when your _package_ is installed by `composer create-project` command.
-- `.preload.php` for general common FFI functions to be used, change the `tag_changeMe` skeleton name.
-- `.github\workflows\*.yml` these GitHub Actions is designed for cross-compiling and committing the `binary` back to your **repo**, change `some_lib` and `some_repo` skeleton names.
-  - The idea of this is to make installation totally self-contained, the necessary third party library binary is bundled in.
-  - The CI build Actions is setup for manually runs only.
+* `ffi_extension.json`  each _package/library_ should list the files to preload, will be process by `ffi_preloader.php` script.
+* `.ignore_autoload.php` will be called/executed by `composer create-project your_package .cdef/foldername` event.
+  * This event is only called when your _package_ is installed by `composer create-project` command.
+* `.preload.php` for general common FFI functions to be used, change the `tag_changeMe` skeleton name.
+* `.github\workflows\*.yml` these GitHub Actions is designed for cross-compiling and committing the `binary` back to your **repo**, change `some_lib` and `some_repo` skeleton names.
+  * The idea of this is to make installation totally self-contained, the necessary third party library binary is bundled in.
+  * The CI build Actions is setup for manually runs only.
 
 ```json
 // Skeleton for `ffi_extension.json` file
@@ -209,31 +209,31 @@ The option `-I  <directory>` might be needed to search/find additional include s
 
 ## Reference/Credits
 
-- [Introduction to PHP FFI](https://dev.to/verkkokauppacom/introduction-to-php-ffi-po3)
-- [How to Use PHP FFI in Programming](https://spiralscout.com/blog/how-to-use-php-ffi-in-programming)
-- [PHP FFI and what it can do for you](https://phpconference.com/blog/php-ffi-and-what-it-can-do-for-you/)
-- [Getting Started with PHP-FFI](https://www.youtube.com/watch?v=7pfjvRupoqg) **Youtube**
+* [Introduction to PHP FFI](https://dev.to/verkkokauppacom/introduction-to-php-ffi-po3)
+* [How to Use PHP FFI in Programming](https://spiralscout.com/blog/how-to-use-php-ffi-in-programming)
+* [PHP FFI and what it can do for you](https://phpconference.com/blog/php-ffi-and-what-it-can-do-for-you/)
+* [Getting Started with PHP-FFI](https://www.youtube.com/watch?v=7pfjvRupoqg) **Youtube**
 
-- [Zend API - Hacking the Core of PHP](https://www.cs.helsinki.fi/u/laine/php/zend.html)
-- [PHP at the Core A Hacker's Guide - Manual](http://php.adamharvey.name/manual/en/internals2.php)
-- [PHP Internals Book](https://www.phpinternalsbook.com/index.html)
-- [Upgrading PHP extensions from PHP5 to NG](https://wiki.php.net/phpng-upgrading)
-- [Extending and Embedding PHP](https://flylib.com/books/en/2.565.1/)
-- [Whitepaper: Writing PHP Extensions - Zend](https://www.zend.com/sites/zend/files/pdfs/whitepaper-zend-php-extensions.pdf) **PDF**
-- [Part V:  Extensibility](http://php.find-info.ru/php/016/part05.html)
-- [In-depth study of PHP & Zend Engine TSRM Algorithms](https://r00thunt.com/2015/10/02/in-depth-study-of-php-zend-engine-tsrm-algorithms/)
-- [Threads and PHP](http://blog.jpauli.tech/2017-01-12-threads-and-php-html/)
+* [Zend API - Hacking the Core of PHP](https://www.cs.helsinki.fi/u/laine/php/zend.html)
+* [PHP at the Core A Hacker's Guide - Manual](http://php.adamharvey.name/manual/en/internals2.php)
+* [PHP Internals Book](https://www.phpinternalsbook.com/index.html)
+* [Upgrading PHP extensions from PHP5 to NG](https://wiki.php.net/phpng-upgrading)
+* [Extending and Embedding PHP](https://flylib.com/books/en/2.565.1/)
+* [Whitepaper: Writing PHP Extensions - Zend](https://www.zend.com/sites/zend/files/pdfs/whitepaper-zend-php-extensions.pdf) **PDF**
+* [Part V:  Extensibility](http://php.find-info.ru/php/016/part05.html)
+* [In-depth study of PHP & Zend Engine TSRM Algorithms](https://r00thunt.com/2015/10/02/in-depth-study-of-php-zend-engine-tsrm-algorithms/)
+* [Threads and PHP](http://blog.jpauli.tech/2017-01-12-threads-and-php-html/)
 
-- [Awesome PHP FFI](https://github.com/gabrielrcouto/awesome-php-ffi)
-- [Z-Engine library](https://github.com/lisachenko/z-engine)
+* [Awesome PHP FFI](https://github.com/gabrielrcouto/awesome-php-ffi)
+* [Z-Engine library](https://github.com/lisachenko/z-engine)
 
 ### Possible Security Risks
 
-- [Down the FFI Rabbit Hole](https://pwnfirstsear.ch/2020/07/20/0ctf2020-noeasyphp.html)
+* [Down the FFI Rabbit Hole](https://pwnfirstsear.ch/2020/07/20/0ctf2020-noeasyphp.html)
 
 ### The Beginning
 
-- [About Zeev’s proposal of PHP superset](https://william-pinaud.medium.com/about-zeevs-proposal-of-php-superset-9e291f0de630)
+* [About Zeev’s proposal of PHP superset](https://william-pinaud.medium.com/about-zeevs-proposal-of-php-superset-9e291f0de630)
 
 ## Contributing
 

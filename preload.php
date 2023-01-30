@@ -244,6 +244,11 @@ if (!\function_exists('setup_ffi_loader')) {
     return \FFI::cast('void*', 0);
   }
 
+  function ffi_set_free(bool $status): void
+  {
+    \CStruct::ffi_free_set($status);
+  }
+
   /**
    * Check and manually removes an _list_ of previously created `C` data memory pointer.
    *
@@ -252,14 +257,16 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function ffi_free_if(...$ptr): void
   {
-    foreach ($ptr as $cdata) {
-      try {
-        $object = ($cdata instanceof \ZE || $cdata instanceof \CStruct || !\is_cdata($cdata))
-          ? $cdata()
-          : $cdata;
-        if (\is_cdata($object) && !\FFI::isNull($object))
-          \FFI::free($object);
-      } catch (\Throwable $e) {
+    if (\CStruct::is_ffi_free_active()) {
+      foreach ($ptr as $cdata) {
+        try {
+          $object = ($cdata instanceof \ZE || $cdata instanceof \CStruct || !\is_cdata($cdata))
+            ? $cdata()
+            : $cdata;
+          if (\is_cdata($object) && !\FFI::isNull($object))
+            \FFI::free($object);
+        } catch (\Throwable $e) {
+        }
       }
     }
   }
@@ -299,6 +306,11 @@ if (!\function_exists('setup_ffi_loader')) {
   function ze_ffi(): \FFI
   {
     return \Core::get('ze');
+  }
+
+  function misc_ffi(): \FFI
+  {
+    return \Core::get('misc');
   }
 
   /**
@@ -594,6 +606,30 @@ if (!\function_exists('setup_ffi_loader')) {
     $os = __DIR__ . \DS . (\PHP_OS_FAMILY === 'Windows' ? 'headers\zeWin' : 'headers/ze');
     $php = $os . \PHP_MAJOR_VERSION . $minor . (\PHP_ZTS ? 'ts' : '') . '.h';
     \setup_ffi_loader('ze', $php);
+
+    if (\IS_WINDOWS) {
+      $mmap_header = __DIR__ . '\\headers\\windows_mman.h';
+      if (\file_exists('vendor\\symplely\\zend-ffi')) {
+        $vendor_code = \str_replace('.h', '_vendor.h', $mmap_header);
+        if (!\file_exists($vendor_code)) {
+          $file = \str_replace(
+            'FFI_LIB ".',
+            'FFI_LIB "vendor\\\symplely\\\zend-ffi',
+            \file_get_contents($mmap_header)
+          );
+
+          \file_put_contents(
+            $vendor_code,
+            $file,
+            \LOCK_EX
+          );
+        }
+
+        $mmap_header = $vendor_code;
+      }
+
+      \setup_ffi_loader('misc', $mmap_header);
+    }
 
     if (\file_exists('.' . \DS . 'ffi_extension.json')) {
       $loader = function ($iterator, bool $isDir) {

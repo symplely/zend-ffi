@@ -1,4 +1,4 @@
-name: Windows PThreads
+name: Windows PThreads & mmap
 
 on:
   workflow_dispatch:
@@ -29,18 +29,18 @@ jobs:
         config:
           - {toolchain: Visual Studio 16 2019, arch: x64, server: 2019}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Envinfo
         run: npx envinfo
-      - name: Build
+      - name: Build Windows pthreads
         shell: cmd
         run: |
           curl -L https://cytranet.dl.sourceforge.net/project/pthreads4w/pthreads4w-code-v${{ env.VERSION }}.zip --output pthreads4w-code.zip
           unzip -xoq pthreads4w-code.zip
           mkdir pthreads4w-code-${{ env.HASH }}\cmake
-          copy /Y .github\cmake\*.* pthreads4w-code-${{ env.HASH }}\cmake
-          copy /Y .github\CMakeLists.txt pthreads4w-code-${{ env.HASH }}
-          copy /Y .github\pthread.cxx pthreads4w-code-${{ env.HASH }}
+          copy /Y .github\pthread\cmake\*.* pthreads4w-code-${{ env.HASH }}\cmake
+          copy /Y .github\pthread\CMakeLists.txt pthreads4w-code-${{ env.HASH }}
+          copy /Y .github\pthread\pthread.cxx pthreads4w-code-${{ env.HASH }}
           cd pthreads4w-code-${{ env.HASH }}
           mkdir build
           cd build
@@ -52,6 +52,17 @@ jobs:
         env:
           VERSION: ${{ github.event.inputs.version }}
           HASH: ${{ github.event.inputs.hash }}
+      - name: Build Windows mmap
+        shell: cmd
+        run: |
+          mkdir windows_mmap
+          copy /Y .github\mmap\*.* windows_mmap
+          cd windows_mmap
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build . --config Release
+          dir Release
       - name: Upload/Commit to Repo
         shell: cmd
         run: |
@@ -68,4 +79,8 @@ jobs:
           copy /Y pthreads4w-code-${{ env.HASH }}\PTHREADS-BUILT\bin\pthreadV*.dll lib\Windows\
           git add lib
           git commit -m "created pthreadVC3.dll, pthreadVCE3.dll, pthreadVSE3.dll - for Windows x86_64"
+          git push -q
+          copy /Y windows_mmap\build\Release\mman.dll lib\Windows\
+          git add lib
+          git commit -m "created mman.dll - for Windows x86_64"
           git push -q
