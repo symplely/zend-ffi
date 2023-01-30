@@ -21,6 +21,7 @@ if (!\class_exists('CStruct')) {
         protected ?CData $struct_ptr = null;
         protected ?CData $struct_casted = null;
         protected $storage = [];
+        protected static bool $is_free_active = \IS_WINDOWS;
 
         public function __destruct()
         {
@@ -380,7 +381,7 @@ if (!\class_exists('CStruct')) {
             if (!\is_null($this->struct_ptr)) {
                 \ffi_free_if($this->struct_ptr);
                 if (\is_cdata($this->struct) && !$this->isOwned)
-                    \FFI::free($this->struct);
+                    \ffi_free_if($this->struct);
 
                 if ($this->isArray && \count($this->storage) > 0)
                     \ffi_free_if(...$this->storage);
@@ -394,6 +395,16 @@ if (!\class_exists('CStruct')) {
                 $this->isInteger = false;
                 $this->tag = '';
             }
+        }
+
+        public static function ffi_free_set(bool $status): void
+        {
+            self::$is_free_active = $status;
+        }
+
+        public static function is_ffi_free_active(): bool
+        {
+            return self::$is_free_active;
         }
 
         public static function struct_init(string $typedef, string $ffi_tag = 'ze', array $initializer = null, bool $owned = true, bool $persistent = false)

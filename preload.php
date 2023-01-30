@@ -244,6 +244,11 @@ if (!\function_exists('setup_ffi_loader')) {
     return \FFI::cast('void*', 0);
   }
 
+  function ffi_set_free(bool $status): void
+  {
+    \CStruct::ffi_free_set($status);
+  }
+
   /**
    * Check and manually removes an _list_ of previously created `C` data memory pointer.
    *
@@ -252,14 +257,16 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function ffi_free_if(...$ptr): void
   {
-    foreach ($ptr as $cdata) {
-      try {
-        $object = ($cdata instanceof \ZE || $cdata instanceof \CStruct || !\is_cdata($cdata))
-          ? $cdata()
-          : $cdata;
-        if (\is_cdata($object) && !\FFI::isNull($object))
-          \FFI::free($object);
-      } catch (\Throwable $e) {
+    if (\CStruct::is_ffi_free_active()) {
+      foreach ($ptr as $cdata) {
+        try {
+          $object = ($cdata instanceof \ZE || $cdata instanceof \CStruct || !\is_cdata($cdata))
+            ? $cdata()
+            : $cdata;
+          if (\is_cdata($object) && !\FFI::isNull($object))
+            \FFI::free($object);
+        } catch (\Throwable $e) {
+        }
       }
     }
   }
