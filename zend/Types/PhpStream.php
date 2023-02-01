@@ -259,7 +259,7 @@ if (!\class_exists('PhpStream')) {
                         Resource::PHP_STREAM_AS_FD_FOR_SELECT | Resource::PHP_STREAM_CAST_INTERNAL,
                         \ffi_void($fd),
                         1
-                    ) == \ZE::SUCCESS && $fd >= 0) {
+                    ) == \ZE::SUCCESS) {
                         if (\is_cdata($stream->wrapper) && !\strcmp($stream->wrapper->wops->label, "plainfile")) {
                             $isFIFO = false;
                             if (!\IS_WINDOWS) {

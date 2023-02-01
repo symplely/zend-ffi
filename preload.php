@@ -108,6 +108,18 @@ if (!\defined('ZEND_MODULE_API_NO'))
       )
   );
 
+if (!\defined('STDIN')) {
+  \define('STDIN', \fopen('php://stdin', 'r'));
+}
+
+if (!\defined('STDOUT')) {
+  \define('STDOUT', \fopen('php://stdout', 'w'));
+}
+
+if (!\defined('STDERR')) {
+  \define('STDERR', \fopen('php://stderr', 'w+'));
+}
+
 if (!\function_exists('setup_ffi_loader')) {
   function ffi_cdef(string $code, string $lib = null): \FFI
   {
