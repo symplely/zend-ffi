@@ -451,12 +451,12 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
-     * @param resource $fd
+     * @param resource|int $fd
      * @return int|uv_file `fd`
      */
     function get_fd_resource($fd): int
     {
-        if (!\is_resource($fd))
+        if (!\is_resource($fd) || !\is_integer($fd))
             return \ze_ffi()->zend_error(\E_WARNING, "only resource types allowed");
 
         $fd_int = Resource::get_fd((int)$fd, false, true);
