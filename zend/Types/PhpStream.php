@@ -83,8 +83,6 @@ if (!\class_exists('PhpStream')) {
         }
 
         /**
-         * Represents `ext-uv` _macro_ `PHP_UV_FD_TO_ZVAL()`.
-         *
          * @param int $fd
          * @param string $mode
          * @param bool $getZval
@@ -153,10 +151,6 @@ if (!\class_exists('PhpStream')) {
             $fd = -1;
             if ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
-                $zval_fd = Resource::get_fd($handle, true);
-                if ($zval_fd instanceof Zval)
-                    return !$isStream ? Resource::get_fd($handle, false, true) : Resource::get_fd($handle, false, false, true);
-
                 $zval_fd = \fd_type();
                 $fd = $zval_fd();
                 $stream = \ze_ffi()->cast(
@@ -230,12 +224,6 @@ if (!\class_exists('PhpStream')) {
             // Validate Checks
             if ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
-                $zval_fd = Resource::get_fd($handle, true);
-                if ($zval_fd instanceof Zval) {
-                    $fd = Resource::get_fd($handle);
-                    return $fd[0];
-                }
-
                 $zval_fd = \fd_type($fd_type);
                 $fd = $zval_fd();
                 $stream = \ze_ffi()->cast(
