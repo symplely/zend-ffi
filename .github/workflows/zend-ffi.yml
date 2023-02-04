@@ -2,9 +2,9 @@ name: "7.4, 8.0, 8.1, 8.2   "
 
 on:
   push:
-    branches: [ 0.9.x ]
+    branches: [ beta ]
   pull_request:
-    branches: [ 0.9.x ]
+    branches: [ beta ]
 
 jobs:
   multi:
