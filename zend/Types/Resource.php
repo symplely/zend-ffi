@@ -111,18 +111,6 @@ if (!\class_exists('Resource')) {
         /** @var Resource|PhpStream */
         protected static $instances = null;
 
-        public function __destruct()
-        {
-            if (!\is_null($this->extra)) {
-                $object = $this->extra;
-                $this->extra = null;
-                $object->free();
-                \zval_del_ref($object);
-            }
-
-            $this->free();
-        }
-
         /** @return int|CData */
         public function __invoke($isZval = true)
         {
@@ -136,13 +124,6 @@ if (!\class_exists('Resource')) {
                 $this->zval = $zval;
                 static::$instances[$fd] = $this;
             }
-
-            return $this;
-        }
-
-        public function add_object(object $extra): self
-        {
-            $this->extra = $extra;
 
             return $this;
         }

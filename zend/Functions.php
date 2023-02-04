@@ -451,6 +451,8 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
+     * Return `int` of _file descriptor_ from a **resource**, after converting into/from `php_stream` C struct.
+     *
      * @param resource|int $fd
      * @return int|uv_file `fd`
      */
@@ -459,14 +461,11 @@ if (!\function_exists('zval_stack')) {
         if (!\is_resource($fd) && !\is_integer($fd))
             return \ze_ffi()->zend_error(\E_WARNING, "only resource types allowed");
 
-        $fd_int = Resource::get_fd((int)$fd, false, true);
-        $fd_int = \is_cdata($fd_int) ? $fd_int[0] : $fd_int;
-
-        return \is_null($fd_int) ? PhpStream::zval_to_fd(\zval_stack(0)) : $fd_int;
+        return PhpStream::zval_to_fd(\zval_stack(0));
     }
 
     /**
-     * Represents `ext-uv` _macro_ `PHP_UV_FD_TO_ZVAL()`.
+     * Return `resource` from `int` a _file descriptor_, after converting into/from `php_stream` C struct.
      *
      * @param int $fd
      * @param string $mode
