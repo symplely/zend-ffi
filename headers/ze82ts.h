@@ -2552,6 +2552,11 @@ extern int (*zend_preload_autoload)(zend_string *filename);
 extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
 
+extern zend_class_entry *socket_ce;
+typedef int PHP_SOCKET;
+char *sockets_strerror(int error);
+int socket_import_file_descriptor(PHP_SOCKET socket, php_socket *retsock);
+
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
 int munmap(void *addr, size_t length);
 int mprotect(void *addr, size_t len, int prot);

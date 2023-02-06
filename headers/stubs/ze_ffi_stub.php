@@ -40,6 +40,12 @@ abstract class SOCKET extends int
 abstract class php_socket_t extends SOCKET
 {
 }
+abstract class php_socket extends \FFI\CData
+{
+}
+abstract class PHP_SOCKETS extends php_socket_t
+{
+}
 abstract class uint64_t extends int
 {
 }
@@ -491,6 +497,12 @@ interface FFI
 
     /** @return ssize_t */
     public function _php_stream_printf(php_stream &$stream, const_char &$fmt, ...$arguments);
+
+    /** @return const_char */
+    public function sockets_strerror(int $error);
+
+    /** @return int|php_socket */
+    public function socket_import_file_descriptor(PHP_SOCKETS $socket, php_socket ...$retsock);
 
     /** @return HashTable */
     public function _zend_new_array(uint32_t $size);
