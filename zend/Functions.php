@@ -440,12 +440,8 @@ if (!\function_exists('zval_stack')) {
      */
     function zval_to_fd_pair($stream): array
     {
-        $zval = Resource::get_fd((int)$stream, true);
-        $fd = $zval instanceof Zval ? Resource::get_fd((int)$stream, false, false, true) : null;
-        if (!\is_integer($fd)) {
-            $zval = Zval::constructor($stream);
-            $fd = PhpStream::zval_to_fd($zval, true);
-        }
+        $zval = \zval_stack(0);
+        $fd = PhpStream::zval_to_fd($zval);
 
         return [$zval, $fd];
     }

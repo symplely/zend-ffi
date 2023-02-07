@@ -210,10 +210,10 @@ if (!\class_exists('Resource')) {
          * @param integer $handle
          * @param boolean $getZval
          * @param boolean $getPair
-         * @param boolean $isStream
+         * @param boolean $isLinux
          * @return Zval|int|CData|null
          */
-        public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $isStream = false)
+        public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $isLinux = false)
         {
             if (static::is_valid($handle)) {
                 /** @var Resource|PhpStream */
@@ -222,7 +222,7 @@ if (!\class_exists('Resource')) {
                     return $resource->get_zval();
                 elseif ($getPair)
                     return $resource->get_pair($handle);
-                elseif ($isStream)
+                elseif ($isLinux)
                     return $resource->fd();
                 else
                     return $resource();

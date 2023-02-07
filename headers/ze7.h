@@ -2223,7 +2223,6 @@ extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
 
 typedef int PHP_SOCKET;
-php_socket *socket_import_file_descriptor(PHP_SOCKET sock);
 
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
 int munmap(void *addr, size_t length);
