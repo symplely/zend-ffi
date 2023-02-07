@@ -2030,6 +2030,7 @@ ssize_t _php_stream_write(php_stream *stream, const char *buf, size_t count);
 php_stream *_php_stream_fopen(const char *filename, const char *mode, zend_string **opened_path, int options, ...);
 FILE *_php_stream_open_wrapper_as_file(char *path, char *mode, int options, zend_string **opened_path, ...);
 ssize_t _php_stream_printf(php_stream *stream, const char *fmt, ...);
+int _php_stream_set_option(php_stream *stream, int option, int value, void *ptrparam);
 
 typedef struct fd_set
 {
@@ -2041,40 +2042,6 @@ int php_select(php_socket_t max_fd, fd_set *rfds, fd_set *wfds, fd_set *efds, st
 
 extern php_stream_ops php_stream_stdio_ops;
 extern php_stream_wrapper php_plain_files_wrapper;
-/*
-php_stream *_php_stream_fopen_tmpfile(int dummy);
-php_stream *_php_stream_fopen_from_pipe(FILE *file, const char *mode, ...);
-int _php_stream_seek(php_stream *stream, zend_off_t offset, int whence);
-zend_off_t _php_stream_tell(php_stream *stream);
-ssize_t _php_stream_read(php_stream *stream, char *buf, size_t count);
-zend_string *php_stream_read_to_str(php_stream *stream, size_t len);
-ssize_t _php_stream_write(php_stream *stream, const char *buf, size_t count);
-int _php_stream_fill_read_buffer(php_stream *stream, size_t size);
-ssize_t _php_stream_printf(php_stream *stream, const char *fmt, ...);
-int _php_stream_eof(php_stream *stream);
-int _php_stream_getc(php_stream *stream);
-
-int _php_stream_putc(php_stream *stream, int c);
-
-int _php_stream_flush(php_stream *stream, int closing);
-char *_php_stream_get_line(php_stream *stream, char *buf, size_t maxlen, size_t *returned_len);
-zend_string *php_stream_get_record(php_stream *stream, size_t maxlen, const char *delim, size_t delim_len);
-
-// CAREFUL! this is equivalent to puts NOT fputs!
-int _php_stream_puts(php_stream *stream, const char *buf);
-int _php_stream_stat(php_stream *stream, php_stream_statbuf *ssb);
-
-int _php_stream_stat_path(const char *path, int flags, php_stream_statbuf *ssb, php_stream_context *context);
-int _php_stream_mkdir(const char *path, int mode, int options, php_stream_context *context);
-int _php_stream_rmdir(const char *path, int options, php_stream_context *context);
-php_stream *_php_stream_opendir(const char *path, int options, php_stream_context *context, ...); php_stream_dirent *_php_stream_readdir(php_stream *dirstream, php_stream_dirent *ent);
-
-int php_stream_dirent_alphasort(const zend_string **a, const zend_string **b);
-int php_stream_dirent_alphasortr(const zend_string **a, const zend_string **b);
-int _php_stream_scandir(const char *dirname, zend_string **namelist[], int flags, php_stream_context *context, int (*compare) (const zend_string **a, const zend_string **b));
-int _php_stream_set_option(php_stream *stream, int option, int value, void *ptrparam);
-*/
-
 typedef struct _sapi_module_struct sapi_module_struct;
 extern sapi_module_struct sapi_module; /* true global */
 

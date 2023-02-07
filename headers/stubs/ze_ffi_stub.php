@@ -498,6 +498,9 @@ interface FFI
     /** @return ssize_t */
     public function _php_stream_printf(php_stream &$stream, const_char &$fmt, ...$arguments);
 
+    /** @return int */
+    public function _php_stream_set_option(php_stream &$stream, int $option, int $value, ?void_ptr &$ptrparam);
+
     /** @return const_char */
     public function sockets_strerror(int $error);
 

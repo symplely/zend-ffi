@@ -104,15 +104,12 @@ if (!\class_exists('PhpStream')) {
 
         public static function php_stream_from_zval(Zval $pZval): ?PhpStream
         {
-            $stream = \ze_ffi()->cast(
-                'php_stream*',
-                \ze_ffi()->zend_fetch_resource2_ex(
-                    $pZval(),
-                    "stream",
-                    \ze_ffi()->php_file_le_stream(),
-                    \ze_ffi()->php_file_le_pstream()
-                )
-            );
+            $stream = \ze_ffi()->cast('php_stream*', \ze_ffi()->zend_fetch_resource2_ex(
+                $pZval(),
+                "stream",
+                \ze_ffi()->php_file_le_stream(),
+                \ze_ffi()->php_file_le_pstream()
+            ));
 
             return !\is_cdata($stream) ? null : static::init_value($stream);
         }
@@ -160,26 +157,40 @@ if (!\class_exists('PhpStream')) {
             return $zval_fd;
         }
 
-        protected static function zval_to_fd_linux($socket)
+        protected static function zval_to_fd_linux(Zval $stream)
         {
-            $php_sock = \fd_type('php_socket');
-            $sock = $php_sock();
-            if (\IS_PHP8) {
-                \ze_ffi()->socket_import_file_descriptor($socket, $php_sock());
-            } else {
-                $php_sock->update(\ze_ffi()->socket_import_file_descriptor($socket), true);
+            $socket = \fd_type('PHP_SOCKET');
+            $retsock = \fd_type('php_socket');
+            $zstream = static::php_stream_from_zval($stream);
+            if (!\is_null($zstream)) {
+                $fd = $socket();
+                if ((\ze_ffi()->_php_stream_cast(
+                    $zstream(),
+                    self::PHP_STREAM_AS_SOCKETD,
+                    \FFI::cast('void**', $fd),
+                    1
+                ) != \ZE::SUCCESS)) {
+                    $fd = -1;
+                }
+
+                if (\is_cdata($fd)) {
+                    if (\IS_PHP8) {
+                        \ze_ffi()->socket_import_file_descriptor($fd[0], $retsock());
+                    } else {
+                        $retsock->update(\ze_ffi()->socket_import_file_descriptor($fd[0]), true);
+                    }
+                }
             }
 
-            $sock = $php_sock();
-            if (!\is_cdata($sock)) {
+            if (!\is_cdata($retsock())) {
                 \ze_ffi()->zend_error(\E_WARNING, "unhandled resource type detected.");
                 $fd = -1;
             }
 
             if ($fd === -1)
-                unset($php_sock);
+                unset($retsock);
 
-            return $php_sock;
+            return $retsock;
         }
 
         /**
@@ -192,10 +203,10 @@ if (!\class_exists('PhpStream')) {
             $type = $ptr->macro(\ZE::TYPE_P);
             if ($type === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
-                $zval_fd = static::zval_to_fd_windows($ptr);
-
-                if (\IS_LINUX && !\is_null($zval_fd))
-                    $zval_fd = static::zval_to_fd_linux($zval_fd()[0]);
+                if (\IS_WINDOWS)
+                    $zval_fd = static::zval_to_fd_windows($ptr);
+                else
+                    $zval_fd = static::zval_to_fd_linux($ptr);
 
                 $fd = \is_null($zval_fd) ? -1 : $zval_fd();
             } elseif ($type === \ZE::IS_LONG) {
