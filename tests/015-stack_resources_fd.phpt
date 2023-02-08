@@ -31,5 +31,6 @@ object(ZE\Zval)#%d (2) {
 int(%d)
 resource(%d) of type (stream)
 bool(true)
+
 Warning: invalid resource passed, this plain files are not supported in %S
 int(-1)
