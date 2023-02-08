@@ -71,6 +71,7 @@ if (!\class_exists('ZendFunction')) {
                 $functionPtr = $ptr->common->function_name;
             }
 
+            /** @var self */
             $function = (new \ReflectionClass(static::class))->newInstanceWithoutConstructor();
             $function->update($ptr);
 

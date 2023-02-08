@@ -180,11 +180,9 @@ if (!\class_exists('Resource')) {
             }
 
             if (\count($this->fd) === 0) {
-                $zval = $this->zval;
                 $this->zval = null;
                 $this->index = null;
                 static::$instances = null;
-                $zval->free();
                 $this->free();
             }
         }
@@ -222,7 +220,7 @@ if (!\class_exists('Resource')) {
          * @param integer $handle
          * @param boolean $getZval
          * @param boolean $getPair
-         * @param boolean $getInt
+         * @param boolean $getInt file descriptor
          * @return Zval|int|CData|null
          */
         public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $getInt = false)
