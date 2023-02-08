@@ -158,6 +158,17 @@ if (!\class_exists('Resource')) {
             return $this->index;
         }
 
+        public function free(): void
+        {
+            if (!\is_null($this->ze_other_ptr)) {
+                \FFI::free($this->ze_other_ptr);
+
+                $this->ze_other_ptr = null;
+                $this->ze_other = null;
+                $this->reflection = null;
+            }
+        }
+
         public function clear(int $handle): void
         {
             if (!\is_null($this->fd) && isset($this->fd[$handle])) {
@@ -174,6 +185,7 @@ if (!\class_exists('Resource')) {
                 $this->index = null;
                 static::$instances = null;
                 $zval->free();
+                $this->free();
             }
         }
 
@@ -210,10 +222,10 @@ if (!\class_exists('Resource')) {
          * @param integer $handle
          * @param boolean $getZval
          * @param boolean $getPair
-         * @param boolean $isLinux
+         * @param boolean $getInt
          * @return Zval|int|CData|null
          */
-        public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $isLinux = false)
+        public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $getInt = false)
         {
             if (static::is_valid($handle)) {
                 /** @var Resource|PhpStream */
@@ -222,7 +234,7 @@ if (!\class_exists('Resource')) {
                     return $resource->get_zval();
                 elseif ($getPair)
                     return $resource->get_pair($handle);
-                elseif ($isLinux)
+                elseif ($getInt)
                     return $resource->fd();
                 else
                     return $resource();
