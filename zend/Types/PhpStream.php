@@ -39,8 +39,8 @@ if (!\class_exists('PhpStream')) {
             }
 
             $res = \zend_register_resource($ptr, \ze_ffi()->php_file_le_stream());
-            $zval = Zval::init();
-            $zval->macro(ZE::RES_P, $res);
+            $zval = \zval_macro(\ZE::RES_P, $res);
+            $ptr->__exposed = 1;
 
             return $zval;
         }
@@ -70,7 +70,7 @@ if (!\class_exists('PhpStream')) {
             int $options,
             ?object $opened = null,
             ?object $context = null
-        ): self {
+        ): PhpStream {
             return static::init_value(
                 \ze_ffi()->_php_stream_open_wrapper_ex(
                     $path,
@@ -86,97 +86,105 @@ if (!\class_exists('PhpStream')) {
          * @param int $fd
          * @param string $mode
          * @param bool $getZval
-         * @return resource|Zval
+         * @return resource|Zval|null
          */
         public static function fd_to_zval($fd, $mode = 'wb+', bool $getZval = false)
         {
-            $zval = PhpStream::get_fd($fd, true);
+            $stream = Resource::get_fd($fd, true);
+            if ($stream instanceof Zval) {
+                return \zval_native($stream);
+            }
+
+            $stream = \ze_ffi()->_php_stream_fopen_from_fd($fd, $mode, null);
             $resource = null;
-            if (!$zval instanceof Zval) {
-                $stream = \ze_ffi()->_php_stream_fopen_from_fd($fd, $mode, null);
-                try {
-                    $zval = PhpStream::init_stream($stream);
-                    /** @var PhpStream */
-                    $php_stream = static::init_value($stream);
-                    $resource = \zval_native($zval);
-                    $php_stream->add_pair($zval, $fd, (int)$resource);
-                } catch (\Throwable $e) {
-                    return \ze_ffi()->_php_stream_free($stream, self::PHP_STREAM_FREE_CLOSE);
-                }
+            try {
+                $zval = PhpStream::init_stream($stream);
+                $resource = \zval_native($zval);
+                $php_stream = \fd_type();
+                $php_stream->free();
+                $php_stream->add_pair($zval, $fd, (int)$resource);
+            } catch (\Throwable $e) {
+                return \ze_ffi()->_php_stream_free($stream, self::PHP_STREAM_FREE_CLOSE);
             }
 
             if ($getZval)
                 return $zval;
 
-            return \is_null($resource) ? \zval_native($zval) : $resource;
+            return $resource;
         }
 
-        public static function php_stream_from_zval(Zval $pZval)
+        public static function php_stream_from_zval(Zval $pZval): ?PhpStream
         {
-            if (($stream = \ze_ffi()->cast(
-                'php_stream*',
-                \ze_ffi()->zend_fetch_resource2_ex(
-                    $pZval(),
-                    "stream",
-                    \ze_ffi()->php_file_le_stream(),
-                    \ze_ffi()->php_file_le_pstream()
-                )
-            )) == NULL) {
-                return;
-            }
+            $stream = \ze_ffi()->cast('php_stream*', \ze_ffi()->zend_fetch_resource2_ex(
+                $pZval(),
+                "stream",
+                \ze_ffi()->php_file_le_stream(),
+                \ze_ffi()->php_file_le_pstream()
+            ));
 
-            return static::init_value($stream);
+            return !\is_cdata($stream) ? null : static::init_value($stream);
         }
 
-        public static function php_stream_from_res(ZendResource $res)
+        public static function php_stream_from_res(ZendResource $res): ?PhpStream
         {
-            if (($stream = \ze_ffi()->cast('php_stream*', \ze_ffi()->zend_fetch_resource2(
+            $stream = \ze_ffi()->cast('php_stream*', \ze_ffi()->zend_fetch_resource2(
                 $res(),
                 "stream",
                 \ze_ffi()->php_file_le_stream(),
                 \ze_ffi()->php_file_le_pstream()
-            ))) == NULL) {
-                return;
+            ));
+
+            return !\is_cdata($stream) ? null : static::init_value($stream);
+        }
+
+        protected static function to_descriptor(Zval $ptr)
+        {
+            $zval_fd = \fd_type();
+            $fd = $zval_fd();
+            $stream = \ze_ffi()->cast(
+                'php_stream*',
+                \ze_ffi()->zend_fetch_resource2($ptr()->value->res, 'stream', \ze_ffi()->php_file_le_stream(), \ze_ffi()->php_file_le_pstream())
+            );
+
+            if (\is_cdata($stream)) {
+                if (
+                    (\ze_ffi()->_php_stream_cast(
+                        $stream,
+                        self::PHP_STREAM_AS_FD | self::PHP_STREAM_CAST_INTERNAL,
+                        \ffi_void($fd),
+                        1
+                    ) != \ZE::SUCCESS)
+                ) {
+                    $fd = -1;
+                }
+            } else {
+                \ze_ffi()->zend_error(\E_WARNING, "unhandled resource type detected.");
+                $fd = -1;
             }
 
-            return static::init_value($stream);
+            if ($fd === -1)
+                unset($zval_fd);
+
+            return $zval_fd;
         }
 
         /**
          * @param Zval $ptr
          * @return int|uv_file `fd`
          */
-        public static function zval_to_fd(Zval $ptr, bool $isStream = false): int
+        public static function zval_to_fd(Zval $ptr): int
         {
             $fd = -1;
-            if ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_RESOURCE) {
+            $type = $ptr->macro(\ZE::TYPE_P);
+            if ($type === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
-                $zval_fd = \fd_type();
-                $fd = $zval_fd();
-                $stream = \ze_ffi()->cast(
-                    'php_stream*',
-                    \ze_ffi()->zend_fetch_resource2($ptr()->value->res, 'stream', \ze_ffi()->php_file_le_stream(), \ze_ffi()->php_file_le_pstream())
-                );
+                $zval = Resource::get_fd($handle, true);
+                if ($zval instanceof Zval)
+                    return Resource::get_fd($handle, false, false, true);
 
-                if (\is_cdata($stream)) {
-                    if (
-                        (\ze_ffi()->_php_stream_cast(
-                            $stream,
-                            self::PHP_STREAM_AS_FD | self::PHP_STREAM_CAST_INTERNAL,
-                            \ffi_void($fd),
-                            1
-                        ) != \ZE::SUCCESS)
-                    ) {
-                        $fd = -1;
-                    }
-                } else {
-                    \ze_ffi()->zend_error(\E_WARNING, "unhandled resource type detected.");
-                    $fd = -1;
-                }
-
-                if ($fd === -1)
-                    unset($zval_fd);
-            } elseif ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_LONG) {
+                $zval_fd = static::to_descriptor($ptr);
+                $fd = \is_null($zval_fd) ? -1 : $zval_fd();
+            } elseif ($type === \ZE::IS_LONG) {
                 $fd = $ptr->macro(\ZE::LVAL_P);
                 if ($fd < 0) {
                     $fd = -1;
@@ -185,8 +193,8 @@ if (!\class_exists('PhpStream')) {
             }
 
             if (\is_cdata($fd)) {
-                $zval_fd->add_pair($ptr, $fd[0], $handle);
-                return $fd[0];
+                $fd = $fd[0];
+                $zval_fd->add_pair($ptr, $fd, $handle);
             }
 
             return $fd;
@@ -224,6 +232,10 @@ if (!\class_exists('PhpStream')) {
             // Validate Checks
             if ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
+                $zval = Resource::get_fd($handle, true);
+                if ($zval instanceof Zval)
+                    return Resource::get_fd($handle, false, false, true);
+
                 $zval_fd = \fd_type($fd_type);
                 $fd = $zval_fd();
                 $stream = \ze_ffi()->cast(
@@ -269,8 +281,8 @@ if (!\class_exists('PhpStream')) {
             }
 
             if (\is_cdata($fd)) {
-                $zval_fd->add_pair($ptr, $fd[0], $handle);
-                return $fd[0];
+                $fd = $fd[0];
+                $zval_fd->add_pair($ptr, $fd, $handle);
             } elseif ($fd === -1) {
                 unset($zval_fd);
             }

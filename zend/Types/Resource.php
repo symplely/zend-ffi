@@ -86,21 +86,46 @@ if (!\class_exists('Resource')) {
 
         /** coerce the stream into some other form */
         /** cast as a stdio FILE * */
-        const PHP_STREAM_AS_STDIO = 0;
+        const PHP_STREAM_AS_STDIO   = 0;
         /** cast as a POSIX fd or socketd */
-        const PHP_STREAM_AS_FD = 1;
+        const PHP_STREAM_AS_FD      = 1;
         /** cast as a socketd */
         const PHP_STREAM_AS_SOCKETD = 2;
         /** cast as fd/socket for select purposes */
         const PHP_STREAM_AS_FD_FOR_SELECT = 3;
 
         /** try really, really hard to make sure the cast happens (avoid using this flag if possible) */
-        const PHP_STREAM_CAST_TRY_HARD = 0x80000000;
+        const PHP_STREAM_CAST_TRY_HARD  = 0x80000000;
         /** stream becomes invalid on success */
-        const PHP_STREAM_CAST_RELEASE = 0x40000000;
+        const PHP_STREAM_CAST_RELEASE   = 0x40000000;
         /** stream cast for internal use */
-        const PHP_STREAM_CAST_INTERNAL = 0x20000000;
+        const PHP_STREAM_CAST_INTERNAL  = 0x20000000;
         const PHP_STREAM_CAST_MASK = (self::PHP_STREAM_CAST_TRY_HARD | self::PHP_STREAM_CAST_RELEASE | self::PHP_STREAM_CAST_INTERNAL);
+
+        /* change the blocking mode of stream: value == 1 => blocking, value == 0 => non-blocking. */
+        const PHP_STREAM_OPTION_BLOCKING        = 1;
+
+        /** change the buffering mode of stream.
+         * value is a PHP_STREAM_BUFFER_XXXX value, ptrparam is a ptr to a size_t holding
+         * the required buffer size */
+        const PHP_STREAM_OPTION_READ_BUFFER     = 2;
+        const PHP_STREAM_OPTION_WRITE_BUFFER    = 3;
+        /** unbuffered */
+        const PHP_STREAM_BUFFER_NONE    = 0;
+        /** line buffered */
+        const PHP_STREAM_BUFFER_LINE    = 1;
+        /** fully buffered */
+        const PHP_STREAM_BUFFER_FULL    = 2;
+
+        /** set the timeout duration for reads on the stream. ptrparam is a pointer to a struct timeval */
+        const PHP_STREAM_OPTION_READ_TIMEOUT    = 4;
+        const PHP_STREAM_OPTION_SET_CHUNK_SIZE  = 5;
+
+        /** set or release lock on a stream */
+        const PHP_STREAM_OPTION_LOCKING         = 6;
+
+        /** whether or not locking is supported */
+        const PHP_STREAM_LOCK_SUPPORTED         = 1;
 
         protected $isZval = false;
         protected $fd = [];
@@ -133,6 +158,17 @@ if (!\class_exists('Resource')) {
             return $this->index;
         }
 
+        public function free(): void
+        {
+            if (!\is_null($this->ze_other_ptr)) {
+                \FFI::free($this->ze_other_ptr);
+
+                $this->ze_other_ptr = null;
+                $this->ze_other = null;
+                $this->reflection = null;
+            }
+        }
+
         public function clear(int $handle): void
         {
             if (!\is_null($this->fd) && isset($this->fd[$handle])) {
@@ -149,6 +185,7 @@ if (!\class_exists('Resource')) {
                 $this->index = null;
                 static::$instances = null;
                 $zval->free();
+                $this->free();
             }
         }
 
@@ -185,10 +222,10 @@ if (!\class_exists('Resource')) {
          * @param integer $handle
          * @param boolean $getZval
          * @param boolean $getPair
-         * @param boolean $isStream
+         * @param boolean $getInt
          * @return Zval|int|CData|null
          */
-        public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $isStream = false)
+        public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $getInt = false)
         {
             if (static::is_valid($handle)) {
                 /** @var Resource|PhpStream */
@@ -197,7 +234,7 @@ if (!\class_exists('Resource')) {
                     return $resource->get_zval();
                 elseif ($getPair)
                     return $resource->get_pair($handle);
-                elseif ($isStream)
+                elseif ($getInt)
                     return $resource->fd();
                 else
                     return $resource();

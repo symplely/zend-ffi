@@ -440,12 +440,8 @@ if (!\function_exists('zval_stack')) {
      */
     function zval_to_fd_pair($stream): array
     {
-        $zval = Resource::get_fd((int)$stream, true);
-        $fd = $zval instanceof Zval ? Resource::get_fd((int)$stream, false, false, true) : null;
-        if (!\is_integer($fd)) {
-            $zval = Zval::constructor($stream);
-            $fd = PhpStream::zval_to_fd($zval, true);
-        }
+        $zval = \zval_constructor($stream);
+        $fd = PhpStream::zval_to_fd($zval);
 
         return [$zval, $fd];
     }
@@ -459,9 +455,9 @@ if (!\function_exists('zval_stack')) {
     function get_fd_resource($fd): int
     {
         if (!\is_resource($fd) && !\is_integer($fd))
-            return \ze_ffi()->zend_error(\E_WARNING, "only resource types allowed");
+            return \ze_ffi()->zend_error(\E_WARNING, "only resource or int types allowed");
 
-        return PhpStream::zval_to_fd(\zval_stack(0));
+        return PhpStream::zval_to_fd(\zval_constructor($fd));
     }
 
     /**
@@ -478,12 +474,17 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
-     * @param Zval $handle
+     * Return `int` of _file descriptor_ from a **socket**, after converting into/from `php_socket` C struct.
+     *
+     * @param resource|int|\Socket $fd
      * @return php_socket_t|int
      */
-    function get_socket_fd(Zval $handle, string $fd_type = 'php_socket_t')
+    function get_socket_fd($handle, string $fd_type = 'php_socket_t')
     {
-        return PhpStream::zval_to_fd_select($handle, $fd_type);
+        if (!\is_resource($handle) && !\is_integer($handle) && !$handle instanceof Socket)
+            return \ze_ffi()->zend_error(\E_WARNING, "only resource or int types allowed");
+
+        return PhpStream::zval_to_fd_select(\zval_constructor($handle), $fd_type);
     }
 
     /**
