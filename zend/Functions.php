@@ -461,6 +461,30 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
+     * Remove/free any `resource` created with `get_resource_fd()`, `get_fd_resource()`,
+     * `get_socket_fd()`, or `zval_to_fd_pair()`.
+     *
+     * @param resource|int|Zval $fd_Int_Zval
+     * @return void
+     */
+    function remove_fd_resource(...$fd_Int_Zval): void
+    {
+        foreach ($fd_Int_Zval as $zval) {
+            if (!\is_null($zval) && ($zval instanceof Zval || \is_resource($zval) || \is_int($zval))) {
+                $fd = $zval instanceof Zval ? (int)\zval_native($zval) : (int)$zval;
+
+                if ($fd > 0) {
+                    if (Resource::is_valid($fd)) {
+                        Resource::remove_fd($fd);
+                    } elseif (PhpStream::is_valid($fd)) {
+                        PhpStream::remove_fd($fd);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Return `resource` from `int` a _file descriptor_, after converting into/from `php_stream` C struct.
      *
      * @param int $fd
