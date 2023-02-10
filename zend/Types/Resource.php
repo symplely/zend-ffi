@@ -171,7 +171,7 @@ if (!\class_exists('Resource')) {
 
         public function clear(int $handle): void
         {
-            if (!\is_null($this->fd) && isset($this->fd[$handle])) {
+            if (isset($this->fd[$handle])) {
                 [$fd, $res] = $this->fd[$handle];
                 unset($this->fd[$fd], $this->fd[$res]);
                 static::$instances[$fd] = static::$instances[$res] = null;
@@ -182,7 +182,6 @@ if (!\class_exists('Resource')) {
             if (\count($this->fd) === 0) {
                 $this->zval = null;
                 $this->index = null;
-                static::$instances = null;
                 $this->free();
             }
         }

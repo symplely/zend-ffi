@@ -14,10 +14,13 @@ var_dump($int_fd);
 var_dump($zval, $fd1);
 var_dump(\get_resource_fd($fd1));
 var_dump($int_fd === $fd1);
+remove_fd_resource($fd);
+remove_fd_resource($fd1);
 fclose($fd);
 $fd = fopen(__FILE__, 'r');
 $socket_fd = \get_socket_fd($fd);
 var_dump($socket_fd);
+remove_fd_resource($fd);
 fclose($fd);
 --EXPECTF--
 resource(%d) of type (stream)
