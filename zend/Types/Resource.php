@@ -158,20 +158,9 @@ if (!\class_exists('Resource')) {
             return $this->index;
         }
 
-        public function free(): void
-        {
-            if (!\is_null($this->ze_other_ptr)) {
-                \FFI::free($this->ze_other_ptr);
-
-                $this->ze_other_ptr = null;
-                $this->ze_other = null;
-                $this->reflection = null;
-            }
-        }
-
         public function clear(int $handle): void
         {
-            if (isset($this->fd[$handle])) {
+            if (!\is_null($this->fd) && isset($this->fd[$handle])) {
                 [$fd, $res] = $this->fd[$handle];
                 unset($this->fd[$fd], $this->fd[$res]);
                 static::$instances[$fd] = static::$instances[$res] = null;
