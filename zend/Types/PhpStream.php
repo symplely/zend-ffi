@@ -88,10 +88,13 @@ if (!\class_exists('PhpStream')) {
          * @param bool $getZval
          * @return resource|Zval|null
          */
-        public static function fd_to_zval($fd, $mode = 'wb+', bool $getZval = false)
+        public static function fd_to_zval($fd, $mode = 'wb+', bool $getZval = false, object $extra = null)
         {
             $stream = Resource::get_fd($fd, true);
             if ($stream instanceof Zval) {
+                if ($getZval)
+                    return $stream;
+
                 return \zval_native($stream);
             }
 
@@ -102,6 +105,10 @@ if (!\class_exists('PhpStream')) {
                 $resource = \zval_native($zval);
                 $php_stream = \fd_type();
                 $php_stream->free();
+                $php_stream->update($stream, true);
+                if (!\is_null($extra))
+                    $php_stream->add_object($extra);
+
                 $php_stream->add_pair($zval, $fd, (int)$resource);
             } catch (\Throwable $e) {
                 return \ze_ffi()->_php_stream_free($stream, self::PHP_STREAM_FREE_CLOSE);

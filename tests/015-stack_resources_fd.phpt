@@ -10,6 +10,7 @@ $fd = fopen(__FILE__, 'r');
 var_dump($fd);
 $int_fd = \get_fd_resource($fd);
 var_dump($int_fd);
+var_dump(create_resource_fd($int_fd));
 [$zval, $fd1] = \zval_to_fd_pair($fd);
 var_dump($zval, $fd1);
 var_dump(\get_resource_fd($fd1));
@@ -25,6 +26,7 @@ fclose($fd);
 --EXPECTF--
 resource(%d) of type (stream)
 int(%d)
+resource(%d) of type (stream)
 object(ZE\Zval)#%d (2) {
   ["type"]=>
   string(11) "IS_RESOURCE"

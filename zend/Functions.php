@@ -238,7 +238,7 @@ if (!\function_exists('zval_stack')) {
     /**
      * Returns an _instance_ that's a cross platform representation of a file handle.
      *
-     * @param string $type - a handle `uv_file`, `uv_os_fd_t`, `php_socket_t` or _any_ platform type.
+     * @param string $type platform file `typedef` handle.
      * @return Resource
      */
     function fd_type(string $type = 'uv_file'): Resource
@@ -353,7 +353,7 @@ if (!\function_exists('zval_stack')) {
         return ZendResource::init($argument);
     }
 
-    function create_resource(CData $fd_ptr, string $type = 'stream', int $module = 20220101, callable $rsrc = null)
+    function create_resource(CData $fd_ptr, string $type = 'stream', int $module = \ZEND_MODULE_API_NO, callable $rsrc = null)
     {
         $fd_res = \zend_register_resource(
             $fd_ptr,
@@ -369,6 +369,18 @@ if (!\function_exists('zval_stack')) {
         $fd_zval = \zval_resource($fd_res);
 
         return \zval_native($fd_zval);
+    }
+
+    /**
+     * Create `resource` from `int`, _bind_ to an **CData** `object`.
+     *
+     * @param integer $fd
+     * @param object $extra
+     * @return resource
+     */
+    function create_resource_fd(int $fd, object $extra = null)
+    {
+        return PhpStream::fd_to_zval($fd, 'wb+', false, $extra);
     }
 
     function zend_reference(&$argument): ZendReference
@@ -472,7 +484,6 @@ if (!\function_exists('zval_stack')) {
         foreach ($fd_Int_Zval as $zval) {
             if (!\is_null($zval) && ($zval instanceof Zval || \is_resource($zval) || \is_int($zval))) {
                 $fd = $zval instanceof Zval ? (int)\zval_native($zval) : (int)$zval;
-
                 if ($fd > 0) {
                     if (Resource::is_valid($fd)) {
                         Resource::remove_fd($fd);
