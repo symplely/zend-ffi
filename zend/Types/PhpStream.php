@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ZE;
 
-use ZE;
 use FFI\CData;
 use ZE\Zval;
 use ZE\Resource;
