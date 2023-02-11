@@ -149,7 +149,7 @@ if (!\class_exists('Resource')) {
         {
             if (!\is_null($this->ze_other_ptr) && \count($this->fd) === 0) {
                 if (\is_typeof($this->ze_other_ptr, 'struct _php_stream*'))
-                    \ze_ffi()->_php_stream_free($this->ze_other_ptr, self::PHP_STREAM_FREE_CLOSE | self::PHP_STREAM_FREE_CLOSE_CASTED);
+                    \ze_ffi()->_php_stream_free($this->ze_other_ptr, self::PHP_STREAM_FREE_CLOSE);
                 else
                     \ffi_free_if($this->ze_other_ptr);
 

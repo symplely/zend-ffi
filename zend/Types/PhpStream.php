@@ -104,7 +104,6 @@ if (!\class_exists('PhpStream')) {
                 $resource = \zval_native($zval);
                 $php_stream = \fd_type();
                 $php_stream->free();
-                $php_stream->update($stream, true);
                 if (!\is_null($extra))
                     $php_stream->add_object($extra);
 
