@@ -40,15 +40,9 @@ if (!\class_exists('Core')) {
 
 		public static function clear_stdio(): void
 		{
-			$stdout = self::$stream_stdout;
-			$stderr = self::$stream_stderr;
-			$stdin = self::$stream_stdin;
 			self::$stream_stdout = null;
 			self::$stream_stderr = null;
 			self::$stream_stdin = null;
-			\ze_ffi()->_php_stream_free($stdout(), ZE\PhpStream::PHP_STREAM_FREE_CLOSE);
-			\ze_ffi()->_php_stream_free($stderr(), ZE\PhpStream::PHP_STREAM_FREE_CLOSE);
-			\ze_ffi()->_php_stream_free($stdin(), ZE\PhpStream::PHP_STREAM_FREE_CLOSE);
 		}
 
 		/**

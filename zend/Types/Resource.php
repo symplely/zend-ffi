@@ -139,9 +139,7 @@ if (!\class_exists('Resource')) {
         public function __destruct()
         {
             if (!\is_null($this->extra)) {
-                $object = $this->extra;
                 $this->extra = null;
-                \zval_del_ref($object);
             }
 
             $this->free();
@@ -151,9 +149,9 @@ if (!\class_exists('Resource')) {
         {
             if (!\is_null($this->ze_other_ptr) && \count($this->fd) === 0) {
                 if (\is_typeof($this->ze_other_ptr, 'struct _php_stream*'))
-                    \ze_ffi()->_php_stream_free($this->ze_other_ptr, self::PHP_STREAM_FREE_CLOSE);
+                    \ze_ffi()->_php_stream_free($this->ze_other_ptr, self::PHP_STREAM_FREE_CLOSE | self::PHP_STREAM_FREE_CLOSE_CASTED);
                 else
-                    \FFI::free($this->ze_other_ptr);
+                    \ffi_free_if($this->ze_other_ptr);
 
                 $this->ze_other_ptr = null;
                 $this->ze_other = null;
