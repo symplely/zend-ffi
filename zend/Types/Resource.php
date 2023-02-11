@@ -136,21 +136,34 @@ if (!\class_exists('Resource')) {
         /** @var Resource|PhpStream */
         protected static $instances = null;
 
+        public function __destruct()
+        {
+            if (!\is_null($this->extra)) {
+                $object = $this->extra;
+                $this->extra = null;
+                \zval_del_ref($object);
+            }
+
+            $this->free();
+        }
+
+        public function free(): void
+        {
+            if (!\is_null($this->ze_other_ptr) && \count($this->fd) === 0) {
+                if (\is_typeof($this->ze_other_ptr, 'struct _php_stream*'))
+                    \ze_ffi()->_php_stream_free($this->ze_other_ptr, self::PHP_STREAM_FREE_CLOSE);
+                else
+                    \FFI::free($this->ze_other_ptr);
+
+                $this->ze_other_ptr = null;
+                $this->ze_other = null;
+            }
+        }
+
         /** @return int|CData */
         public function __invoke($isZval = true)
         {
             return $this->ze_other_ptr;
-        }
-
-        public function add(Zval $zval, int $fd): self
-        {
-            $this->index = $fd;
-            if (!isset(static::$instances[$fd])) {
-                $this->zval = $zval;
-                static::$instances[$fd] = $this;
-            }
-
-            return $this;
         }
 
         public function fd(): int
@@ -164,20 +177,24 @@ if (!\class_exists('Resource')) {
                 [$fd, $res] = $this->fd[$handle];
                 unset($this->fd[$fd], $this->fd[$res]);
                 static::$instances[$fd] = static::$instances[$res] = null;
-            } elseif (isset(static::$instances[$handle])) {
-                static::$instances[$handle] = null;
             }
 
             if (\count($this->fd) === 0) {
                 $this->zval = null;
                 $this->index = null;
-                $this->free();
             }
         }
 
         public function get_zval(): ?Zval
         {
             return $this->zval;
+        }
+
+        public function add_object(object $extra): self
+        {
+            $this->extra = $extra;
+
+            return $this;
         }
 
         public function add_pair(Zval $zval, int $fd1, int $resource1, int $fd0 = null, int $resource0 = null)
@@ -232,6 +249,7 @@ if (!\class_exists('Resource')) {
         public static function remove_fd(int $handle): void
         {
             if (static::is_valid($handle)) {
+                /** @var Resource|PhpStream */
                 $object = static::$instances[$handle];
                 $object->clear($handle);
             }
