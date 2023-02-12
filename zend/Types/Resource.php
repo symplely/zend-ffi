@@ -138,11 +138,21 @@ if (!\class_exists('Resource')) {
 
         public function __destruct()
         {
-            if (!\is_null($this->extra)) {
-                $this->extra = null;
+            $this->extra = null;
+            $this->free();
+        }
+
+        public function update(CData $ptr, bool $isOther = false): self
+        {
+            if ($isOther) {
+                \FFI::free($this->ze_other_ptr);
+                $this->ze_other = null;
             }
 
-            $this->free();
+
+            $this->ze_other_ptr = $ptr;
+
+            return $this;
         }
 
         public function free(): void
