@@ -138,7 +138,12 @@ if (!\class_exists('Resource')) {
 
         public function __destruct()
         {
-            $this->extra = null;
+            if (!\is_null($this->extra)) {
+                $object = $this->extra;
+                $this->extra = null;
+                \zval_del_ref($object);
+            }
+
             $this->free();
         }
 
@@ -146,6 +151,7 @@ if (!\class_exists('Resource')) {
         {
             if ($isOther) {
                 \FFI::free($this->ze_other_ptr);
+                $this->ze_other_ptr = null;
                 $this->ze_other = null;
             }
 
@@ -157,7 +163,7 @@ if (!\class_exists('Resource')) {
 
         public function free(): void
         {
-            if (!\is_null($this->ze_other_ptr) && \count($this->fd) === 0) {
+            if (!\is_null($this->ze_other_ptr)) {
                 if (\is_typeof($this->ze_other_ptr, 'struct _php_stream*'))
                     \ze_ffi()->_php_stream_free($this->ze_other_ptr, self::PHP_STREAM_FREE_CLOSE);
                 else
@@ -209,11 +215,15 @@ if (!\class_exists('Resource')) {
         {
             $this->zval = $zval;
             $this->index = $fd1;
-            $this->fd[$fd1] = $this->fd[$resource1] = [$fd1, $resource1];
-            static::$instances[$fd1] = static::$instances[$resource1] = $this;
+            $this->fd[$fd1] = [$fd1, $resource1];
+            $this->fd[$resource1] = [$fd1, $resource1];
+            static::$instances[$fd1] = $this;
+            static::$instances[$resource1] = $this;
             if (!\is_null($fd0) && !\is_null($resource0)) {
-                $this->fd[$fd0] = $this->fd[$resource0] = [$fd0, $resource0];
-                static::$instances[$fd0] = static::$instances[$resource0] = $this;
+                $this->fd[$fd0] = [$fd0, $resource0];
+                $this->fd[$resource0] = [$fd0, $resource0];
+                static::$instances[$fd0] = $this;
+                static::$instances[$resource0] = $this;
             }
 
             return $this;

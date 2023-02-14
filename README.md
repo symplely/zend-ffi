@@ -28,10 +28,7 @@ _To setup a skeleton for FFI integration._
     composer create-project symplely/zend-ffi .
 ```
 
-`FFI` is enabled by default in `php.ini` since `PHP 7.4`, as to `OpCache`, they should not be changed unless already manually disabled.
-Only the `preload` section might need setting up if better performance is desired.
-
-It seems all the `php.ini` setting **files** on Windows does not have them enabled.
+Minimum `php.ini` setting:
 
 ```ini
 extension=ffi
@@ -52,14 +49,12 @@ opcache.enable_cli=1
 ; "preload" - enabled in CLI scripts and preloaded files (default)
 ; "false"   - always disabled
 ; "true"    - always enabled
-ffi.enable="preload"
+ffi.enable="true"
 
 ; List of headers files to preload, wildcard patterns allowed. `ffi.preload` has no effect on Windows.
-ffi.preload=path/to/vendor/symplely/zend-ffi/headers/ze{%php version%}.h
+ffi.preload=path/to/vendor/symplely/zend-ffi/headers/ze{%php version%}_vendor.h
 
-opcache.preload==path/to/.cdef/ffi_preloader.php ; For simple integration with other FFI extensions
-; Or
-opcache.preload==path/to/vendor/symplely/zend-ffi/preload.php ; For standalone usage
+opcache.preload==path/to/vendor/symplely/zend-ffi/preload.php
 ```
 
 For a simple FFI integration process **create/edit**:
