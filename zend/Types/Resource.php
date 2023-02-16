@@ -242,6 +242,7 @@ if (!\class_exists('Resource')) {
          */
         public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $getInt = false)
         {
+            $resource = null;
             if (static::is_valid($handle)) {
                 /** @var Resource|PhpStream */
                 $resource = static::$instances[$handle];
@@ -251,9 +252,11 @@ if (!\class_exists('Resource')) {
                     return $resource->get_pair($handle);
                 elseif ($getInt)
                     return $resource->fd();
+
+                return $resource();
             }
 
-            return $resource();
+            return $resource;
         }
 
         public static function remove_fd(int $handle): void
