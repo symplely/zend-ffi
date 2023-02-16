@@ -107,7 +107,7 @@ if (!\class_exists('PhpStream')) {
                 if (!\is_null($extra))
                     $php_stream->add_object($extra);
 
-                $php_stream->add_pair($zval, $fd, (int)$resource);
+                $php_stream->add_fd_pair($fd, $resource);
             } catch (\Throwable $e) {
                 return \ze_ffi()->_php_stream_free($stream, self::PHP_STREAM_FREE_CLOSE);
             }
@@ -199,7 +199,7 @@ if (!\class_exists('PhpStream')) {
 
             if (\is_cdata($fd)) {
                 $fd = $fd[0];
-                $zval_fd->add_pair($ptr, $fd, $handle);
+                $zval_fd->add_fd_pair($fd, $ptr);
             }
 
             return $fd;
@@ -287,7 +287,7 @@ if (!\class_exists('PhpStream')) {
 
             if (\is_cdata($fd)) {
                 $fd = $fd[0];
-                $zval_fd->add_pair($ptr, $fd, $handle);
+                $zval_fd->add_fd_pair($fd, $ptr);
             } elseif ($fd === -1) {
                 unset($zval_fd);
             }

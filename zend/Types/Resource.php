@@ -130,8 +130,7 @@ if (!\class_exists('Resource')) {
         protected $isZval = false;
         protected $fd = [];
         protected ?int $file = null;
-        protected ?object $extra = null;
-        protected ?Zval $zval = null;
+        protected ?object $gc_object = null;
 
         /** @var Resource|PhpStream */
         protected static $instances = null;
@@ -152,9 +151,9 @@ if (!\class_exists('Resource')) {
 
         public function free(): void
         {
-            if (!\is_null($this->extra)) {
-                $object = $this->extra;
-                $this->extra = null;
+            if (!\is_null($this->gc_object)) {
+                $object = $this->gc_object;
+                $this->gc_object = null;
                 \zval_del_ref($object);
             }
 
@@ -194,32 +193,9 @@ if (!\class_exists('Resource')) {
             }
         }
 
-        public function get_zval(): ?Zval
+        public function add_object(object $store): self
         {
-            return $this->zval;
-        }
-
-        public function add_object(object $extra): self
-        {
-            $this->extra = $extra;
-
-            return $this;
-        }
-
-        public function add_pair(Zval $zval, int $fd1, int $resource1, int $fd0 = null, int $resource0 = null)
-        {
-            $this->zval = $zval;
-            $this->file = $fd1;
-            $this->fd[$fd1] = [$fd1, $resource1];
-            $this->fd[$resource1] = [$fd1, $resource1];
-            static::$instances[$fd1] = $this;
-            static::$instances[$resource1] = $this;
-            if (!\is_null($fd0) && !\is_null($resource0)) {
-                $this->fd[$fd0] = [$fd0, $resource0];
-                $this->fd[$resource0] = [$fd0, $resource0];
-                static::$instances[$fd0] = $this;
-                static::$instances[$resource0] = $this;
-            }
+            $this->gc_object = $store;
 
             return $this;
         }
@@ -233,7 +209,7 @@ if (!\class_exists('Resource')) {
          */
         public function add_fd_pair(int $fd0, $resource0, int $fd1 = null, $resource1 = null): self
         {
-            if (!$resource0 instanceof Zval || !\is_resource($resource0))
+            if (!$resource0 instanceof Zval && !\is_resource($resource0))
                 return \ze_ffi()->zend_error(\E_WARNING, "invalid resource passed");
 
             /** @var resource */
