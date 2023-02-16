@@ -12,9 +12,9 @@ use ZE\ZendResource;
 if (!\class_exists('PhpStream')) {
     final class PhpStream extends Resource
     {
-        public static function init(string $type = null): self
+        public static function init(string $type = 'php_socket_t', bool $create = true): self
         {
-            return new static('struct _php_stream', false);
+            return new static('struct _php_stream', $create);
         }
 
         /**
@@ -102,8 +102,8 @@ if (!\class_exists('PhpStream')) {
             try {
                 $zval = PhpStream::init_stream($stream);
                 $resource = \zval_native($zval);
-                $php_stream = \fd_type();
-                $php_stream->update(\ffi_null(), true);
+                $php_stream = \fd_type('', false);
+                $php_stream->update($stream, true);
                 if (!\is_null($extra))
                     $php_stream->add_object($extra);
 
@@ -142,9 +142,9 @@ if (!\class_exists('PhpStream')) {
             return !\is_cdata($stream) ? null : static::init_value($stream);
         }
 
-        protected static function to_descriptor(Zval $ptr)
+        protected static function to_descriptor(Zval $ptr, string $type = 'php_socket_t')
         {
-            $zval_fd = \fd_type();
+            $zval_fd = \fd_type($type);
             $fd = $zval_fd();
             $stream = \ze_ffi()->cast(
                 'php_stream*',
@@ -177,7 +177,7 @@ if (!\class_exists('PhpStream')) {
          * @param Zval $ptr
          * @return int|uv_file `fd`
          */
-        public static function zval_to_fd(Zval $ptr): int
+        public static function zval_to_fd(Zval $ptr, string $typedef = 'php_socket_t'): int
         {
             $fd = -1;
             $type = $ptr->macro(\ZE::TYPE_P);
@@ -187,7 +187,7 @@ if (!\class_exists('PhpStream')) {
                 if ($zval instanceof Zval)
                     return Resource::get_fd($handle, false, false, true);
 
-                $zval_fd = static::to_descriptor($ptr);
+                $zval_fd = static::to_descriptor($ptr, $typedef);
                 $fd = \is_null($zval_fd) ? -1 : $zval_fd();
             } elseif ($type === \ZE::IS_LONG) {
                 $fd = $ptr->macro(\ZE::LVAL_P);

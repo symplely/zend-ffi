@@ -238,12 +238,14 @@ if (!\function_exists('zval_stack')) {
     /**
      * Returns an _instance_ that's a cross platform representation of a file handle.
      *
-     * @param string $type platform file `typedef` handle.
+     * @param string $type platform _file descriptor_ handle to create, example: `php_socket_t`.
+     * @param bool $create `false` to stop `cdata` creation.
+     * - Use to return an class instance with no `cdata` object.
      * @return Resource
      */
-    function fd_type(string $type = 'uv_file'): Resource
+    function fd_type(string $type = 'uv_file', bool $create = true): Resource
     {
-        return Resource::init($type);
+        return Resource::init($type, $create);
     }
 
     /**
@@ -373,6 +375,7 @@ if (!\function_exists('zval_stack')) {
 
     /**
      * Create `resource` from `int`, _bind_ to an **CData** `object`.
+     * - by way of `php_stream_fopen_from_fd()`
      *
      * @param integer $fd
      * @param object $extra
@@ -381,6 +384,38 @@ if (!\function_exists('zval_stack')) {
     function create_resource_fd(int $fd, object $extra = null)
     {
         return PhpStream::fd_to_zval($fd, 'wb+', false, $extra);
+    }
+
+    /**
+     * Create and register `resource` from **CData** `object`, _bind_ to `int` **fd**.
+     * - by way of `zend_register_resource()`
+     *
+     * @param integer $fd
+     * @param object $cdata
+     * @param callable $rsrc
+     * @return resource
+     */
+    function create_resource_object(int $fd, object $cdata, callable $rsrc = null)
+    {
+        $object_ptr = $cdata();
+        $object_res = \zend_register_resource(
+            $object_ptr,
+            \zend_register_list_destructors_ex((\is_null($rsrc)
+                    ? function (CData $rsrc) {
+                    } : $rsrc),
+                null,
+                'stream',
+                \ZEND_MODULE_API_NO
+            )
+        );
+
+        $object_zval = \zval_resource($object_res);
+        $resource = \zval_native($object_zval);
+        $file = \fd_type('', false);
+        $file->add_object($cdata);
+        $file->add_pair($object_zval, $fd, (int)$resource);
+
+        return $resource;
     }
 
     function zend_reference(&$argument): ZendReference
@@ -450,10 +485,10 @@ if (!\function_exists('zval_stack')) {
      * @param resource $stream
      * @return array<Zval|uv_file|int>
      */
-    function zval_to_fd_pair($stream): array
+    function zval_to_fd_pair($stream, string $typedef = 'php_socket_t'): array
     {
         $zval = \zval_constructor($stream);
-        $fd = PhpStream::zval_to_fd($zval);
+        $fd = PhpStream::zval_to_fd($zval, $typedef);
 
         return [$zval, $fd];
     }
@@ -464,12 +499,12 @@ if (!\function_exists('zval_stack')) {
      * @param resource|int $fd
      * @return int|uv_file `fd`
      */
-    function get_fd_resource($fd): int
+    function get_fd_resource($fd, string $typedef = 'php_socket_t'): int
     {
         if (!\is_resource($fd) && !\is_integer($fd))
             return \ze_ffi()->zend_error(\E_WARNING, "only resource or int types allowed");
 
-        return PhpStream::zval_to_fd(\zval_constructor($fd));
+        return PhpStream::zval_to_fd(\zval_constructor($fd), $typedef);
     }
 
     /**

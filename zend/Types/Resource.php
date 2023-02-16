@@ -147,18 +147,13 @@ if (!\class_exists('Resource')) {
             $this->free();
         }
 
-        public function update(CData $ptr, bool $isOther = false): self
+        protected function __construct(string $typedef, bool $create = true)
         {
-            if ($isOther) {
-                \FFI::free($this->ze_other_ptr);
-                $this->ze_other_ptr = null;
-                $this->ze_other = null;
+            $this->isZval = false;
+            if ($create) {
+                $this->ze_other = \ze_ffi()->new($typedef);
+                $this->ze_other_ptr = \ffi_ptr($this->ze_other);
             }
-
-
-            $this->ze_other_ptr = $ptr;
-
-            return $this;
         }
 
         public function free(): void
@@ -182,7 +177,7 @@ if (!\class_exists('Resource')) {
 
         public function fd(): int
         {
-            return $this->index;
+            return $this->fd[$this->index][0];
         }
 
         public function clear(int $handle): void
@@ -190,10 +185,9 @@ if (!\class_exists('Resource')) {
             if (isset($this->fd[$handle])) {
                 [$fd, $res] = $this->fd[$handle];
                 unset($this->fd[$fd], $this->fd[$res]);
-                static::$instances[$fd] = static::$instances[$res] = null;
-            }
-
-            if (\count($this->fd) === 0) {
+                static::$instances[$fd] = null;
+                $null = static::$instances[$res];
+                static::$instances[$res] = null;
                 $this->zval = null;
                 $this->index = null;
             }
@@ -257,25 +251,23 @@ if (!\class_exists('Resource')) {
                     return $resource->get_pair($handle);
                 elseif ($getInt)
                     return $resource->fd();
-                else
-                    return $resource();
             }
 
-            return null;
+            return $resource();
         }
 
         public static function remove_fd(int $handle): void
         {
-            if (static::is_valid($handle)) {
+            if (isset(static::$instances[$handle])) {
                 /** @var Resource|PhpStream */
                 $object = static::$instances[$handle];
                 $object->clear($handle);
             }
         }
 
-        public static function init(string $type = 'uv_file'): self
+        public static function init(string $type = 'php_socket_t', bool $create = true): self
         {
-            return new static($type, false);
+            return new static($type, $create);
         }
     }
 }
