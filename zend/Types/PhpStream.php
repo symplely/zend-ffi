@@ -89,12 +89,12 @@ if (!\class_exists('PhpStream')) {
          */
         public static function fd_to_zval($fd, $mode = 'wb+', bool $getZval = false, object $extra = null)
         {
-            $stream = Resource::get_fd($fd, true);
-            if ($stream instanceof Zval) {
+            $stream = Resource::get_fd($fd, false, true);
+            if (\is_array($stream)) {
                 if ($getZval)
-                    return $stream;
+                    return \zval_constructor($stream[1]);
 
-                return \zval_native($stream);
+                return $stream[1];
             }
 
             $stream = \ze_ffi()->_php_stream_fopen_from_fd($fd, $mode, null);
@@ -183,9 +183,9 @@ if (!\class_exists('PhpStream')) {
             $type = $ptr->macro(\ZE::TYPE_P);
             if ($type === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
-                $zval = Resource::get_fd($handle, true);
-                if ($zval instanceof Zval)
-                    return Resource::get_fd($handle, false, false, true);
+                $fd = Resource::get_fd($handle);
+                if (!\is_null($fd))
+                    return $fd;
 
                 $zval_fd = static::to_descriptor($ptr, $typedef);
                 $fd = \is_null($zval_fd) ? -1 : $zval_fd();
@@ -237,9 +237,9 @@ if (!\class_exists('PhpStream')) {
             // Validate Checks
             if ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
-                $zval = Resource::get_fd($handle, true);
-                if ($zval instanceof Zval)
-                    return Resource::get_fd($handle, false, false, true);
+                $fd = Resource::get_fd($handle);
+                if (!\is_null($fd))
+                    return $fd;
 
                 $zval_fd = \fd_type($fd_type);
                 $fd = $zval_fd();
