@@ -215,22 +215,35 @@ if (!\class_exists('StandardModule')) {
                     $this->global_rsrc = null;
                 }
 
-                $this->ze_other_ptr = null;
-                $this->ze_other = null;
-                $this->reflection = null;
-                if (!$this->module_destructor_linked)
-                    static::set_module(null);
-
                 \zend_hash_delete($this->module_name);
+                if (!$this->module_destructor_linked)
+                    static::clear_module();
             }
         }
 
-        final protected static function set_module(?\StandardModule $module): void
+        final protected static function set_module(\StandardModule $module): void
         {
             if (\PHP_ZTS)
                 self::$global_module[\ze_ffi()->tsrm_thread_id()] = $module;
             else
                 self::$global_module[static::class] = $module;
+        }
+
+        final public static function clear_module(): void
+        {
+            /** @var static */
+            $module = (\PHP_ZTS)
+                ? self::$global_module[\ze_ffi()->tsrm_thread_id()]
+                : self::$global_module[static::class];
+
+            $module->ze_other_ptr = null;
+            $module->ze_other = null;
+            $module->reflection = null;
+
+            if (\PHP_ZTS)
+                self::$global_module[\ze_ffi()->tsrm_thread_id()] = null;
+            else
+                self::$global_module[static::class] = null;
         }
 
         /**
