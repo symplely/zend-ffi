@@ -251,8 +251,8 @@ if (!\class_exists('StandardModule')) {
             else
                 self::$global_module[static::class] = null;
 
-            \zval_del_ref($module);
             \zend_hash_delete($name);
+            \zval_del_ref($module);
         }
 
         /**
