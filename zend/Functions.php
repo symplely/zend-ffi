@@ -413,7 +413,7 @@ if (!\function_exists('zval_stack')) {
         $resource = \zval_native($object_zval);
         $file = \fd_type('', false);
         $file->add_object($cdata);
-        $file->add_pair($object_zval, $fd, (int)$resource);
+        $file->add_fd_pair($fd, $resource);
 
         return $resource;
     }
