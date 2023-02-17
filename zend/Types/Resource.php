@@ -260,7 +260,7 @@ if (!\class_exists('Resource')) {
         {
             $resource = null;
             if (static::is_valid($handle)) {
-                /** @var Resource|PhpStream */
+                /** @var Resource|PhpStream|CData */
                 $resource = static::$instances[$handle];
                 if ($getSelf)
                     return $resource;
