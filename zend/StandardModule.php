@@ -241,8 +241,7 @@ if (!\class_exists('StandardModule')) {
                 ? self::$global_module[\ze_ffi()->tsrm_thread_id()]
                 : self::$global_module[static::class];
 
-            $name = $module->module_name;
-            \zend_hash_delete($name);
+            \zend_hash_delete($module->module_name);
 
             $module->ze_other_ptr = null;
             $module->ze_other = null;
