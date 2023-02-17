@@ -223,7 +223,7 @@ if (!\class_exists('Resource')) {
             static::$instances[$fd0] = $this;
             static::$instances[(int)$fd] = $this;
             if (!\is_null($fd1) && !\is_null($resource1)) {
-                if (!$resource1 instanceof Zval || !\is_resource($resource1))
+                if (!$resource1 instanceof Zval && !\is_resource($resource1))
                     return \ze_ffi()->zend_error(\E_WARNING, "invalid resource passed");
 
                 /** @var resource */
@@ -232,8 +232,9 @@ if (!\class_exists('Resource')) {
                     : $resource1;
 
                 $this->fd[$fd1] = [$fd1, $resource];
-                $this->fd[(int)$resource] = [$fd0, $resource];
+                $this->fd[(int)$resource] = [$fd1, $resource];
                 static::$instances[$fd1] = $this;
+                static::$instances[(int)$resource] = $this;
             }
 
             return $this;

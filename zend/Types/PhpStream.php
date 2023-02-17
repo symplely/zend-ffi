@@ -89,7 +89,7 @@ if (!\class_exists('PhpStream')) {
          */
         public static function fd_to_zval($fd, $mode = 'wb+', bool $getZval = false, object $extra = null)
         {
-            $stream = Resource::get_fd($fd, false, true);
+            $stream = \resource_get_fd($fd, false, true);
             if (\is_array($stream)) {
                 if ($getZval)
                     return \zval_constructor($stream[1]);
@@ -183,7 +183,7 @@ if (!\class_exists('PhpStream')) {
             $type = $ptr->macro(\ZE::TYPE_P);
             if ($type === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
-                $fd = Resource::get_fd($handle);
+                $fd = \resource_get_fd($handle);
                 if (!\is_null($fd))
                     return $fd;
 
@@ -237,7 +237,7 @@ if (!\class_exists('PhpStream')) {
             // Validate Checks
             if ($ptr->macro(\ZE::TYPE_P) === \ZE::IS_RESOURCE) {
                 $handle = $ptr()->value->res->handle;
-                $fd = Resource::get_fd($handle);
+                $fd = \resource_get_fd($handle);
                 if (!\is_null($fd))
                     return $fd;
 

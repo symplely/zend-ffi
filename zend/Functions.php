@@ -531,6 +531,22 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
+     * Returns any `resource` created with `get_resource_fd()`, `get_fd_resource()`, `get_socket_fd()`,
+     * `create_resource_object()`, `create_resource_fd()` or `zval_to_fd_pair()`.
+     *
+     * @param integer $handle
+     * @param boolean $get_int
+     * @param boolean $get_pair
+     * @param boolean $get_instance
+     *
+     * @return Resource|int|array|CData|null
+     */
+    function resource_get_fd(int $handle, bool $get_int = true, bool $get_pair = false, bool $get_instance = false)
+    {
+        return Resource::get_fd($handle, $get_int, $get_pair, $get_instance);
+    }
+
+    /**
      * Return `resource` from `int` a _file descriptor_, after converting into/from `php_stream` C struct.
      *
      * @param int $fd

@@ -244,6 +244,8 @@ if (!\class_exists('StandardModule')) {
                 self::$global_module[\ze_ffi()->tsrm_thread_id()] = null;
             else
                 self::$global_module[static::class] = null;
+
+            \zval_del_ref($module);
         }
 
         /**
