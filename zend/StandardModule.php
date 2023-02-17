@@ -241,17 +241,18 @@ if (!\class_exists('StandardModule')) {
                 ? self::$global_module[\ze_ffi()->tsrm_thread_id()]
                 : self::$global_module[static::class];
 
+            $name = $module->module_name;
+            \zend_hash_delete($name);
+
             $module->ze_other_ptr = null;
             $module->ze_other = null;
             $module->reflection = null;
-            $name = $module->module_name;
 
             if (\PHP_ZTS)
                 self::$global_module[\ze_ffi()->tsrm_thread_id()] = null;
             else
                 self::$global_module[static::class] = null;
 
-            \zend_hash_delete($name);
             \zval_del_ref($module);
         }
 
