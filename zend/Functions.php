@@ -238,12 +238,14 @@ if (!\function_exists('zval_stack')) {
     /**
      * Returns an _instance_ that's a cross platform representation of a file handle.
      *
-     * @param string $type platform file `typedef` handle.
+     * @param string $type platform _file descriptor_ handle to create, example: `php_socket_t`.
+     * @param bool $create `false` to stop `cdata` creation.
+     * - Use to return an class instance with no `cdata` object.
      * @return Resource
      */
-    function fd_type(string $type = 'uv_file'): Resource
+    function fd_type(string $type = 'uv_file', bool $create = true): Resource
     {
-        return Resource::init($type);
+        return Resource::init($type, $create);
     }
 
     /**
@@ -372,15 +374,50 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
-     * Create `resource` from `int`, _bind_ to an **CData** `object`.
+     * Same as `get_resource_fd()`, but holds reference to an `object`.
+     * - This returns the static held reference in ZE `Resource` class, or creates one.
      *
      * @param integer $fd
-     * @param object $extra
+     * @param object $store
      * @return resource
      */
-    function create_resource_fd(int $fd, object $extra = null)
+    function create_resource_fd(int $fd, object $store = null)
     {
-        return PhpStream::fd_to_zval($fd, 'wb+', false, $extra);
+        return PhpStream::fd_to_zval($fd, 'wb+', false, $store);
+    }
+
+    /**
+     * Create and register `resource` from **CData** `object`, _bind_ to `int` **fd**.
+     * - by way of `zend_register_resource()`.
+     * - This will also create static held reference in ZE `Resource` class.
+     *
+     * @param integer $fd
+     * @param object $cdata PHP `__invoke()` instance that returns `CData`
+     * @param string $type resource string type
+     * @param callable $rsrc
+     * @return resource
+     */
+    function create_resource_object(int $fd, object $cdata, string $type = 'stream', callable $rsrc = null)
+    {
+        $object_ptr = $cdata();
+        $object_res = \zend_register_resource(
+            $object_ptr,
+            \zend_register_list_destructors_ex((\is_null($rsrc)
+                    ? function (CData $rsrc) {
+                    } : $rsrc),
+                null,
+                $type,
+                \ZEND_MODULE_API_NO
+            )
+        );
+
+        $object_zval = \zval_resource($object_res);
+        $resource = \zval_native($object_zval);
+        $file = \fd_type('', false);
+        $file->add_object($cdata);
+        $file->add_fd_pair($fd, $resource);
+
+        return $resource;
     }
 
     function zend_reference(&$argument): ZendReference
@@ -447,34 +484,37 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
+     * - This returns the static held reference in ZE `Resource` class, or creates one.
      * @param resource $stream
      * @return array<Zval|uv_file|int>
      */
-    function zval_to_fd_pair($stream): array
+    function zval_to_fd_pair($stream, string $typedef = 'php_socket_t'): array
     {
         $zval = \zval_constructor($stream);
-        $fd = PhpStream::zval_to_fd($zval);
+        $fd = PhpStream::zval_to_fd($zval, $typedef);
 
         return [$zval, $fd];
     }
 
     /**
      * Return `int` of _file descriptor_ from a **resource**, after converting into/from `php_stream` C struct.
+     * - This returns the static held reference in ZE `Resource` class, or creates one.
      *
      * @param resource|int $fd
      * @return int|uv_file `fd`
      */
-    function get_fd_resource($fd): int
+    function get_fd_resource($fd, string $typedef = 'php_socket_t'): int
     {
         if (!\is_resource($fd) && !\is_integer($fd))
             return \ze_ffi()->zend_error(\E_WARNING, "only resource or int types allowed");
 
-        return PhpStream::zval_to_fd(\zval_constructor($fd));
+        return PhpStream::zval_to_fd(\zval_constructor($fd), $typedef);
     }
 
     /**
      * Remove/free any `resource` created with `get_resource_fd()`, `get_fd_resource()`,
      * `get_socket_fd()`, or `zval_to_fd_pair()`.
+     * - This removes the static held reference from ZE `Resource` class.
      *
      * @param resource|int|Zval $fd_Int_Zval
      * @return void
@@ -496,7 +536,25 @@ if (!\function_exists('zval_stack')) {
     }
 
     /**
+     * Returns any `resource` created with `get_resource_fd()`, `get_fd_resource()`, `get_socket_fd()`,
+     * `create_resource_object()`, `create_resource_fd()` or `zval_to_fd_pair()`.
+     * - This returns the static held reference in ZE `Resource` class.
+     *
+     * @param integer $handle
+     * @param boolean $get_int
+     * @param boolean $get_pair
+     * @param boolean $get_instance
+     *
+     * @return Resource|int|array|CData|null
+     */
+    function resource_get_fd(int $handle, bool $get_int = true, bool $get_pair = false, bool $get_instance = false)
+    {
+        return Resource::get_fd($handle, $get_int, $get_pair, $get_instance);
+    }
+
+    /**
      * Return `resource` from `int` a _file descriptor_, after converting into/from `php_stream` C struct.
+     * - This returns the static held reference in ZE `Resource` class, or creates one.
      *
      * @param int $fd
      * @param string $mode
@@ -510,6 +568,7 @@ if (!\function_exists('zval_stack')) {
 
     /**
      * Return `int` of _file descriptor_ from a **socket**, after converting into/from `php_socket` C struct.
+     * - This returns the static held reference in ZE `Resource` class, or creates one.
      *
      * @param resource|int|\Socket $fd
      * @return php_socket_t|int

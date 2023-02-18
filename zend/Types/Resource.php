@@ -129,36 +129,24 @@ if (!\class_exists('Resource')) {
 
         protected $isZval = false;
         protected $fd = [];
-        protected ?int $index = null;
-        protected ?object $extra = null;
-        protected ?Zval $zval = null;
+        protected ?int $file = null;
+        protected ?object $gc_object = null;
 
         /** @var Resource|PhpStream */
         protected static $instances = null;
 
         public function __destruct()
         {
-            if (!\is_null($this->extra)) {
-                $object = $this->extra;
-                $this->extra = null;
-                \zval_del_ref($object);
-            }
-
             $this->free();
         }
 
-        public function update(CData $ptr, bool $isOther = false): self
+        protected function __construct(string $typedef, bool $create = true)
         {
-            if ($isOther) {
-                \FFI::free($this->ze_other_ptr);
-                $this->ze_other_ptr = null;
-                $this->ze_other = null;
+            $this->isZval = false;
+            if ($create) {
+                $this->ze_other = \ze_ffi()->new($typedef);
+                $this->ze_other_ptr = \ffi_ptr($this->ze_other);
             }
-
-
-            $this->ze_other_ptr = $ptr;
-
-            return $this;
         }
 
         public function free(): void
@@ -182,56 +170,80 @@ if (!\class_exists('Resource')) {
 
         public function fd(): int
         {
-            return $this->index;
+            return $this->fd[$this->file][0];
         }
 
         public function clear(int $handle): void
         {
             if (!\is_null($this->fd) && isset($this->fd[$handle])) {
                 [$fd, $res] = $this->fd[$handle];
-                unset($this->fd[$fd], $this->fd[$res]);
-                static::$instances[$fd] = static::$instances[$res] = null;
-            }
+                unset($this->fd[$fd], $this->fd[(int)$res]);
 
-            if (\count($this->fd) === 0) {
-                $this->zval = null;
-                $this->index = null;
+                static::$instances[$fd] = null;
+                $resource = static::$instances[(int)$res];
+                static::$instances[(int)$res] = null;
+
+                if (\count($this->fd) === 0) {
+                    \zval_del_ref($resource);
+                    if (!\is_null($this->gc_object)) {
+                        $object = $this->gc_object;
+                        $this->gc_object = null;
+                        \zval_del_ref($object);
+                    }
+                }
             }
         }
 
-        public function get_zval(): ?Zval
+        public function add_object(object $store): self
         {
-            return $this->zval;
-        }
-
-        public function add_object(object $extra): self
-        {
-            $this->extra = $extra;
+            $this->gc_object = $store;
 
             return $this;
         }
 
-        public function add_pair(Zval $zval, int $fd1, int $resource1, int $fd0 = null, int $resource0 = null)
+        /**
+         * @param integer $fd0
+         * @param resource|Zval $resource0
+         * @param integer|null $fd1
+         * @param resource|Zval $resource1
+         * @return self
+         */
+        public function add_fd_pair(int $fd0, $resource0, int $fd1 = null, $resource1 = null): self
         {
-            $this->zval = $zval;
-            $this->index = $fd1;
-            $this->fd[$fd1] = [$fd1, $resource1];
-            $this->fd[$resource1] = [$fd1, $resource1];
-            static::$instances[$fd1] = $this;
-            static::$instances[$resource1] = $this;
-            if (!\is_null($fd0) && !\is_null($resource0)) {
-                $this->fd[$fd0] = [$fd0, $resource0];
-                $this->fd[$resource0] = [$fd0, $resource0];
-                static::$instances[$fd0] = $this;
-                static::$instances[$resource0] = $this;
+            if (!$resource0 instanceof Zval && !\is_resource($resource0))
+                return \ze_ffi()->zend_error(\E_WARNING, "invalid resource passed");
+
+            /** @var resource */
+            $fd = $resource0 instanceof Zval
+                ? \zval_native($resource0)
+                : $resource0;
+
+            $this->file = $fd0;
+            $this->fd[$fd0] = [$fd0, $fd];
+            $this->fd[(int)$fd] = [$fd0, $fd];
+            static::$instances[$fd0] = $this;
+            static::$instances[(int)$fd] = $this;
+            if (!\is_null($fd1) && !\is_null($resource1)) {
+                if (!$resource1 instanceof Zval && !\is_resource($resource1))
+                    return \ze_ffi()->zend_error(\E_WARNING, "invalid resource passed");
+
+                /** @var resource */
+                $resource = $resource1 instanceof Zval
+                    ? \zval_native($resource1)
+                    : $resource1;
+
+                $this->fd[$fd1] = [$fd1, $resource];
+                $this->fd[(int)$resource] = [$fd1, $resource];
+                static::$instances[$fd1] = $this;
+                static::$instances[(int)$resource] = $this;
             }
 
             return $this;
         }
 
-        public function get_pair(int $fd): ?int
+        public function get_pair(int $fd): ?array
         {
-            return $this->fd[$fd][0] ?? null;
+            return $this->fd[$fd] ?? null;
         }
 
         public static function is_valid(int $fd): bool
@@ -241,41 +253,42 @@ if (!\class_exists('Resource')) {
 
         /**
          * @param integer $handle
-         * @param boolean $getZval
+         * @param boolean $get_Int file descriptor
+         * @param boolean $getSelf
          * @param boolean $getPair
-         * @param boolean $getInt file descriptor
-         * @return Zval|int|CData|null
+         * @return self|int|array|CData|null
          */
-        public static function get_fd(int $handle, bool $getZval = false, bool $getPair = false, bool $getInt = false)
+        public static function get_fd(int $handle, bool $get_Int = true, bool $getPair = false, bool $getSelf = false)
         {
+            $resource = null;
             if (static::is_valid($handle)) {
-                /** @var Resource|PhpStream */
+                /** @var Resource|PhpStream|CData */
                 $resource = static::$instances[$handle];
-                if ($getZval)
-                    return $resource->get_zval();
+                if ($getSelf)
+                    return $resource;
                 elseif ($getPair)
                     return $resource->get_pair($handle);
-                elseif ($getInt)
+                elseif ($get_Int)
                     return $resource->fd();
-                else
-                    return $resource();
+
+                return $resource();
             }
 
-            return null;
+            return $resource;
         }
 
         public static function remove_fd(int $handle): void
         {
-            if (static::is_valid($handle)) {
+            if (isset(static::$instances[$handle])) {
                 /** @var Resource|PhpStream */
                 $object = static::$instances[$handle];
                 $object->clear($handle);
             }
         }
 
-        public static function init(string $type = 'uv_file'): self
+        public static function init(string $type = 'php_socket_t', bool $create = true): self
         {
-            return new static($type, false);
+            return new static($type, $create);
         }
     }
 }
