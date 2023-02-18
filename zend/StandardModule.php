@@ -218,13 +218,14 @@ if (!\class_exists('StandardModule')) {
                 $this->ze_other_ptr = null;
                 $this->ze_other = null;
                 $this->reflection = null;
+                $module_name = $this->module_name;
                 if (!$this->module_destructor_linked)
                     static::clear_module();
 
                 /**
                  * Will cause `PHP_MSHUTDOWN_FUNCTION()` and `PHP_GSHUTDOWN_FUNCTION()` to execute.
                  */
-                \zend_hash_delete($this->module_name);
+                \zend_hash_delete($module_name);
             }
         }
 
