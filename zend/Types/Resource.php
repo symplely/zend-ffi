@@ -151,12 +151,6 @@ if (!\class_exists('Resource')) {
 
         public function free(): void
         {
-            if (!\is_null($this->gc_object)) {
-                $object = $this->gc_object;
-                $this->gc_object = null;
-                \zval_del_ref($object);
-            }
-
             if (!\is_null($this->ze_other_ptr)) {
                 if (\is_typeof($this->ze_other_ptr, 'struct _php_stream*'))
                     \ze_ffi()->_php_stream_free($this->ze_other_ptr, self::PHP_STREAM_FREE_CLOSE);
@@ -184,12 +178,19 @@ if (!\class_exists('Resource')) {
             if (isset($this->fd[$handle])) {
                 [$fd, $res] = $this->fd[$handle];
                 unset($this->fd[$fd], $this->fd[(int)$res]);
+
                 static::$instances[$fd] = null;
                 $resource = static::$instances[(int)$res];
                 static::$instances[(int)$res] = null;
 
-                if (\count($this->fd) === 0)
+                if (\count($this->fd) === 0) {
                     \zval_del_ref($resource);
+                    if (!\is_null($this->gc_object)) {
+                        $object = $this->gc_object;
+                        $this->gc_object = null;
+                        \zval_del_ref($object);
+                    }
+                }
             }
         }
 

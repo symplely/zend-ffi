@@ -87,7 +87,7 @@ if (!\class_exists('PhpStream')) {
          * @param bool $getZval
          * @return resource|Zval|null
          */
-        public static function fd_to_zval($fd, $mode = 'wb+', bool $getZval = false, object $extra = null)
+        public static function fd_to_zval($fd, $mode = 'wb+', bool $getZval = false, object $store = null)
         {
             $stream = \resource_get_fd($fd, false, true);
             if (\is_array($stream)) {
@@ -104,8 +104,8 @@ if (!\class_exists('PhpStream')) {
                 $resource = \zval_native($zval);
                 $php_stream = \fd_type('', false);
                 $php_stream->update($stream, true);
-                if (!\is_null($extra))
-                    $php_stream->add_object($extra);
+                if (!\is_null($store))
+                    $php_stream->add_object($store);
 
                 $php_stream->add_fd_pair($fd, $resource);
             } catch (\Throwable $e) {

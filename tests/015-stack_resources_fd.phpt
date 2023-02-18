@@ -10,7 +10,7 @@ $fd = fopen(__FILE__, 'r');
 var_dump($fd);
 $int_fd = \get_fd_resource($fd);
 var_dump($int_fd);
-var_dump(create_resource_fd($int_fd));
+var_dump(create_resource_fd($int_fd, new \stdClass));
 [$zval, $fd1] = \zval_to_fd_pair($fd);
 var_dump($zval, $fd1);
 var_dump(\get_resource_fd($fd1));
