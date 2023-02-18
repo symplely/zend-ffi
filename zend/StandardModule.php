@@ -215,16 +215,8 @@ if (!\class_exists('StandardModule')) {
                     $this->global_rsrc = null;
                 }
 
-                $this->ze_other_ptr = null;
-                $this->ze_other = null;
-                $this->reflection = null;
                 if (!$this->module_destructor_linked)
                     static::clear_module();
-
-                /**
-                 * Will cause `PHP_MSHUTDOWN_FUNCTION()` and `PHP_GSHUTDOWN_FUNCTION()` to execute.
-                 */
-                \zend_hash_delete($this->module_name);
             }
         }
 
@@ -236,12 +228,31 @@ if (!\class_exists('StandardModule')) {
                 self::$global_module[static::class] = $module;
         }
 
+        /**
+         * Force clear and shutdown module.
+         * - Will cause `PHP_MSHUTDOWN_FUNCTION()` and `PHP_GSHUTDOWN_FUNCTION()` to execute.
+         *
+         * @return void
+         */
         final public static function clear_module(): void
         {
-            if (\PHP_ZTS)
-                self::$global_module[\ze_ffi()->tsrm_thread_id()] = null;
-            else
-                self::$global_module[static::class] = null;
+            /** @var static */
+            $module = (\PHP_ZTS)
+                ? self::$global_module[\ze_ffi()->tsrm_thread_id()]
+                : self::$global_module[static::class];
+
+            if (!\is_null($module)) {
+                if (\PHP_ZTS)
+                    self::$global_module[\ze_ffi()->tsrm_thread_id()] = null;
+                else
+                    self::$global_module[static::class] = null;
+
+                \zend_hash_delete($module->module_name);
+                $module->ze_other_ptr = null;
+                $module->ze_other = null;
+                $module->reflection = null;
+                \zval_del_ref($module);
+            }
         }
 
         /**
