@@ -345,7 +345,7 @@ if (!\function_exists('zval_stack')) {
         return \ze_ffi()->cast($type_cast, $void);
     }
 
-    function zend_register_list_destructors_ex(callable $ld, ?callable $pld, string $type_name, int $module_number)
+    function zend_register_list_destructors_ex(?callable $ld, ?callable $pld, string $type_name, int $module_number)
     {
         return \ze_ffi()->zend_register_list_destructors_ex($ld, $pld, $type_name, $module_number);
     }
@@ -359,13 +359,7 @@ if (!\function_exists('zval_stack')) {
     {
         $fd_res = \zend_register_resource(
             $fd_ptr,
-            \zend_register_list_destructors_ex((\is_null($rsrc)
-                    ? function (CData $rsrc) {
-                    } : $rsrc),
-                null,
-                $type,
-                $module
-            )
+            \zend_register_list_destructors_ex($rsrc, null, $type, $module)
         );
 
         $fd_zval = \zval_resource($fd_res);
@@ -402,9 +396,8 @@ if (!\function_exists('zval_stack')) {
         $object_ptr = $cdata();
         $object_res = \zend_register_resource(
             $object_ptr,
-            \zend_register_list_destructors_ex((\is_null($rsrc)
-                    ? function (CData $rsrc) {
-                    } : $rsrc),
+            \zend_register_list_destructors_ex(
+                $rsrc,
                 null,
                 $type,
                 \ZEND_MODULE_API_NO
