@@ -24,6 +24,7 @@ $cs = c_struct_type('_php_socket', 'ze', [
     'zstream' => zval_constructor($ci)()[0],
     'std' => ZendObject::init($ci)()[0]
 ]);
+var_dump(is_cdata_valid($cs, 'blocking'));
 var_dump($cs->sizeof());
 var_dump($cs->alignof());
 var_dump($cs->char());
@@ -55,6 +56,7 @@ object(CStruct)#%d (2) {
   ["value"]=>
   int(1477705728)
 }
+bool(true)
 int(88)
 int(8)
 object(FFI\CData:char*)#%d (1) {

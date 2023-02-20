@@ -357,6 +357,23 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
+   * Checks whether the given object is `FFI\CData`, and has the given `field`.
+   *
+   * @param object $ptr
+   * @param string $field
+   * @return boolean
+   */
+  function is_cdata_valid(object $ptr, string $field)
+  {
+    try {
+      $isValid = \ffi_object($ptr)->{$field};
+      return \is_null($isValid) || !\is_null($isValid);
+    } catch (\Throwable $e) {
+      return false;
+    }
+  }
+
+  /**
    * Checks whether the `FFI\CData` is a null pointer.
    *
    * @param object $ptr
