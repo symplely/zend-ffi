@@ -25,6 +25,9 @@ $cs = c_struct_type('_php_socket', 'ze', [
     'std' => ZendObject::init($ci)()[0]
 ]);
 var_dump(is_cdata_valid($cs, 'blocking'));
+var_dump(is_cdata_valid($cs, 'block'));
+var_dump(is_cdata_valid($cs, 'zstream->value'));
+var_dump(is_cdata_valid($cs, 'zstream->value->lval'));
 var_dump($cs->sizeof());
 var_dump($cs->alignof());
 var_dump($cs->char());
@@ -56,6 +59,9 @@ object(CStruct)#%d (2) {
   ["value"]=>
   int(1477705728)
 }
+bool(true)
+bool(false)
+bool(true)
 bool(true)
 int(88)
 int(8)

@@ -357,17 +357,26 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * Checks whether the given object is `FFI\CData`, and has the given `field`.
+   * Checks whether the given _c struct_ object is `FFI\CData`, and has the given member `field`.
    *
    * @param object $ptr
-   * @param string $field
+   * @param string $field member depth, up three levels *c_field0->c_field1->c_field2*
    * @return boolean
    */
-  function is_cdata_valid(object $ptr, string $field)
+  function is_cdata_valid(object $ptr, string $field): bool
   {
     try {
-      $isValid = \ffi_object($ptr)->{$field};
-      return \is_null($isValid) || !\is_null($isValid);
+      if (\strpos($field, '->') !== false) {
+        $fields = \explode('->', $field);
+        if (\count($fields) == 3)
+          \ffi_object($ptr)->{$fields[0]}->{$fields[1]}->{$fields[2]};
+        elseif (\count($fields) == 2)
+          \ffi_object($ptr)->{$fields[0]}->{$fields[1]};
+      } else {
+        \ffi_object($ptr)->{$field};
+      }
+
+      return true;
     } catch (\Throwable $e) {
       return false;
     }
@@ -639,7 +648,7 @@ if (!\function_exists('setup_ffi_loader')) {
     if (\IS_WINDOWS) {
       $mmap_header = __DIR__ . '\\headers\\windows_mman.h';
       if (\file_exists('vendor\\symplely\\zend-ffi')) {
-        $vendor_code = \str_replace('.h', '_vendor.h', $mmap_header);
+        $vendor_code = \str_replace('.h', '_generated.h', $mmap_header);
         if (!\file_exists($vendor_code)) {
           $file = \str_replace(
             'FFI_LIB ".',
