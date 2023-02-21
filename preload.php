@@ -639,7 +639,7 @@ if (!\function_exists('setup_ffi_loader')) {
     if (\IS_WINDOWS) {
       $mmap_header = __DIR__ . '\\headers\\windows_mman.h';
       if (\file_exists('vendor\\symplely\\zend-ffi')) {
-        $vendor_code = \str_replace('.h', '_vendor.h', $mmap_header);
+        $vendor_code = \str_replace('.h', '_generated.h', $mmap_header);
         if (!\file_exists($vendor_code)) {
           $file = \str_replace(
             'FFI_LIB ".',
