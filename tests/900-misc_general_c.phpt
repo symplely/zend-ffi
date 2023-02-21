@@ -26,8 +26,8 @@ $cs = c_struct_type('_php_socket', 'ze', [
 ]);
 var_dump(is_cdata_valid($cs, 'blocking'));
 var_dump(is_cdata_valid($cs, 'block'));
-var_dump(is_cdata_valid($cs, 'zstream->zend_value'));
-var_dump(is_cdata_valid($cs, 'zstream->zend_value->zend_long'));
+var_dump(is_cdata_valid($cs, 'zstream->value'));
+var_dump(is_cdata_valid($cs, 'zstream->value->lval'));
 var_dump($cs->sizeof());
 var_dump($cs->alignof());
 var_dump($cs->char());
