@@ -52,7 +52,8 @@ opcache.enable_cli=1
 ffi.enable="true"
 
 ; List of headers files to preload, wildcard patterns allowed. `ffi.preload` has no effect on Windows.
-;ffi.preload=path/to/vendor/symplely/zend-ffi/headers/ze(your-php-version)_vendor.h
+; see headers directory `your-php-version`
+;ffi.preload=path/to/vendor/symplely/zend-ffi/headers/ze(your-php-version)_generated.h
 
 ;opcache.preload==path/to/vendor/symplely/zend-ffi/preload.php
 ```

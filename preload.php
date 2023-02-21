@@ -743,7 +743,7 @@ if (!\function_exists('setup_ffi_loader')) {
           }
 
           if (\file_exists('vendor\\symplely\\zend-ffi') && \IS_WINDOWS) {
-            $vendor_code = \str_replace('.h', '_vendor.h', $header);
+            $vendor_code = \str_replace('.h', '_generated.h', $header);
             if (!\file_exists($vendor_code)) {
               $file = \str_replace(
                 'FFI_LIB ".',
