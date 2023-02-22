@@ -211,6 +211,9 @@ The option `-I  <directory>` might be needed to search/find additional include s
 * [PHP FFI and what it can do for you](https://phpconference.com/blog/php-ffi-and-what-it-can-do-for-you/)
 * [Getting Started with PHP-FFI](https://www.youtube.com/watch?v=7pfjvRupoqg) **Youtube**
 
+* [Low-Level Programming](https://startupnextdoor.com/low-level-programming/)
+* [Low-Level Programming: C, Assembly, and Program Execution](https://www.amazon.com/Low-Level-Programming-Assembly-Execution-Architecture/dp/1484224027)
+
 * [Zend API - Hacking the Core of PHP](https://www.cs.helsinki.fi/u/laine/php/zend.html)
 * [PHP at the Core A Hacker's Guide - Manual](http://php.adamharvey.name/manual/en/internals2.php)
 * [PHP Internals Book](https://www.phpinternalsbook.com/index.html)
