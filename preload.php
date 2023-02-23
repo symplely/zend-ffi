@@ -314,7 +314,7 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function ffi_str_typeof(CData $ptr): string
   {
-    return \trim(\str_replace(['FFI\CType:', ' Object'], '', \print_r(\FFI::typeof($ptr), true)));
+    return \trim(\str_replace(['FFI\CType:', ' Object', "\n", '(', ')'], '', \print_r(\FFI::typeof($ptr), true)));
   }
 
   /**
