@@ -200,7 +200,8 @@ if (!\class_exists('ZendCompiler')) {
                 $file = ((float) \phpversion()) >= 8.1
                     ? \zend_strings($fileName)->addr() : $fileName;
 
-                $arena = \FFI::addr(\ze_ffi()->new("zend_arena*"));
+                $arena_ptr = \ze_ffi()->new("zend_arena*");
+                $arena = \FFI::addr($arena_ptr);
                 $ast = \ze_ffi()->zend_compile_string_to_ast(
                     $sourceValue->addr(),
                     $arena,
