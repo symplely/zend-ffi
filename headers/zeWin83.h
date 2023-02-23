@@ -34,7 +34,6 @@ typedef struct
 
 typedef ZEND_RESULT_CODE zend_result;
 typedef intptr_t zend_intptr_t;
-typedef uintptr_t zend_uintptr_t;
 typedef unsigned char zend_uchar;
 typedef int64_t zend_long;
 typedef uint64_t zend_ulong;
@@ -417,7 +416,7 @@ typedef struct _zend_internal_function
 
 typedef struct _zend_internal_function_info
 {
-	zend_uintptr_t required_num_args;
+	uintptr_t required_num_args;
 	zend_type type;
 	const char *default_value;
 } zend_internal_function_info;
