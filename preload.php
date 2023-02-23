@@ -82,8 +82,11 @@ if (!\defined('SYS_PIPE')) {
   \define('SYS_PIPE', \IS_WINDOWS ? '\\\\.\\pipe\\' : \getcwd() . '/');
 }
 
+if (!\defined('IS_PHP83'))
+  \define('IS_PHP83', ((float) \phpversion() >= 8.3));
+
 if (!\defined('IS_PHP82'))
-  \define('IS_PHP82', ((float) \phpversion() >= 8.2));
+  \define('IS_PHP82', ((float) \phpversion() >= 8.2) && !\IS_PHP83);
 
 if (!\defined('IS_PHP81'))
   \define('IS_PHP81', ((float) \phpversion() >= 8.1) && !\IS_PHP82);
@@ -103,7 +106,9 @@ if (!\defined('ZEND_MODULE_API_NO'))
     \IS_PHP80 ? 20200930
       : (\IS_PHP81 ? 20210902
         : (\IS_PHP82 ? 20220829
-          : 20190902
+          : (\IS_PHP83 ? 20220830
+            : 20190902
+          )
         )
       )
   );
@@ -640,7 +645,11 @@ if (!\function_exists('setup_ffi_loader')) {
 
   function zend_preloader(): void
   {
-    $minor = \IS_PHP81 ? '1' : (\IS_PHP82 ? '2' : '');
+    $minor = \IS_PHP81 ? '1'
+      : (\IS_PHP82 ? '2'
+        : (\IS_PHP83 ? '3'
+          : '')
+      );
     $os = __DIR__ . \DS . (\PHP_OS_FAMILY === 'Windows' ? 'headers\zeWin' : 'headers/ze');
     $php = $os . \PHP_MAJOR_VERSION . $minor . (\PHP_ZTS ? 'ts' : '') . '.h';
     \setup_ffi_loader('ze', $php);
