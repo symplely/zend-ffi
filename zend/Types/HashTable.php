@@ -14,10 +14,10 @@ if (!\class_exists('HashTable')) {
      *     zend_refcounted_h gc;
      *     union {
      *         struct {
-     *             zend_uchar    flags;
-     *             zend_uchar    _unused;
-     *             zend_uchar    nIteratorsCount;
-     *             zend_uchar    _unused2;
+     *             zend_uchar    flags;     // uint8_t - PHP 8.3
+     *             zend_uchar    _unused;   // uint8_t - PHP 8.3
+     *             zend_uchar    nIteratorsCount;   // uint8_t - PHP 8.3
+     *             zend_uchar    _unused2;  // uint8_t - PHP 8.3
      *         } v;
      *         uint32_t flags;
      *     } u;

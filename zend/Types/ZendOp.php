@@ -19,10 +19,10 @@ if (!\class_exists('ZendOp')) {
      *   znode_op result;
      *   uint32_t extended_value;
      *   uint32_t lineno;
-     *   zend_uchar opcode;
-     *   zend_uchar op1_type;
-     *   zend_uchar op2_type;
-     *   zend_uchar result_type;
+     *   zend_uchar opcode;         // uint8_t - PHP 8.3
+     *   zend_uchar op1_type;       // uint8_t - PHP 8.3
+     *   zend_uchar op2_type;       // uint8_t - PHP 8.3
+     *   zend_uchar result_type;    // uint8_t - PHP 8.3
      * };
      *```
      */
