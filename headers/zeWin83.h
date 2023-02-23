@@ -24,7 +24,7 @@ typedef enum
 	FAILURE = -1,
 } ZEND_RESULT_CODE;
 
-typedef unsigned long uintptr_t;
+typedef unsigned long long uintptr_t;
 typedef struct
 {
 	void *ptr;
