@@ -1322,72 +1322,115 @@ struct _zend_fiber
 	zval result;
 };
 
+typedef struct zend_atomic_bool_s
+{
+	volatile bool value;
+} zend_atomic_bool;
+
 struct _zend_executor_globals
 {
 	zval uninitialized_zval;
 	zval error_zval;
+
+	/* symbol table cache */
 	zend_array *symtable_cache[32];
+	/* Pointer to one past the end of the symtable_cache */
 	zend_array **symtable_cache_limit;
+	/* Pointer to first unused symtable_cache slot */
 	zend_array **symtable_cache_ptr;
-	zend_array symbol_table;
-	HashTable included_files;
+
+	zend_array symbol_table; /* main symbol table */
+
+	HashTable included_files; /* files already included */
+
 	jmp_buf *bailout;
+
 	int error_reporting;
 	int exit_status;
-	HashTable *function_table;
-	HashTable *class_table;
-	HashTable *zend_constants;
+
+	HashTable *function_table; /* function symbol table */
+	HashTable *class_table;	   /* class table */
+	HashTable *zend_constants; /* constants table */
+
 	zval *vm_stack_top;
 	zval *vm_stack_end;
 	zend_vm_stack vm_stack;
 	size_t vm_stack_page_size;
+
 	struct _zend_execute_data *current_execute_data;
-	zend_class_entry *fake_scope;
-	uint32_t jit_trace_num;
+	zend_class_entry *fake_scope; /* used to avoid checks accessing properties */
+
+	uint32_t jit_trace_num; /* Used by tracing JIT to reference the currently running trace */
+
 	zend_long precision;
+
 	int ticks_count;
+
 	uint32_t persistent_constants_count;
 	uint32_t persistent_functions_count;
 	uint32_t persistent_classes_count;
+
 	HashTable *in_autoload;
 	bool full_tables_cleanup;
+
+	/* for extended information support */
 	bool no_extensions;
-	bool vm_interrupt;
-	bool timed_out;
+
+	zend_atomic_bool vm_interrupt;
+	zend_atomic_bool timed_out;
 	zend_long hard_timeout;
+	void *stack_base;
+	void *stack_limit;
+
 	HashTable regular_list;
 	HashTable persistent_list;
+
 	int user_error_handler_error_reporting;
 	zval user_error_handler;
 	zval user_exception_handler;
 	zend_stack user_error_handlers_error_reporting;
 	zend_stack user_error_handlers;
 	zend_stack user_exception_handlers;
+
 	zend_error_handling_t error_handling;
 	zend_class_entry *exception_class;
+
+	/* timeout support */
 	zend_long timeout_seconds;
+
 	int capture_warnings_during_sccp;
+
 	HashTable *ini_directives;
 	HashTable *modified_ini_directives;
 	zend_ini_entry *error_reporting_ini_entry;
+
 	zend_objects_store objects_store;
 	zend_object *exception, *prev_exception;
 	const zend_op *opline_before_exception;
 	zend_op exception_op[3];
+
 	struct _zend_module_entry *current_module;
+
 	bool active;
 	zend_uchar flags;
+
 	zend_long assertions;
-	uint32_t ht_iterators_count;
-	uint32_t ht_iterators_used;
+
+	uint32_t ht_iterators_count; /* number of allocated slots */
+	uint32_t ht_iterators_used;	 /* number of used slots */
 	HashTableIterator *ht_iterators;
 	HashTableIterator ht_iterators_slots[16];
+
 	void *saved_fpu_cw_ptr;
+
 	zend_function trampoline;
 	zend_op call_trampoline_op;
+
 	HashTable weakrefs;
+
 	bool exception_ignore_args;
 	zend_long exception_string_param_max_len;
+
 	zend_get_gc_buffer get_gc_buffer;
 
 	zend_fiber_context *main_fiber_context;
@@ -1397,13 +1440,17 @@ struct _zend_executor_globals
 	zend_fiber *active_fiber;
 
 	/* Default fiber C stack size. */
-	zend_long fiber_stack_size;
+	size_t fiber_stack_size;
 
 	/* If record_errors is enabled, all emitted diagnostics will be recorded,
 	 * in addition to being processed as usual. */
 	bool record_errors;
 	uint32_t num_errors;
 	zend_error_info **errors;
+
+	/* Override filename or line number of thrown errors and exceptions */
+	zend_string *filename_override;
+	zend_long lineno_override;
 
 	void *reserved[6];
 };

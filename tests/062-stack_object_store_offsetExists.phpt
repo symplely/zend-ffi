@@ -21,6 +21,12 @@ class Entry
     public function getOffsetExists(): void
     {
         $id = spl_object_id($this);
+        if (\IS_PHP83) {
+            var_dump($id);
+            var_dump($this->objectStore);
+            var_dump($this->objectStore->offsetExists($id));
+        }
+
         var_dump($this->objectStore->offsetExists($id) === true);
         var_dump(isset($this->objectStore[$id]) === true);
     }
