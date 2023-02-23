@@ -1341,7 +1341,7 @@ struct _zend_executor_globals
 
 	HashTable included_files; /* files already included */
 
-	JMP_BUF *bailout;
+	jmp_buf *bailout;
 
 	int error_reporting;
 	int exit_status;
