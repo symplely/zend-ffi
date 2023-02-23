@@ -40,11 +40,6 @@ function get_stack_resource($file, $extra = null): void
 
     preg_match('/resource\(\d+\) of type \(([^)]+)\)/', $value, $matches);
     var_dump('persistent stream' === $matches[1]);
-    if (\IS_PHP83) {
-        var_dump(ffi_str_typeof($zval()));
-        var_dump(print_r(\FFI::typeof($zval()), true));
-    }
-
     var_dump(is_typeof(ffi_object($zval), 'struct _zval_struct*'));
 }
 
