@@ -5,8 +5,6 @@ Check/Test zend_execute_scripts
 --FILE--
 <?php
 require 'vendor/autoload.php';
-if (IS_PHP83)
-    ffi_set_free(false);
 
 var_dump(zend_execute_scripts(__DIR__ . \DS . 'DummyRequest.php'));
 
