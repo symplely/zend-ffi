@@ -1326,6 +1326,12 @@ typedef struct zend_atomic_bool_s
 	volatile bool value;
 } zend_atomic_bool;
 
+typedef struct _zend_call_stack
+{
+	void *base;
+	size_t max_size;
+} zend_call_stack;
+
 struct _zend_executor_globals
 {
 	zval uninitialized_zval;
@@ -1450,6 +1456,10 @@ struct _zend_executor_globals
 	/* Override filename or line number of thrown errors and exceptions */
 	zend_string *filename_override;
 	zend_long lineno_override;
+
+	zend_call_stack call_stack;
+	zend_long max_allowed_stack_size;
+	zend_ulong reserved_stack_size;
 
 	void *reserved[6];
 };
