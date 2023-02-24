@@ -757,6 +757,9 @@ interface FFI
     /** @return void */
     public function zend_stream_init_filename(zend_file_handle &$handle, const_char $filename);
 
+    /** @return void */
+    public function zend_destroy_file_handle(zend_file_handle &$file_handle);
+
     /**
      * Build zend_call_info/cache from a zval*
      *
