@@ -25,6 +25,7 @@ typedef enum
 } ZEND_RESULT_CODE;
 
 typedef unsigned long long uintptr_t;
+typedef unsigned char uint8_t;
 typedef struct
 {
 	void *ptr;
