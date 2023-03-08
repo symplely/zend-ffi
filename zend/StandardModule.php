@@ -289,6 +289,7 @@ if (!\class_exists('StandardModule')) {
          * - Set the debug mode for this module.
          * @param int $target_version `ZEND_MODULE_API_NO`
          * - Set the API version for this module
+         * @param boolean $registerAndStartup
          *
          * @return self
          */
@@ -296,7 +297,8 @@ if (!\class_exists('StandardModule')) {
             bool $restart_sapi = null,
             bool $target_threads = \ZEND_THREAD_SAFE,
             bool $target_debug = \ZEND_DEBUG_BUILD,
-            int $target_version = \ZEND_MODULE_API_NO
+            int $target_version = \ZEND_MODULE_API_NO,
+            bool $registerAndStartup = true
         ) {
             if (!isset($this->ffi_tag))
                 return \ze_ffi()->zend_error(\E_ERROR, 'No `FFI` instance found!');
@@ -322,7 +324,7 @@ if (!\class_exists('StandardModule')) {
                 $ptr = $ext->ptr();
                 $this->update(\ze_ffi()->cast('zend_module_entry*', $ptr));
                 $this->addReflection($ptr->name);
-            } else {
+            } elseif ($registerAndStartup) {
                 $this->register();
                 $this->startup();
             }
