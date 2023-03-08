@@ -245,7 +245,7 @@ if (!\class_exists('Opcode')) {
         /**
          * Installs a user opcode handler that will be used to handle specific opcode
          *
-         * @param int|\zend_uchar $opCode  Operation code to hook
+         * @param int|\zend_uchar|uint8_t  $opCode  Operation code to hook, uint8_t - PHP 8.3
          * @param \Closure $handler Callback that will receive a control for overloaded operation code
          */
         public static function set_handler(int $opCode, \Closure $handler): void
@@ -274,7 +274,7 @@ if (!\class_exists('Opcode')) {
         /**
          * Restores default opcode handler
          *
-         * @param int|\zend_uchar $opCode Operation code
+         * @param int|\zend_uchar|uint_t $opCode Operation code, uint8_t - PHP 8.3
          */
         public static function restore_handler(int $opCode): void
         {

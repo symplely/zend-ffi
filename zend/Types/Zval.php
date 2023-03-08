@@ -16,8 +16,8 @@ if (!\class_exists('Zval')) {
      *   zend_value        value;            // value
      *   union {
      *     struct {
-     *       zend_uchar    type;            // active type
-     *       zend_uchar    type_flags;
+     *       zend_uchar    type;            // active type, uint8_t - PHP 8.3
+     *       zend_uchar    type_flags;      // uint8_t - PHP 8.3
      *       union {
      *         uint16_t  extra;        // not further specified
      *       } u;

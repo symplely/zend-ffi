@@ -24,7 +24,7 @@ if (!\class_exists('ZendObjectsStore')) {
         /**
          * @see zend_objects_API.h:OBJ_BUCKET_INVALID macro
          */
-        const OBJ_BUCKET_INVALID = 1;
+        const OBJ_BUCKET_INVALID = (1 << 0);
 
         public function count(): int
         {
@@ -108,7 +108,7 @@ if (!\class_exists('ZendObjectsStore')) {
                 return;
             }
 
-            $rawPointer        = \ze_ffi()->cast('zend_uintptr_t', $this->ze_other_ptr->object_buckets[$offset]);
+            $rawPointer        = \ze_ffi()->cast((\IS_PHP83 ? 'uintptr_t' : 'zend_uintptr_t'), $this->ze_other_ptr->object_buckets[$offset]);
             $invalidPointer    = $rawPointer->cdata | self::OBJ_BUCKET_INVALID;
             $rawPointer->cdata = $invalidPointer;
 
@@ -126,7 +126,7 @@ if (!\class_exists('ZendObjectsStore')) {
                 return false;
             }
 
-            $rawPointer = \ze_ffi()->cast('zend_uintptr_t', $objectPointer);
+            $rawPointer = \ze_ffi()->cast((\IS_PHP83 ? 'uintptr_t' : 'zend_uintptr_t'), $objectPointer);
             $isValid    = ($rawPointer->cdata & self::OBJ_BUCKET_INVALID) === 0;
 
             return $isValid;

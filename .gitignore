@@ -81,6 +81,7 @@ DartConfiguration.tcl
 phpunit
 test.php
 php-src-php-*/
+php-src-*/
 cmd/
 frankenphp/
 parallel/

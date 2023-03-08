@@ -232,6 +232,9 @@ The option `-I  <directory>` might be needed to search/find additional include s
 
 * [About Zeev’s proposal of PHP superset](https://william-pinaud.medium.com/about-zeevs-proposal-of-php-superset-9e291f0de630)
 
+* [Low-Level Programming](https://startupnextdoor.com/low-level-programming/)
+* [Low-Level Programming: C, Assembly, and Program Execution](https://www.amazon.com/Low-Level-Programming-Assembly-Execution-Architecture/dp/1484224027)
+
 ## Contributing
 
 Contributions are encouraged and welcome; I am always happy to get feedback or pull requests on Github :) Create [Github Issues](https://github.com/symplely/uv-ffi/issues) for bugs and new features and comment on the ones you are interested in.
