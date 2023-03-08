@@ -289,6 +289,7 @@ if (!\class_exists('StandardModule')) {
          * - Set the debug mode for this module.
          * @param int $target_version `ZEND_MODULE_API_NO`
          * - Set the API version for this module
+         * @param boolean $registerAndStartup
          *
          * @return self
          */
@@ -296,7 +297,8 @@ if (!\class_exists('StandardModule')) {
             bool $restart_sapi = null,
             bool $target_threads = \ZEND_THREAD_SAFE,
             bool $target_debug = \ZEND_DEBUG_BUILD,
-            int $target_version = \ZEND_MODULE_API_NO
+            int $target_version = \ZEND_MODULE_API_NO,
+            bool $registerAndStartup = true
         ) {
             if (!isset($this->ffi_tag))
                 return \ze_ffi()->zend_error(\E_ERROR, 'No `FFI` instance found!');
@@ -322,7 +324,7 @@ if (!\class_exists('StandardModule')) {
                 $ptr = $ext->ptr();
                 $this->update(\ze_ffi()->cast('zend_module_entry*', $ptr));
                 $this->addReflection($ptr->name);
-            } else {
+            } elseif ($registerAndStartup) {
                 $this->register();
                 $this->startup();
             }
@@ -457,7 +459,7 @@ if (!\class_exists('StandardModule')) {
                 if (\PHP_ZTS) {
                     \tsrmls_activate();
                     $id = \ze_ffi()->tsrm_thread_id();
-                    $this->global_rsrc[$id] = \ze_ffi()->new('ts_rsrc_id', false, $this->target_persistent);
+                    $this->global_rsrc[$id] = $this->ffi()->new('ts_rsrc_id', false, $this->target_persistent);
                     $this->ze_other->globals_id_ptr = \FFI::addr($this->global_rsrc[$id]);
                     $this->ze_other->globals_size = \FFI::sizeof($this->ffi()->type($globalType));
                     $this->global_id[$id] = \ze_ffi()->ts_allocate_id(

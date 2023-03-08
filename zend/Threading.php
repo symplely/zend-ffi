@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use FFI\CData;
 use ZE\PThread;
 use ZE\Thread;
 
@@ -22,7 +21,7 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
     ): \ThreadsModule {
         $module = \threads_get_module();
         if (\is_null($module)) {
-            $module = new \ThreadsModule();
+            $module = new \ThreadsModule(null, \ZEND_THREAD_SAFE, \ZEND_DEBUG_BUILD, \ZEND_MODULE_API_NO, false);
             $module->set_lifecycle(
                 $module_startup,
                 $module_shutdown,
@@ -39,7 +38,7 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
 
         return \ze_ffi()->zend_error(
             \E_WARNING,
-            'Thread customization not possible, registration has already finish!'
+            'Thread customization not possible, registration has already finished!'
         );
     }
 
@@ -48,8 +47,6 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
         $module = \threads_get_module();
         if (\is_null($module)) {
             $module = new \ThreadsModule();
-            $module->register();
-            $module->startup();
         }
 
         return $module;

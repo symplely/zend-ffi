@@ -32,7 +32,7 @@ threads_customize(
 
 // example from http://codingbison.com/c/c-pthreads-basics.html
 
-define('MAX_THREADS', 2);
+define('MAX_THREADS', 3);
 
 function main()
 {
@@ -42,7 +42,7 @@ function main()
     ];
 
     $t = c_array_type('pthread_t', 'ts', MAX_THREADS);
-    $index = c_array_type('int', 'ze', MAX_THREADS);
+    $index = c_array_type('int', 'ts', MAX_THREADS);
     $status = 0;
     $arrLen = 0;
     $i = 0;

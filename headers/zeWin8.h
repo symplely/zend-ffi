@@ -207,8 +207,8 @@ struct _zval_struct
 	{
 		struct
 		{
-			uint8_t type;
-			uint8_t type_flags;
+			zend_uchar type;
+			zend_uchar type_flags;
 			union
 			{
 				uint16_t extra;
@@ -247,10 +247,10 @@ struct _zend_array
 	{
 		struct
 		{
-			uint8_t flags;
-			uint8_t _unused;
-			uint8_t nIteratorsCount;
-			uint8_t _unused2;
+			zend_uchar flags;
+			zend_uchar _unused;
+			zend_uchar nIteratorsCount;
+			zend_uchar _unused2;
 		} v;
 		uint32_t flags;
 	} u;
@@ -345,7 +345,7 @@ typedef int (*zend_object_cast_t)(zend_object *readobj, zval *retval, int type);
 typedef int (*zend_object_count_elements_t)(zend_object *object, zend_long *count);
 typedef int (*zend_object_get_closure_t)(zend_object *obj, zend_class_entry **ce_ptr, zend_function **fptr_ptr, zend_object **obj_ptr, zend_bool check_only);
 typedef HashTable *(*zend_object_get_gc_t)(zend_object *object, zval **table, int *n);
-typedef int (*zend_object_do_operation_t)(uint8_t opcode, zval *result, zval *op1, zval *op2);
+typedef int (*zend_object_do_operation_t)(zend_uchar opcode, zval *result, zval *op1, zval *op2);
 
 struct _zend_object_handlers
 {
@@ -400,8 +400,8 @@ typedef struct _zend_arg_info
 typedef struct _zend_internal_function
 {
 	/* Common elements */
-	uint8_t type;
-	uint8_t arg_flags[3]; /* bitset of arg_info.pass_by_reference */
+	zend_uchar type;
+	zend_uchar arg_flags[3]; /* bitset of arg_info.pass_by_reference */
 	uint32_t fn_flags;
 	zend_string *function_name;
 	zend_class_entry *scope;
@@ -447,8 +447,8 @@ typedef struct _zend_try_catch_element
 
 struct _zend_op_array
 {
-	uint8_t type;
-	uint8_t arg_flags[3];
+	zend_uchar type;
+	zend_uchar arg_flags[3];
 	uint32_t fn_flags;
 	zend_string *function_name;
 	zend_class_entry *scope;
@@ -505,8 +505,8 @@ typedef union _znode_op
 
 typedef struct _znode
 { /* used only during compilation */
-	uint8_t op_type;
-	uint8_t flag;
+	zend_uchar op_type;
+	zend_uchar flag;
 	union
 	{
 		znode_op op;
@@ -522,21 +522,21 @@ struct _zend_op
 	znode_op result;
 	uint32_t extended_value;
 	uint32_t lineno;
-	uint8_t opcode;
-	uint8_t op1_type;
-	uint8_t op2_type;
-	uint8_t result_type;
+	zend_uchar opcode;
+	zend_uchar op1_type;
+	zend_uchar op2_type;
+	zend_uchar result_type;
 };
 
 union _zend_function
 {
-	uint8_t type; /* MUST be the first element of this struct! */
+	zend_uchar type; /* MUST be the first element of this struct! */
 	uint32_t quick_arg_flags;
 
 	struct
 	{
-		uint8_t type;		  /* never used */
-		uint8_t arg_flags[3]; /* bitset of arg_info.pass_by_reference */
+		zend_uchar type;		 /* never used */
+		zend_uchar arg_flags[3]; /* bitset of arg_info.pass_by_reference */
 		uint32_t fn_flags;
 		zend_string *function_name;
 		zend_class_entry *scope;
@@ -1038,7 +1038,7 @@ struct _zend_compiler_globals
 	HashTable *auto_globals;
 
 	/* Refer to zend_yytnamerr() in zend_language_parser.y for meaning of values */
-	uint8_t parse_error;
+	zend_uchar parse_error;
 	zend_bool in_compilation;
 	zend_bool short_tags;
 
@@ -1222,7 +1222,7 @@ struct _zend_executor_globals
 	zend_op exception_op[3];
 	struct _zend_module_entry *current_module;
 	zend_bool active;
-	uint8_t flags;
+	zend_uchar flags;
 	zend_long assertions;
 	uint32_t ht_iterators_count;
 	uint32_t ht_iterators_used;
@@ -1260,15 +1260,15 @@ void *zend_fetch_resource2(zend_resource *res, const char *resource_type_name, i
 void *zend_fetch_resource_ex(zval *res, const char *resource_type_name, int resource_type);
 void *zend_fetch_resource2_ex(zval *res, const char *resource_type_name, int resource_type, int resource_type2);
 
-int zend_set_user_opcode_handler(uint8_t opcode, user_opcode_handler_t handler);
-user_opcode_handler_t zend_get_user_opcode_handler(uint8_t opcode);
+int zend_set_user_opcode_handler(zend_uchar opcode, user_opcode_handler_t handler);
+user_opcode_handler_t zend_get_user_opcode_handler(zend_uchar opcode);
 
 void zval_ptr_dtor(zval *zval_ptr);
 void zval_internal_ptr_dtor(zval *zvalue);
 void zval_add_ref(zval *p);
 zval *zend_get_zval_ptr(const zend_op *opline, int op_type, const znode_op *node, const zend_execute_data *execute_data);
 
-uint8_t zend_get_call_op(const zend_op *init_op, zend_function *fbc);
+zend_uchar zend_get_call_op(const zend_op *init_op, zend_function *fbc);
 void object_init(zval *arg);
 zend_result object_init_ex(zval *arg, zend_class_entry *ce);
 

@@ -5,6 +5,7 @@
 // pi /usr/lib/aarch64-linux-gnu/libpthread.so
 // macos /usr/lib/libpthread.dylib
 
+typedef int ts_rsrc_id;
 typedef unsigned char __u_char;
 typedef unsigned short int __u_short;
 typedef unsigned int __u_int;

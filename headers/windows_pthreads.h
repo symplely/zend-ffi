@@ -1,6 +1,7 @@
 #define FFI_SCOPE "__threads__"
 #define FFI_LIB ".\\lib\\Windows\\pthreadVC3.dll"
 
+typedef int ts_rsrc_id;
 typedef signed long int __int64;
 typedef unsigned int uintptr_t;
 typedef char *va_list;
