@@ -43,7 +43,9 @@ function main()
 
     $t = c_array_type('pthread_t', 'ts', MAX_THREADS);
     $index = c_array_type('int', 'ze', MAX_THREADS);
-    $status = $arrLen = $i = 0;
+    $status = 0;
+    $arrLen = 0;
+    $i = 0;
 
     $arrLen = ffi_sizeof($arrPaintings);
 

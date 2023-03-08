@@ -457,7 +457,7 @@ if (!\class_exists('StandardModule')) {
                 if (\PHP_ZTS) {
                     \tsrmls_activate();
                     $id = \ze_ffi()->tsrm_thread_id();
-                    $this->global_rsrc[$id] = $this->ffi()->new('ts_rsrc_id', false, $this->target_persistent);
+                    $this->global_rsrc[$id] = \ze_ffi()->new('ts_rsrc_id', false, $this->target_persistent);
                     $this->ze_other->globals_id_ptr = \FFI::addr($this->global_rsrc[$id]);
                     $this->ze_other->globals_size = \FFI::sizeof($this->ffi()->type($globalType));
                     $this->global_id[$id] = \ze_ffi()->ts_allocate_id(
