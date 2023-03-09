@@ -49,8 +49,6 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
         final public function thread_startup($runtime) //: Thread
         {
-            \ze_ffi()->tsrm_mutex_lock($this->module_mutex);
-
             \ze_ffi()->ts_resource_ex(0, null);
 
             if (\IS_WINDOWS) {
@@ -261,30 +259,24 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
         public function module_startup(int $type, int $module_number): int
         {
-            // $this->original_interrupt_handler = \ze_ffi()->zend_interrupt_function;
-            // \ze_ffi()->zend_interrupt_function = \closure_from($this, 'thread_interrupt');
             return !\is_null($this->m_init)
                 ? ($this->m_init)($type, $module_number) : \ZE::SUCCESS;
         }
 
         public function module_shutdown(int $type, int $module_number): int
         {
-            // \ze_ffi()->zend_interrupt_function = $this->original_interrupt_handler;
-            // $this->original_interrupt_handler = null;
             return !\is_null($this->m_end)
                 ? ($this->m_end)($type, $module_number) : \ZE::SUCCESS;
         }
 
         public function request_startup(int $type, int $module_number): int
         {
-            // $this->thread_startup($type, $module_number);
             return !\is_null($this->r_init)
                 ? ($this->r_init)($type, $module_number) : \ZE::SUCCESS;
         }
 
         public function request_shutdown(int $type, int $module_number): int
         {
-            // $this->thread_shutdown();
             return !\is_null($this->r_end)
                 ? ($this->r_end)($type, $module_number) : \ZE::SUCCESS;
         }
