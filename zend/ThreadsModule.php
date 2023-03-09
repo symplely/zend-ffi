@@ -36,9 +36,6 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
         protected ?\Closure $g_init = null;
         protected ?\Closure $g_end = null;
 
-        /** @var \zend_interrupt_function */
-        protected ?CData $original_interrupt_handler = null;
-
         /** @var \Closure */
         protected ?CData $original_sapi_output = null;
 
@@ -101,13 +98,6 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
 
             \ze_ffi()->sapi_shutdown();
             \ze_ffi()->ts_free_thread();
-        }
-
-        final public function thread_interrupt(CData $execute_data)
-        {
-            if (\is_cdata($this->original_interrupt_handler)) {
-                ($this->original_interrupt_handler)($execute_data);
-            }
         }
 
         final public function thread_func(CData $arg)
