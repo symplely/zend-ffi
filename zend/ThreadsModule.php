@@ -37,11 +37,6 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
         /** @var \Closure */
         protected ?CData $original_sapi_output = null;
 
-        /** @var \pthread_mutex_t */
-        protected ?CData $output_mutex = null;
-
-        const MODULES_TO_RELOAD = ['filter', 'session'];
-
         public function set_lifecycle(
             callable $m_init = null,
             callable $m_end = null,
@@ -74,9 +69,7 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
         public function startup(): void
         {
             $module = $this->ze_other_ptr;
-            \ze_ffi()->php_output_end_all();
-            \ze_ffi()->php_output_deactivate();
-            // \ze_ffi()->php_output_shutdown();
+            \ze_ffi()->php_output_shutdown();
 
             \ze_ffi()->sapi_flush();
             \ze_ffi()->sapi_deactivate();
@@ -102,24 +95,16 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
                 };
             }
 
-            if (\is_null($this->output_mutex)) {
-                try {
-                    $this->output_mutex = \ffi_ptr($this->get_globals('mutex'));
-                } catch (\Throwable $e) {
-                }
-
-                \bail_if_fail(
-                    \ts_ffi()->pthread_mutex_init($this->output_mutex, null),
-                    __FILE__,
-                    __LINE__
-                );
-            }
-
             $this->original_sapi_output = \ze_ffi()->sapi_module->ub_write;
             \ze_ffi()->sapi_module->ub_write = function (string $str, int $len): int {
-                \ts_ffi()->pthread_mutex_lock($this->output_mutex);
+                $mutex = \Core::get_mutex();
+                if (!\is_cdata($mutex)) {
+                    $mutex =  \Core::reset_mutex();
+                }
+
+                \ze_ffi()->tsrm_mutex_lock($mutex);
                 $result = ($this->original_sapi_output)($str, $len);
-                \ts_ffi()->pthread_mutex_unlock($this->output_mutex);
+                \ze_ffi()->tsrm_mutex_unlock($mutex);
 
                 return $result;
             };
@@ -132,8 +117,6 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
                 \register_shutdown_function(
                     \closure_from($this, 'module_destructor')
                 );
-
-            \ze_ffi()->php_output_activate();
 
             $result = \IS_PHP82
                 ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
@@ -181,11 +164,7 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
             if (!$this->target_persistent) {
                 if (\is_ze_ffi()) {
                     \ze_ffi()->sapi_module->ub_write = $this->original_sapi_output;
-                    \ts_ffi()->pthread_mutex_destroy($this->output_mutex);
-
                     $this->original_sapi_output = null;
-                    $this->output_mutex = null;
-                    $this->get_globals('mutex', null);
                 }
             }
         }

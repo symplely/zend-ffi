@@ -45,9 +45,8 @@ function main()
     $index = c_array_type('int', 'ts', MAX_THREADS);
     $status = 0;
     $arrLen = 0;
-    $i = 0;
 
-    $arrLen = ffi_sizeof($arrPaintings);
+    $arrLen = ffi_sizeof($arrPaintings) * \count($arrPaintings);
 
     srand(time());                  /* initialize random seed */
     for ($i = 0; $i < MAX_THREADS; $i++) {
@@ -59,6 +58,7 @@ function main()
             $t->addr_of($i),
             null,
             function (CData $arg) {
+                echo '---> ';
                 $arrPaintings = [
                     "The Last Supper", "Mona Lisa", "Potato Eaters",
                     "Cypresses", "Starry Night", "Water Lilies"
