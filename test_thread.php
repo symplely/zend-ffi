@@ -58,7 +58,6 @@ function main()
             $t->addr_of($i),
             null,
             function (CData $arg) {
-                echo '---> ';
                 $arrPaintings = [
                     "The Last Supper", "Mona Lisa", "Potato Eaters",
                     "Cypresses", "Starry Night", "Water Lilies"

@@ -21,7 +21,12 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
         /** @var \zend_thread_t */
         private ?\CStruct $thread = null;
 
-        private ?\ThreadsModule $manager = null;
+        private ?\ThreadsModule $module = null;
+
+        final public function get_module(): ?\ThreadsModule
+        {
+            return $this->module;
+        }
 
         final public function add(callable $routine, ...$arguments)
         {
@@ -96,12 +101,12 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
             \ffi_free_if($this->server_context);
 
             $this->thread = null;
-            $this->manager = null;
+            $this->module = null;
         }
 
         public function __construct(\ThreadsModule $module)
         {
-            $this->manager = $module;
+            $this->module = $module;
             $this->worker_mutex = \ze_ffi()->tsrm_mutex_alloc();
             $this->worker = new \SplQueue();
             $this->thread = \c_typedef('zend_threads_t');
@@ -152,15 +157,73 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
         }
 
         public function join()
-        {
+        {/*
+            php_parallel_monitor_lock(runtime->monitor);
+
+            if (php_parallel_monitor_check(runtime->monitor, PHP_PARALLEL_CLOSED)) {
+                php_parallel_exception_ex(
+                    php_parallel_runtime_error_closed_ce,
+                    "Runtime closed"
+                );
+                php_parallel_monitor_unlock(runtime->monitor);
+                return;
+            }
+
+            if (kill) {
+                php_parallel_monitor_set(runtime->monitor, PHP_PARALLEL_KILLED);
+
+                zend_atomic_bool_store(runtime->child . interrupt, true);
+            } else {
+                php_parallel_monitor_set(runtime->monitor, PHP_PARALLEL_CLOSE);
+            }
+
+            php_parallel_monitor_wait_locked(runtime->monitor, PHP_PARALLEL_DONE);
+
+            php_parallel_monitor_unlock(runtime->monitor);
+
+            php_parallel_monitor_set(runtime->monitor, PHP_PARALLEL_CLOSED);
+
+            pthread_join(runtime->thread, NULL);*/
         }
 
         public function wait()
         {
+            /*int32_t changed = FAILURE;
+    int      rc      = SUCCESS;
+
+    if (pthread_mutex_lock(&monitor->mutex) != SUCCESS) {
+        return FAILURE;
+    }
+
+    while (!(changed = (monitor->state & state))) {
+
+        if ((rc = pthread_cond_wait(
+                &monitor->condition, &monitor->mutex)) != SUCCESS) {
+            pthread_mutex_unlock(&monitor->mutex);
+
+            return FAILURE;
+        }
+    }
+
+    monitor->state ^= changed;
+
+    if (pthread_mutex_unlock(&monitor->mutex) != SUCCESS) {
+        return FAILURE;
+    }
+
+    return changed;*/
         }
 
         public function start()
         {
+            /*pthread_mutex_lock(&monitor->mutex);
+
+    monitor->state |= state;
+
+    pthread_cond_signal(
+        &monitor->condition);
+
+    pthread_mutex_unlock(&monitor->mutex);*/
         }
     }
 }

@@ -114,49 +114,18 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
             \tsrmls_cache_define();
         }
     }
-    /*
-static void php_thread_executor_globals_reinit(zend_executor_globals *dest,
-		zend_executor_globals *src)
-{
-	dest->current_module = src->current_module;
-}
-*/
 
-    /*
-static void php_thread_compiler_globals_reinit(zend_compiler_globals *dest,
-		zend_compiler_globals *src)
-{
-	zend_hash_clean(dest->function_table);
-	zend_hash_copy(dest->function_table, src->function_table,
-			(copy_ctor_func_t)function_add_ref, NULL,
-			sizeof(zend_function));
-	zend_hash_clean(dest->class_table);
-	zend_hash_copy(dest->class_table, src->class_table,
-			(copy_ctor_func_t)zend_class_add_ref, NULL,
-			sizeof(zend_class_entry*));
-}
-*/
-    function thread_startup($runtime) //: Thread
+    function thread_startup(Thread $runtime): Thread
     {
         \ze_ffi()->ts_resource_ex(0, null);
 
+        \tsrmls_cache_update();
         if (\IS_WINDOWS) {
-            \tsrmls_cache_update();
             \zend_pg('com_initialized', 0);
         }
 
-        \zend_pg('in_error_log', 0);
-
-        \ze_ffi()->php_output_activate();
-
-        \zend_pg('modules_activated', 0);
-        \zend_pg('header_is_being_sent', 0);
-        \zend_pg('connection_status', 0);
-        \zend_pg('in_user_include', 0);
-
-        //\ze_ffi()->php_request_startup();
-
-        //    \zend_sg('server_context', $runtime()->parent->server);
+        \zend_sg('server_context', $runtime()->parent->server);
+        $runtime()->child->interrupt = \ffi_ptr(\zend_eg('vm_interrupt'));
 
         \zend_pg('expose_php', 0);
         \zend_pg('auto_globals_jit', 1);
@@ -165,63 +134,49 @@ static void php_thread_compiler_globals_reinit(zend_compiler_globals *dest,
         else
             \zend_pg('enable_dl', 1);
 
+        \standard_activate($runtime->get_module());
+
         \zend_pg('during_request_startup', 0);
         \zend_sg('sapi_started', 0);
         \zend_sg('headers_sent', 1);
         \zend_sg('request_info')->no_headers = 1;
 
-        //  \ze_ffi()->tsrm_mutex_unlock($this->module_mutex);
-        // return $runtime;
+        return $runtime;
     }
 
-    function thread_shutdown()
+    function thread_shutdown(Thread $runtime)
     {
-        /* Flush all output buffers */
-        \ze_ffi()->php_output_end_all();
+        \ze_ffi()->php_output_shutdown();
 
-        /* Shutdown output layer (send the set HTTP headers, cleanup output handlers, etc.) */
-        \ze_ffi()->php_output_deactivate();
+        \standard_deactivate($runtime->get_module());
 
-        /* SAPI related shutdown (free stuff) */
-        \ze_ffi()->sapi_deactivate();
-
-        //  \ze_ffi()->php_request_shutdown(null);
-        //\zend_sg('server_context', NULL);
-
-        \ze_ffi()->sapi_shutdown();
         \ze_ffi()->ts_free_thread();
+
+        \ts_ffi()->pthread_exit(\ffi_null());
     }
 
     function thread_func(CData $arg)
     {
+        if (!\function_exists('zend_preloader'))
+            include_once 'preload.php';
+
         /** @var Thread|PThread */
         $thread = \thread_startup(\zval_native_cast('zval*', $arg));
 
-        do {
-            /*
-                if (!$thread instanceof PThread) {
-                    $status = $thread->wait();
-                    if ($status != \ZE::SUCCESS) {
-                        break;
-                    }
-                }*/
-
-            while (!$thread->empty()) {
+        if (!$thread instanceof PThread) {
+            $status = $thread->wait();
+            while ($status === \ZE::SUCCESS && !$thread->empty()) {
                 $thread->execute();
             }
-            //	pthread_mutex_lock($thread->counter_mutex);
-            //        $thread->num_threads_working--;
-            //	if (!$thread>num_threads_working) {
-            //		pthread_cond_signal($thread->counter_all_idle);
-            //	}
-            //	pthread_mutex_unlock($thread->counter_mutex);
-        } while (true);
+        } else {
+            $thread->execute();
+        }
 
         $exception = \zend_eg('exception');
         if (\is_cdata($exception))
             \ze_ffi()->zend_exception_error($exception, \E_ERROR);
 
-        \thread_shutdown();
+        \thread_shutdown($thread);
 
         return NULL;
     }
