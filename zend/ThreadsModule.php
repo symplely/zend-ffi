@@ -76,7 +76,7 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
             $module = $this->ze_other_ptr;
             \ze_ffi()->php_output_end_all();
             \ze_ffi()->php_output_deactivate();
-            \ze_ffi()->php_output_shutdown();
+            // \ze_ffi()->php_output_shutdown();
 
             \ze_ffi()->sapi_flush();
             \ze_ffi()->sapi_deactivate();
