@@ -1680,12 +1680,6 @@ void *tsrm_set_new_thread_begin_handler(tsrm_thread_begin_func_t new_thread_begi
 void *tsrm_set_new_thread_end_handler(tsrm_thread_end_func_t new_thread_end_handler);
 void *tsrm_set_shutdown_handler(tsrm_shutdown_func_t shutdown_handler);
 
-/* these 3 APIs should only be used by people that fully understand the threading model
- * used by PHP/Zend and the selected SAPI. */
-void *tsrm_new_interpreter_context(void);
-void *tsrm_set_interpreter_context(void *new_ctx);
-void tsrm_free_interpreter_context(void *context);
-
 void *tsrm_get_ls_cache(void);
 uint8_t tsrm_is_main_thread(void);
 uint8_t tsrm_is_shutdown(void);

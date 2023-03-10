@@ -7,6 +7,10 @@ interface rsrc_dtor_func_t extends closure
 interface user_opcode_handler_t extends closure
 {
 }
+/** @var callable (zval *pElement) */
+interface copy_ctor_func_t extends closure
+{
+}
 /** @var callable (LPVOID lpParameter) */
 interface ThreadProc extends closure
 {
@@ -449,6 +453,15 @@ interface FFI
 
     /** @return zval */
     public function zend_hash_next_index_insert(HashTable &$ht, zval &$pData);
+
+    /** @return void */
+    public function zend_hash_copy(HashTable &$target, HashTable &$source, copy_ctor_func_t $pCopyConstructor);
+
+    /** @return void */
+    public function zend_hash_destroy(HashTable &$ht);
+
+    /** @return void */
+    public function zend_hash_clean(HashTable &$ht);
 
     /** @return zend_function */
     public function zend_fetch_function(zend_string &$name);
