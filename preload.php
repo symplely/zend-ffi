@@ -780,53 +780,9 @@ if (!\function_exists('setup_ffi_loader')) {
           }
 
           \setup_ffi_loader('ts', $header);
+          \tsrmls_cache_define();
         }
       }
-    }
-
-    if (\PHP_ZTS)
-      \tsrmls_cache_define();
-  }
-
-  function tsrmls_cache_define()
-  {
-    if (\PHP_ZTS) {
-      global $_tsrm_ls_cache;
-      $_tsrm_ls_cache = null;
-    }
-  }
-
-  function tsrmls_cache_update()
-  {
-    if (\PHP_ZTS) {
-      global $_tsrm_ls_cache;
-      $_tsrm_ls_cache = \ze_ffi()->tsrm_get_ls_cache();
-    }
-  }
-
-  function tsrmls_cache(): ?CData
-  {
-    if (\PHP_ZTS) {
-      global $_tsrm_ls_cache;
-      return $_tsrm_ls_cache;
-    }
-
-    return null;
-  }
-
-  function tsrmls_activate()
-  {
-    if (\PHP_ZTS) {
-      \ze_ffi()->ts_resource_ex(0, null);
-      \tsrmls_cache_update();
-    }
-  }
-
-  function tsrmls_deactivate()
-  {
-    if (\PHP_ZTS) {
-      \ze_ffi()->ts_free_id(0);
-      \tsrmls_cache_define();
     }
   }
 
