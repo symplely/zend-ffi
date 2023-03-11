@@ -53,14 +53,17 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
         return $module;
     }
 
-    function thread_init(): Thread
+    function thread_init(PThread $instance = null): Thread
     {
         $module = \threads_get_module();
         if (\is_null($module)) {
             $module = \threads_activate();
         }
 
-        return new Thread($module);
+        if (\is_null($instance))
+            $instance = new PThread($module);
+
+        return new Thread($module, $instance);
     }
 
     function pthread_init(): PThread

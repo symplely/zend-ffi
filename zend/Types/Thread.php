@@ -15,8 +15,7 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
         /** @var \CStruct|CData|CData|\TValue|<> */
         private ?\SplQueue $worker = null;
 
-        /** @var \pthread_t_ptr */
-        private ?CData $worker_id = null;
+        private ?PThread $pthread = null;
 
         /** @var \MUTEX_T */
         private ?CData $worker_mutex = null;
@@ -29,11 +28,6 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
         final public function get_module(): ?\ThreadsModule
         {
             return $this->module;
-        }
-
-        final public function set_thread(CData $tid): void
-        {
-            $this->worker_id = $tid;
         }
 
         final public function add(callable $routine, ...$arguments)
@@ -113,9 +107,10 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
             $this->module = null;
         }
 
-        public function __construct(\ThreadsModule $module)
+        public function __construct(\ThreadsModule $module, PThread $instance)
         {
             $this->module = $module;
+            $this->pthread = $instance;
             $this->worker_mutex = \ze_ffi()->tsrm_mutex_alloc();
             $this->worker = new \SplQueue();
             $this->thread = \c_typedef('zend_threads_t');
@@ -167,7 +162,7 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
 
         public function join()
         {
-            return \ts_ffi()->pthread_join($this->worker_id, NULL);/*
+            return \ts_ffi()->pthread_join($this->pthread->get_ptr(), NULL);/*
             php_parallel_monitor_lock(runtime->monitor);
 
             if (php_parallel_monitor_check(runtime->monitor, PHP_PARALLEL_CLOSED)) {
