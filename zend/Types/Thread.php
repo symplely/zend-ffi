@@ -15,7 +15,8 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
         /** @var \CStruct|CData|CData|\TValue|<> */
         private ?\SplQueue $worker = null;
 
-        private ?CData $worker_thread = null;
+        /** @var \pthread_t_ptr */
+        private ?CData $worker_id = null;
 
         /** @var \MUTEX_T */
         private ?CData $worker_mutex = null;
@@ -30,9 +31,9 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
             return $this->module;
         }
 
-        final public function set_thread($tid): void
+        final public function set_thread(CData $tid): void
         {
-            $this->worker_thread->tid = \ze_cast('pthread_t', $tid);
+            $this->worker_id = $tid;
         }
 
         final public function add(callable $routine, ...$arguments)
@@ -53,7 +54,6 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
             if (\ze_ffi()->zend_fcall_info_init($callable(), 0, $fci, $fcc, null, null) === 0) {
                 $value = new \TValue;
                 $this->push($worker, $fci, $fcc, $value);
-                $this->worker_thread = $thread;
                 return $value;
             } else {
                 \ze_ffi()->zend_error(\E_WARNING, "Failed to add routine!");
@@ -104,6 +104,7 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
 
             unset($this->worker);
             $this->worker = null;
+            $this->worker_id = null;
             \ze_ffi()->tsrm_mutex_free($this->worker_mutex);
             $this->worker_mutex = null;
             \ffi_free_if($this->server_context);
@@ -166,7 +167,7 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
 
         public function join()
         {
-            return \ts_ffi()->pthread_join(\ts_ffi()->cast('pthread_t', $this->worker_thread->tid), NULL);/*
+            return \ts_ffi()->pthread_join($this->worker_id, NULL);/*
             php_parallel_monitor_lock(runtime->monitor);
 
             if (php_parallel_monitor_check(runtime->monitor, PHP_PARALLEL_CLOSED)) {
