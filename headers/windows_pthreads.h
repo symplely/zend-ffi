@@ -612,9 +612,17 @@ unsigned long __cdecl __ptw32_get_exception_services_code(void);
 
 typedef struct _zend_server_context
 {
-    pthread_mutex_t mutex;
     uintptr_t current_request;
     uintptr_t main_request; /* Only available during worker initialization */
     char *cookie_data;
     bool finished;
 } zend_server_context;
+
+typedef void *(*__start)(void *);
+
+typedef struct _php_thread
+{
+    void *arg;
+    pthread_t thread;
+    __start function;
+} php_thread;

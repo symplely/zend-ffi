@@ -26,6 +26,8 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
         protected bool $m_shutdown = true;
         protected bool $r_startup = true;
         protected bool $r_shutdown = true;
+        protected bool $g_startup = true;
+        protected bool $g_shutdown = true;
 
         protected ?\Closure $r_init = null;
         protected ?\Closure $r_end = null;
