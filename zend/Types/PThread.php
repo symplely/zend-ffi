@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ZE;
 
-use Closure;
 use ZE\Thread;
 use FFI\CData;
 use ZE\Zval;
@@ -12,10 +11,58 @@ use ZE\Zval;
 if (\PHP_ZTS && !\class_exists('PThread')) {
     final class PThread
     {
+        /**
+         *pthread_attr_{get,set}detachstate
+         */
+        const CREATE_JOINABLE       = 0;  /* Default */
+        const CREATE_DETACHED       = 1;
+
+        /**
+         * pthread_attr_{get,set}inheritsched
+         */
+        const INHERIT_SCHED         = 0;
+        const EXPLICIT_SCHED        = 1;  /* Default */
+
+        /**
+         * pthread_{get,set}scope
+         */
+        const SCOPE_PROCESS         = 0;
+        const SCOPE_SYSTEM          = 1;  /* Default */
+
+        /**
+         * pthread_setcancelstate paramters
+         */
+        const CANCEL_ENABLE         = 0;  /* Default */
+        const CANCEL_DISABLE        = 1;
+
+        /**
+         * pthread_setcanceltype parameters
+         */
+        const CANCEL_ASYNCHRONOUS   = 0;
+        const CANCEL_DEFERRED       = 1;  /* Default */
+
+        /**
+         * pthread_mutexattr_{get,set}pshared
+         * pthread_condattr_{get,set}pshared
+         */
+        const PROCESS_PRIVATE       = 0;
+        const PROCESS_SHARED        = 1;
+
+        /**
+         * pthread_mutexattr_{get,set}robust
+         */
+        const MUTEX_STALLED         = 0;  /* Default */
+        const MUTEX_ROBUST          = 1;
+
+        /**
+         * pthread_barrier_wait
+         */
+        const BARRIER_SERIAL_THREAD = -1;
+
         /** @var \php_thread */
         private ?\CStruct $php_thread = null;
 
-        private ?Closure $func = null;
+        private ?\Closure $func = null;
         private ?\ThreadsModule $module = null;
         private array $fcall_info = [];
 
@@ -50,6 +97,11 @@ if (\PHP_ZTS && !\class_exists('PThread')) {
         public function get_ptr(): CData
         {
             return $this->php_thread->addr('thread');
+        }
+
+        public function get_addr(): CData
+        {
+            return $this->php_thread->__invoke()->thread;
         }
 
         public function get_args(): CData
@@ -175,7 +227,7 @@ if (\PHP_ZTS && !\class_exists('PThread')) {
 
         public function join()
         {
-            return \ts_ffi()->pthread_join($this->get_ptr()[0], NULL);
+            return \ts_ffi()->pthread_join($this->get_addr(), NULL);
         }
     }
 }
