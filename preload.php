@@ -231,6 +231,25 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
+   * Convert PHP array of `string` to `char**` _string_.
+   *
+   * @param string $string
+   * @return CData __char**__
+   */
+  function ffi_char_variadic(string ...$string): CData
+  {
+    $n = 0;
+    $string_args = \FFI::new('char*[' . (\count($string) + 2) . ']', false);
+    foreach ($string as $value) {
+      $string_args[$n] = \ffi_char($value);
+      $n++;
+    }
+    $string_args[$n] = NULL;
+
+    return \ze_cast('char**', $string_args);
+  }
+
+  /**
    * Creates a `char` C data structure of size.
    *
    * @param int $size
