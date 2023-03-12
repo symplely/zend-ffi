@@ -21,9 +21,9 @@ if (\PHP_ZTS && !\class_exists('TValue')) {
 
     public function set($result, CData $mutex): void
     {
-      \ts_ffi()->pthread_mutex_lock($mutex);
+      \ze_ffi()->tsrm_mutex_lock($mutex);
       $this->result = $result;
-      \ts_ffi()->pthread_mutex_unlock($mutex);
+      \ze_ffi()->tsrm_mutex_unlock($mutex);
     }
   }
 }

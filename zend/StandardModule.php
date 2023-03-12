@@ -156,7 +156,7 @@ if (!\class_exists('StandardModule')) {
 
         protected bool $restart_sapi = true;
 
-        protected bool $module_destructor_linked = false;
+        protected bool $destructor_linked = false;
 
         protected static $global_module;
 
@@ -171,7 +171,7 @@ if (!\class_exists('StandardModule')) {
 
         final public function destructor_set(): void
         {
-            $this->module_destructor_linked = true;
+            $this->destructor_linked = true;
         }
 
         final public function is_sapi(): bool
@@ -215,7 +215,7 @@ if (!\class_exists('StandardModule')) {
                     $this->global_rsrc = null;
                 }
 
-                if (!$this->module_destructor_linked)
+                if (!$this->destructor_linked)
                     static::clear_module();
             }
         }

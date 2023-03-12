@@ -24,7 +24,7 @@ interface FFI
     public function pthread_exit(void_ptr &$value_ptr);
 
     /** @return int */
-    public function pthread_join(pthread_t $thread, ?void_ptr &$value_ptr);
+    public function pthread_join(pthread_t_ptr $thread, ?void_ptr &$value_ptr);
 
     /** @return pthread_t */
     public function pthread_self();

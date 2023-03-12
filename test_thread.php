@@ -2,6 +2,8 @@
 
 use FFI\CData;
 use ZE\Zval;
+use ZE\PThread;
+use ZE\Thread;
 
 require 'vendor/autoload.php';
 
@@ -41,43 +43,32 @@ function main()
         "Cypresses", "Starry Night", "Water Lilies"
     ];
 
-    $t = c_array_type('pthread_t', 'ts', MAX_THREADS);
-    $index = c_array_type('int', 'ts', MAX_THREADS);
     $status = 0;
-    $arrLen = 0;
-
     $arrLen = ffi_sizeof($arrPaintings) * \count($arrPaintings);
 
     srand(time());                  /* initialize random seed */
     for ($i = 0; $i < MAX_THREADS; $i++) {
-        $index()[$i] = rand() % $arrLen;     /* Generate a random number less than arrLen */
+        $index[$i] = rand() % $arrLen;     /* Generate a random number less than arrLen */
 
-        printf("[Array Index: %d] Starting the child thread..\n", $index()[$i]);
+        printf("[Array Index: %d] Starting the child thread..\n", $index[$i]);
 
-        $status = ts_ffi()->pthread_create(
-            $t->addr_of($i),
-            null,
-            function (CData $arg) {
-                echo '---> ';
-                $arrPaintings = [
-                    "The Last Supper", "Mona Lisa", "Potato Eaters",
-                    "Cypresses", "Starry Night", "Water Lilies"
-                ];
+        $pthread[$i] = \pthread_init();
+        $status = $pthread[$i]->create(function (int $index) {
+            $arrPaintings = [
+                "The Last Supper", "Mona Lisa", "Potato Eaters",
+                "Cypresses", "Starry Night", "Water Lilies"
+            ];
 
-                $index = ze_cast('int', $arg);
+            printf("\t[Array Index: %d] Going to sleep..\n", $index);
+            sleep(10);
+            printf(
+                "\t[Array Index: %d] Woke up. Painting: %s\n",
+                $index,
+                $arrPaintings[$index]
+            );
 
-                printf("\t[Array Index: %d] Going to sleep..\n", $index);
-                sleep(10);
-                printf(
-                    "\t[Array Index: %d] Woke up. Painting: %s\n",
-                    $index,
-                    $arrPaintings[$index]
-                );
-
-                return 0;
-            },
-            $index->void_of($i)
-        );
+            return 0;
+        }, $index[$i]);
 
         if ($status != 0) {
             fprintf(STDERR, "pthread_create() failed [status: %d]\n", $status);
@@ -86,12 +77,12 @@ function main()
     }
 
     for ($i = 0; $i < MAX_THREADS; $i++) {
-        printf("[Array Index: %d] Waiting for the child thread..\n", $index()[$i]);
-        $status = ts_ffi()->pthread_join($t()[$i], NULL);
+        printf("[Array Index: %d] Waiting for the child thread..\n", $index[$i]);
+        $status = $pthread[$i]->join();
         if ($status != 0) {
             fprintf(STDERR, "pthread_join() failed [status: %d]\n", $status);
         }
-        printf("[Array Index: %d] Child thread is done\n", $index()[$i]);
+        printf("[Array Index: %d] Child thread is done\n", $index[$i]);
     }
 }
 

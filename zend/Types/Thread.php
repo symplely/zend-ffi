@@ -15,13 +15,30 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
         /** @var \CStruct|CData|CData|\TValue|<> */
         private ?\SplQueue $worker = null;
 
+        private ?PThread $pthread = null;
+
         /** @var \MUTEX_T */
         private ?CData $worker_mutex = null;
 
         /** @var \zend_thread_t */
         private ?\CStruct $thread = null;
 
-        private ?\ThreadsModule $manager = null;
+        private ?\ThreadsModule $module = null;
+
+        final public function set_contexts(CData $new, CData $old): void
+        {
+            $this->pthread->set_contexts($new, $old);
+        }
+
+        final public function get_contexts(): array
+        {
+            return $this->pthread->get_contexts();
+        }
+
+        final public function get_module(): ?\ThreadsModule
+        {
+            return $this->module;
+        }
 
         final public function add(callable $routine, ...$arguments)
         {
@@ -86,22 +103,25 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
 
         public function __destruct()
         {
-            if (!$this->empty())
-                $this->join();
+            while (!$this->empty())
+                $this->execute();
 
             unset($this->worker);
             $this->worker = null;
+            $this->worker_id = null;
             \ze_ffi()->tsrm_mutex_free($this->worker_mutex);
             $this->worker_mutex = null;
             \ffi_free_if($this->server_context);
 
             $this->thread = null;
-            $this->manager = null;
+            $this->pthread = null;
+            $this->module = null;
         }
 
-        public function __construct(\ThreadsModule $module)
+        public function __construct(\ThreadsModule $module, PThread $instance)
         {
-            $this->manager = $module;
+            $this->module = $module;
+            $this->pthread = $instance;
             $this->worker_mutex = \ze_ffi()->tsrm_mutex_alloc();
             $this->worker = new \SplQueue();
             $this->thread = \c_typedef('zend_threads_t');
@@ -151,16 +171,48 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
             return $this->worker->isEmpty();
         }
 
-        public function join()
-        {
-        }
-
         public function wait()
         {
+            return \ZE::SUCCESS;
+            /*int32_t changed = FAILURE;
+    int      rc      = SUCCESS;
+
+    if (pthread_mutex_lock(&monitor->mutex) != SUCCESS) {
+        return FAILURE;
+    }
+
+    while (!(changed = (monitor->state & state))) {
+
+        if ((rc = pthread_cond_wait(
+                &monitor->condition, &monitor->mutex)) != SUCCESS) {
+            pthread_mutex_unlock(&monitor->mutex);
+
+            return FAILURE;
+        }
+    }
+
+    monitor->state ^= changed;
+
+    if (pthread_mutex_unlock(&monitor->mutex) != SUCCESS) {
+        return FAILURE;
+    }
+
+    return changed;*/
         }
 
         public function start()
         {
+            $status = $this->pthread->create_ex($this);
+
+            return $this->pthread->join();
+            /*pthread_mutex_lock(&monitor->mutex);
+
+    monitor->state |= state;
+
+    pthread_cond_signal(
+        &monitor->condition);
+
+    pthread_mutex_unlock(&monitor->mutex);*/
         }
     }
 }
