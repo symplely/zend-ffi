@@ -46,14 +46,16 @@ var_dump($cs->isNull());
 $cc = c_int_type('int', 'ze', 100);
 var_dump($cc->value());
 $cc->free();
-$ct = c_array_type('zend_property_info_list', 'ze', 3, false);
-var_dump($ct);
 
 $commands = ffi_char_variadic('php', 'test.php', '2');
 var_dump($commands);
 var_dump(ffi_string($commands[0]));
 var_dump(ffi_string($commands[1]));
 var_dump(ffi_string($commands[2]));
+
+$ct = c_array_type('zend_property_info_list', 'ze', 3, false);
+var_dump($ct);
+
 
 --EXPECTF--
 Original - 5208
@@ -126,10 +128,6 @@ bool(false)
 NULL
 bool(true)
 int(100)
-object(CStruct)#%d (1) {
-  ["type"]=>
-  string(21) "struct <anonymous>[3]"
-}
 object(FFI\CData:char**)#%d (1) {
   [0]=>
   object(FFI\CData:char*)#%d (1) {
@@ -140,3 +138,7 @@ object(FFI\CData:char**)#%d (1) {
 string(3) "php"
 string(8) "test.php"
 string(1) "2"
+object(CStruct)#%d (1) {
+  ["type"]=>
+  string(21) "struct <anonymous>[3]"
+}
