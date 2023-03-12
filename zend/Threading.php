@@ -119,7 +119,19 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
     }
 
     function thread_startup(Thread $runtime): Thread
-    {
+    {/*
+        $tsrm_ls = \ze_ffi()->tsrm_new_interpreter_context();
+        $old = \ze_ffi()->tsrm_set_interpreter_context($tsrm_ls);
+        $runtime->set_contexts($tsrm_ls, $old);
+
+        \zend_pg('expose_php', 0);
+        \zend_pg('auto_globals_jit', 0);
+
+        \ze_ffi()->php_request_startup();
+
+        \zend_eg('current_execute_data', NULL);
+        \zend_eg('current_module', $runtime->get_module()());
+        */
         \ze_ffi()->ts_resource_ex(0, null);
 
         \tsrmls_cache_update();
@@ -148,7 +160,13 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
     }
 
     function thread_shutdown(Thread $runtime)
-    {
+    {/*
+        [$tsrm_ls, $old] = $runtime->get_contexts();
+
+        \ze_ffi()->php_request_shutdown(NULL);
+        \ze_ffi()->tsrm_set_interpreter_context($old);
+        \ze_ffi()->tsrm_free_interpreter_context($tsrm_ls);
+        */
         \ze_ffi()->php_output_shutdown();
 
         \standard_deactivate($runtime->get_module());
@@ -156,41 +174,5 @@ if (\PHP_ZTS && !\function_exists('pthread_init')) {
         \ze_ffi()->ts_free_thread();
 
         \ts_ffi()->pthread_exit(\ffi_null());
-    }
-
-    function thread_func(CData $arg)
-    {
-        if (!\function_exists('zend_preloader'))
-            include_once 'preload.php';
-
-        /** @var Thread|PThread */
-        $thread = \thread_startup(\zval_native_cast('zval*', $arg));
-
-        if (!$thread instanceof PThread) {
-            $status = $thread->wait();
-            while ($status === \ZE::SUCCESS && !$thread->empty()) {
-                $thread->execute();
-            }
-        } else {
-            $thread->execute();
-        }
-
-        $exception = \zend_eg('exception');
-        if (\is_cdata($exception))
-            \ze_ffi()->zend_exception_error($exception, \E_ERROR);
-
-        \thread_shutdown($thread);
-
-        return NULL;
-    }
-
-    /* Wait until all jobs have finished */
-    function thread_wait(Thread $pool)
-    {
-        //  pthread_mutex_lock($thpool_p->thcount_lock);
-        // while ($thpool_p->jobqueue->len || $thpool_p->num_threads_working) {
-        //       pthread_cond_wait($thpool_p->threads_all_idle, $thpool_p->thcount_lock);
-        //   }
-        //    pthread_mutex_unlock($thpool_p->thcount_lock);
     }
 }

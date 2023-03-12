@@ -19,6 +19,19 @@ if (\PHP_ZTS && !\class_exists('PThread')) {
         private ?\ThreadsModule $module = null;
         private array $fcall_info = [];
 
+        /** @var array[CData,CData] */
+        private array $interpreter_context = [];
+
+        public function set_contexts(CData $new, CData $old): void
+        {
+            $this->interpreter_context = [$new, $old];
+        }
+
+        public function get_contexts(): array
+        {
+            return $this->interpreter_context;
+        }
+
         public function get_module(): ?\ThreadsModule
         {
             return $this->module;
@@ -75,10 +88,15 @@ if (\PHP_ZTS && !\class_exists('PThread')) {
                 if ($thread instanceof PThread) {
                     $thread->execute();
                 } else {
-                    $status = $thread->wait();
-                    while ($status === \ZE::SUCCESS && !$thread->empty()) {
-                        $thread->execute();
-                    }
+                    do {
+                        $status = $thread->wait();
+                        if ($status !== \ZE::SUCCESS)
+                            break;
+
+                        while (!$thread->empty()) {
+                            $thread->execute();
+                        }
+                    } while (true);
                 }
 
                 $exception = \zend_eg('exception');
@@ -136,6 +154,17 @@ if (\PHP_ZTS && !\class_exists('PThread')) {
         {
             $this->add($routine, ...$args);
             $this->set_args($this);
+            return \ts_ffi()->pthread_create(
+                $this->get_ptr(),
+                null,
+                $this->get_func(),
+                $this->get_args()
+            );
+        }
+
+        public function create_ex($params)
+        {
+            $this->set_args($params);
             return \ts_ffi()->pthread_create(
                 $this->get_ptr(),
                 null,

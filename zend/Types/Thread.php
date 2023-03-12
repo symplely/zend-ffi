@@ -25,6 +25,16 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
 
         private ?\ThreadsModule $module = null;
 
+        final public function set_contexts(CData $new, CData $old): void
+        {
+            $this->pthread->set_contexts($new, $old);
+        }
+
+        final public function get_contexts(): array
+        {
+            return $this->pthread->get_contexts();
+        }
+
         final public function get_module(): ?\ThreadsModule
         {
             return $this->module;
@@ -93,8 +103,8 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
 
         public function __destruct()
         {
-            if (!$this->empty())
-                $this->join();
+            while (!$this->empty())
+                $this->execute();
 
             unset($this->worker);
             $this->worker = null;
@@ -104,6 +114,7 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
             \ffi_free_if($this->server_context);
 
             $this->thread = null;
+            $this->pthread = null;
             $this->module = null;
         }
 
@@ -160,37 +171,6 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
             return $this->worker->isEmpty();
         }
 
-        public function join()
-        {
-            return \ts_ffi()->pthread_join($this->pthread->get_ptr(), NULL);/*
-            php_parallel_monitor_lock(runtime->monitor);
-
-            if (php_parallel_monitor_check(runtime->monitor, PHP_PARALLEL_CLOSED)) {
-                php_parallel_exception_ex(
-                    php_parallel_runtime_error_closed_ce,
-                    "Runtime closed"
-                );
-                php_parallel_monitor_unlock(runtime->monitor);
-                return;
-            }
-
-            if (kill) {
-                php_parallel_monitor_set(runtime->monitor, PHP_PARALLEL_KILLED);
-
-                zend_atomic_bool_store(runtime->child . interrupt, true);
-            } else {
-                php_parallel_monitor_set(runtime->monitor, PHP_PARALLEL_CLOSE);
-            }
-
-            php_parallel_monitor_wait_locked(runtime->monitor, PHP_PARALLEL_DONE);
-
-            php_parallel_monitor_unlock(runtime->monitor);
-
-            php_parallel_monitor_set(runtime->monitor, PHP_PARALLEL_CLOSED);
-
-            pthread_join(runtime->thread, NULL);*/
-        }
-
         public function wait()
         {
             return \ZE::SUCCESS;
@@ -222,6 +202,9 @@ if (\PHP_ZTS && !\class_exists('Thread')) {
 
         public function start()
         {
+            $status = $this->pthread->create_ex($this);
+
+            return $this->pthread->join();
             /*pthread_mutex_lock(&monitor->mutex);
 
     monitor->state |= state;
