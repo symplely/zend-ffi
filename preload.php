@@ -231,7 +231,7 @@ if (!\function_exists('setup_ffi_loader')) {
   }
 
   /**
-   * Convert PHP array of `string` to `char**` _string_.
+   * Convert PHP array of `string` to `char**` _C string_.
    *
    * @param string $string
    * @return CData __char**__
@@ -246,7 +246,29 @@ if (!\function_exists('setup_ffi_loader')) {
     }
     $string_args[$n] = NULL;
 
-    return \ze_cast('char**', $string_args);
+    return \FFI::cast('char**', $string_args);
+  }
+
+  /**
+   * Convert PHP associate array to _environment_ `char**` _C string_.
+   *
+   * @param array $env
+   * @return CData __char**__
+   */
+  function ffi_char_assoc(array ...$items): CData
+  {
+    $i = 0;
+    $environment = \FFI::new('char*[' . (\count($items) + 1) . ']', false);
+    foreach ($items as $key => $value) {
+      $is = \is_array($value);
+      $key = $is ? \array_key_first($value) : $key;
+      $entry = \sprintf('%s=%s', $key, $is ? $value[$key] : $value);
+      $environment[$i] = \ffi_char($entry);
+      $i++;
+    }
+    $environment[$i] = NULL;
+
+    return \ze_cast('char**', $environment);
   }
 
   /**
