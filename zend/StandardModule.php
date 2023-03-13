@@ -329,6 +329,9 @@ if (!\class_exists('StandardModule')) {
                 $this->startup();
             }
 
+            if (\PHP_ZTS)
+                \tsrmls_cache_define();
+
             if (\PHP_ZTS && \is_null($this->module_mutex))
                 $this->module_mutex = \ze_ffi()->tsrm_mutex_alloc();
         }
