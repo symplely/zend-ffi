@@ -257,16 +257,20 @@ if (!\function_exists('setup_ffi_loader')) {
    */
   function ffi_char_assoc(array ...$items): CData
   {
-    $i = 0;
-    $environment = \FFI::new('char*[' . (\count($items) + 1) . ']', false);
-    foreach ($items as $key => $value) {
-      $is = \is_array($value);
-      $key = $is ? \array_key_first($value) : $key;
-      $entry = \sprintf('%s=%s', $key, $is ? $value[$key] : $value);
-      $environment[$i] = \ffi_char($entry);
-      $i++;
+    try {
+      $i = 0;
+      $environment = \FFI::new('char*[' . (\count($items) + 1) . ']', false);
+      foreach ($items as $key => $value) {
+        $is = \is_array($value);
+        $key = $is ? \array_key_first($value) : $key;
+        $entry = \sprintf('%s=%s', $key, $is ? @\array_values($value)[0] : $value);
+        $environment[$i] = \ffi_char($entry);
+        $i++;
+      }
+      $environment[$i] = NULL;
+    } catch (\Throwable $e) {
+      $environment = \ffi_null();
     }
-    $environment[$i] = NULL;
 
     return \ze_cast('char**', $environment);
   }
@@ -821,7 +825,6 @@ if (!\function_exists('setup_ffi_loader')) {
           }
 
           \setup_ffi_loader('ts', $header);
-          \tsrmls_cache_define();
         }
       }
     }
