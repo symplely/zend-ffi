@@ -255,24 +255,24 @@ if (!\function_exists('setup_ffi_loader')) {
    * @param array $env
    * @return CData __char**__
    */
-  function ffi_char_assoc(array ...$items): CData
+  function ffi_char_assoc(array ...$items): ?CData
   {
-    try {
+    if (@\count(@\reset($items)) > 0) {
       $i = 0;
       $environment = \FFI::new('char*[' . (\count($items) + 1) . ']', false);
       foreach ($items as $key => $value) {
         $is = \is_array($value);
         $key = $is ? \array_key_first($value) : $key;
-        $entry = \sprintf('%s=%s', $key, $is ? @\array_values($value)[0] : $value);
+        $entry = \sprintf('%s=%s', $key, $is ? $value[$key] : $value);
         $environment[$i] = \ffi_char($entry);
         $i++;
       }
       $environment[$i] = NULL;
-    } catch (\Throwable $e) {
-      $environment = \ffi_null();
+
+      return \ze_cast('char**', $environment);
     }
 
-    return \ze_cast('char**', $environment);
+    return null;
   }
 
   /**
