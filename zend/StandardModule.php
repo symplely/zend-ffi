@@ -329,9 +329,6 @@ if (!\class_exists('StandardModule')) {
                 $this->startup();
             }
 
-            if (\PHP_ZTS)
-                \tsrmls_cache_define();
-
             if (\PHP_ZTS && \is_null($this->module_mutex))
                 $this->module_mutex = \ze_ffi()->tsrm_mutex_alloc();
         }
@@ -460,6 +457,7 @@ if (!\class_exists('StandardModule')) {
             $globalType = $this->global_type();
             if (!\is_null($globalType)) {
                 if (\PHP_ZTS) {
+                    \tsrmls_cache_define();
                     \tsrmls_activate();
                     $id = \ze_ffi()->tsrm_thread_id();
                     $this->global_rsrc[$id] = $this->ffi()->new('ts_rsrc_id', false, $this->target_persistent);
