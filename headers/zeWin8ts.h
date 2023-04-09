@@ -2476,9 +2476,6 @@ extern zend_string *(*zend_resolve_path)(const char *filename, size_t filename_l
 extern int (*zend_post_startup_cb)(void);
 extern void (*zend_post_shutdown_cb)(void);
 
-/* Callback for loading of not preloaded part of the script */
-extern int (*zend_preload_autoload)(zend_string *filename);
-
 extern void (*zend_execute_ex)(zend_execute_data *execute_data);
 extern void (*zend_execute_internal)(zend_execute_data *execute_data, zval *return_value);
 
