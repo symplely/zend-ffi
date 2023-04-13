@@ -579,9 +579,9 @@ if (!\class_exists('StandardModule')) {
             }
 
             if ($this->r_shutdown)
-                \register_shutdown_function(
-                    \closure_from($this, 'module_destructor')
-                );
+                \register_shutdown_function(function () {
+                    \register_shutdown_function(\closure_from($this, 'module_destructor'));
+                });
 
 
             if ($this->restart_sapi) {
