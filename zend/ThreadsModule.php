@@ -116,9 +116,9 @@ if (\PHP_ZTS && !\class_exists('ThreadsModule')) {
             }
 
             if ($this->r_shutdown)
-                \register_shutdown_function(
-                    \closure_from($this, 'module_destructor')
-                );
+                \register_shutdown_function(function () {
+                    \register_shutdown_function(\closure_from($this, 'module_destructor'));
+                });
 
             $result = \IS_PHP82
                 ? \ze_ffi()->php_module_startup(\FFI::addr(\ze_ffi()->sapi_module), null)
