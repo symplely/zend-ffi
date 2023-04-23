@@ -2,7 +2,6 @@ name: Windows PThreads & mmap
 
 on:
   workflow_dispatch:
-    branches: [ main ]
     inputs:
       version:
         description: 'What version of PThreads to compile and commit to repo?'
